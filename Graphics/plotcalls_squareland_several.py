@@ -48,3 +48,4 @@ PE3_avg=precip3_avg*86400-net_lhe3_avg/28.
 
 plotting_routines.squareland_plot_several(-90.,90.,PE1_avg,'P-E avg 1',PE2_avg,'P-E avg 2',PE3_avg,'P-E avg 3','mm/day','P-E avg','rainnorm')
 
+# just trying something for git
