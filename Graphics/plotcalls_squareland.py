@@ -25,7 +25,12 @@ lons=landfile.variables['lon'][:]
 plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,runmax,1.,'true')
 plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'precipitation',1,runmax,86400,'true')
 plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'flux_lhe',1,runmax,1./28.,'true')
-plotting_routines_kav7.globavg_severalvars_timeseries_landonly(testdir,'precipitation',86400,'flux_lhe',1./28.,'rh',1.,39,1,runmax,'true')
+plotting_routines_kav7.tropics_severalvars_timeseries_landonly(testdir,'precipitation',86400,'flux_lhe',1./28.,'rh',1.,39,1,runmax,'true')
+plotting_routines_kav7.tropics_severalvars_timeseries_oceanonly(testdir,'precipitation',86400,'flux_lhe',1./28.,'rh',1.,39,1,runmax,'true')
+#plotting_routines_kav7.tropics_severalvars_timeseries_landonly(testdir,'precipitation',86400,'flux_lhe',1./28.,'bucket_depth',1.,0,1,runmax,'true')
+plotting_routines_kav7.tropics_severalvars_timeseries_landonly(testdir,'precipitation',86400,'flux_lhe',1./28.,'t_surf',1.,0,1,runmax,'true')
+plotting_routines_kav7.tropics_severalvars_timeseries_oceanonly(testdir,'precipitation',86400,'flux_lhe',1./28.,'t_surf',1.,0,1,runmax,'true')
+
 
 [tsurf,tsurf_avg,tsurf_seasonal_avg,tsurf_month_avg,time]=plotting_routines.seasonal_surface_variable(testdir,runmin,runmax,'t_surf','K')
 
@@ -43,6 +48,7 @@ plotting_routines_kav7.squareland_plot(-90.,90.,precipitation_avg*86400,'mm/day'
 plotting_routines_kav7.squareland_plot_minuszonavg(-90.,90.,precipitation_avg*86400,'mm/day','P avg minus zonavg','rainnorm','P avg')
 plotting_routines_kav7.squareland_plot(-90.,90.,net_lhe_avg/28.,'mm/day','E avg','rainnorm')
 plotting_routines_kav7.squareland_plot_minuszonavg(-90.,90.,precipitation_avg.where(landmask==1.)*86400,'mm/day','P avg minus zonavg','rainnorm','P avg')
+plotting_routines_kav7.squareland_plot(-90.,90.,PE_avg.where(landmask==1.)*86400,'mm/day','P-E avg','rainnorm')
 
 land_temp_global=tsurf_avg.where(landmask==1.).mean()
 ocean_temp_global=tsurf_avg.where(landmask==0.).mean()

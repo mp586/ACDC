@@ -9,6 +9,7 @@ import os
 import sys
 sys.path.insert(0, '/scratch/mp586/Code/PYCODES')
 import plotting_routines
+import plotting_routines_kav7
 import stats as st
 
 testdir=input('Enter data directory name as string ')
@@ -20,6 +21,14 @@ landmask=landfile.variables['land_mask'][:]
 lats=landfile.variables['lat'][:] # latlon for landmask
 lons=landfile.variables['lon'][:]
 
+
+plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,runmax,1.,'false')
+plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'precipitation',1,runmax,86400,'false')
+plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'flux_lhe',1,runmax,1./28.,'false')
+
+plotting_routines_kav7.tropics_severalvars_timeseries_oceanonly(testdir,'precipitation',86400,'flux_lhe',1./28.,'rh',1.,39,1,runmax,'false')
+plotting_routines_kav7.tropics_severalvars_timeseries_landonly(testdir,'precipitation',86400,'flux_lhe',1./28.,'rh',1.,39,1,runmax,'false')
+
 [tsurf,tsurf_avg,tsurf_seasonal_avg,tsurf_month_avg,time]=plotting_routines.seasonal_surface_variable(testdir,runmin,runmax,'t_surf','K')
 [precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=plotting_routines.seasonal_surface_variable(testdir,runmin,runmax,'precipitation','kg/m2s')
 [net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=plotting_routines.seasonal_surface_variable(testdir,runmin,runmax,'flux_lhe','W/m^2') # latent heat flux at surface (UP)
@@ -27,8 +36,6 @@ lons=landfile.variables['lon'][:]
 
 PE_avg=precipitation_avg*86400-net_lhe_avg/28. # 28.=conversion from W/m^2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
 # see www.ce.utexas.edu/prof/maidment/CE374KSpr12/.../Latent%20heat%20flux.pptx @30DegC
-
-plotting_routines.globavg_var_timeseries(testdir,'t_surf',1,runmax)
 
 
 land_temp_global=tsurf_avg.where(landmask==1.).mean()
