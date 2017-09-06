@@ -26,8 +26,8 @@ plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,
 plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'precipitation',1,runmax,86400,'false')
 plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'flux_lhe',1,runmax,1./28.,'false')
 
-plotting_routines_kav7.tropics_severalvars_timeseries_oceanonly(testdir,'precipitation',86400,'flux_lhe',1./28.,'rh',1.,39,1,runmax,'false')
-plotting_routines_kav7.tropics_severalvars_timeseries_landonly(testdir,'precipitation',86400,'flux_lhe',1./28.,'rh',1.,39,1,runmax,'false')
+#plotting_routines_kav7.tropics_severalvars_timeseries_oceanonly(testdir,'precipitation',86400,'flux_lhe',1./28.,'rh',1.,39,1,runmax,'false')
+#plotting_routines_kav7.tropics_severalvars_timeseries_landonly(testdir,'precipitation',86400,'flux_lhe',1./28.,'rh',1.,39,1,runmax,'false')
 
 [tsurf,tsurf_avg,tsurf_seasonal_avg,tsurf_month_avg,time]=plotting_routines.seasonal_surface_variable(testdir,runmin,runmax,'t_surf','K')
 [precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=plotting_routines.seasonal_surface_variable(testdir,runmin,runmax,'precipitation','kg/m2s')
@@ -83,11 +83,11 @@ ocean_precip_JJA=precipitation_seasonal_avg.sel(season=JJA,lat=slice(minlat,maxl
 land_temp_JJA=tsurf_seasonal_avg.sel(season=JJA,lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==1.) # .where does not recognize xarray as argument!
 ocean_temp_JJA=tsurf_seasonal_avg.sel(season=JJA,lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==0.) # .where does not recognize xarray as argument!
 
-plotting_routines.several_vars_zonalavg2(tsurf_seasonal_avg.sel(season=JJA),'tsurf (K)',precipitation_seasonal_avg.sel(season=JJA)*86400,'P (mm/day)',net_lhe_seasonal_avg.sel(season=JJA)/28.,'E (mm/day)','JJA tsurf, P and E') # 28.=conversion from W/m^2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
-plotting_routines.several_vars_zonalavg2(tsurf_seasonal_avg.sel(season=DJF),'tsurf (K)',precipitation_seasonal_avg.sel(season=DJF)*86400,'P (mm/day)',net_lhe_seasonal_avg.sel(season=DJF)/28.,'E (mm/day)','DJF tsurf, P and E')
-plotting_routines.several_vars_zonalavg2(tsurf_avg,'tsurf (K)',precipitation_avg*86400,'P (mm/day)',net_lhe_avg/28.,'E (mm/day)','avg tsurf, P and E')
-plotting_routines.several_vars_zonalavg2(tsurf_avg.where(landmask==1.),'tsurf (K)',precipitation_avg.where(landmask==1.)*86400,'P (mm/day)',net_lhe_avg.where(landmask==1.)/28.,'E (mm/day)','land only: avg tsurf, P and E')
-plotting_routines.several_vars_zonalavg2(tsurf_avg.where(landmask==0.),'tsurf (K)',precipitation_avg.where(landmask==0.)*86400,'P (mm/day)',net_lhe_avg.where(landmask==0.)/28.,'E (mm/day)','ocean only: avg tsurf, P and E')
+plotting_routines_kav7.several_vars_zonalavg2(tsurf_seasonal_avg.sel(season=JJA),'tsurf (K)','r',precipitation_seasonal_avg.sel(season=JJA)*86400,'P (mm/day)','b',net_lhe_seasonal_avg.sel(season=JJA)/28.,'E (mm/day)','Orange','JJA tsurf, P and E') # 28.=conversion from W/m^2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
+#plotting_routines.several_vars_zonalavg2(tsurf_seasonal_avg.sel(season=DJF),'tsurf (K)',precipitation_seasonal_avg.sel(season=DJF)*86400,'P (mm/day)',net_lhe_seasonal_avg.sel(season=DJF)/28.,'E (mm/day)','DJF tsurf, P and E')
+plotting_routines_kav7.several_vars_zonalavg2(tsurf_avg,'tsurf (K)','r',precipitation_avg*86400,'P (mm/day)','b',net_lhe_avg/28.,'E (mm/day)','Orange','avg tsurf, P and E')
+#plotting_routines.several_vars_zonalavg2(tsurf_avg.where(landmask==1.),'tsurf (K)',precipitation_avg.where(landmask==1.)*86400,'P (mm/day)',net_lhe_avg.where(landmask==1.)/28.,'E (mm/day)','land only: avg tsurf, P and E')
+#plotting_routines.several_vars_zonalavg2(tsurf_avg.where(landmask==0.),'tsurf (K)',precipitation_avg.where(landmask==0.)*86400,'P (mm/day)',net_lhe_avg.where(landmask==0.)/28.,'E (mm/day)','ocean only: avg tsurf, P and E')
 
 
 [r1,pval1]=st.pattern_corr_2d(np.nan_to_num(tsurf_avg.where(landmask==0.)),np.nan_to_num(precipitation_avg.where(landmask==0.))) # correlation can not deal with nans
@@ -113,12 +113,12 @@ print('Spatial correlation between tsurf_JJA and P_JJA ocean ('+str(minlat)+'N t
 minval=input('Enter minimum value for P-E ')
 maxval=input('Enter maximum value for P-E ')
 
-plotting_routines.worldmap_variable(precipitation_avg*86400 - net_lhe_avg/28.,'mm/day','P-E_avg (mm/day)','rainnorm',minval,maxval)
-plotting_routines.worldmap_variable(tsurf_avg,'K','tsurf_avg (K)','temp',0,0)
-plotting_routines.worldmap_variable(precipitation_month_avg.sel(month=7)*86400,'mm/day','P_July (mm/day)','raindefault',0.,10.)
-plotting_routines.worldmap_variable(precipitation_month_avg.sel(month=1)*86400,'mm/day','P_January (mm/day)','raindefault',0.,10.)
-plotting_routines.worldmap_variable(tsurf_month_avg.sel(month=7),'K','tsurf_July (K)','temp',0,0)
-plotting_routines.worldmap_variable(tsurf_month_avg.sel(month=1),'K','tsurf_January (K)','temp',0,0)
+plotting_routines_kav7.worldmap_variable(precipitation_avg*86400 - net_lhe_avg/28.,'mm/day','P-E_avg (mm/day)','rainnorm',minval,maxval)
+plotting_routines_kav7.worldmap_variable(tsurf_avg,'K','tsurf_avg (K)','temp',0,0)
+plotting_routines_kav7.worldmap_variable(precipitation_month_avg.sel(month=7)*86400,'mm/day','P_July (mm/day)','fromwhite',0.,15.)
+plotting_routines_kav7.worldmap_variable(precipitation_month_avg.sel(month=1)*86400,'mm/day','P_January (mm/day)','fromwhite',0.,15.)
+plotting_routines_kav7.worldmap_variable(tsurf_month_avg.sel(month=7),'K','tsurf_July (K)','temp',0,0)
+plotting_routines_kav7.worldmap_variable(tsurf_month_avg.sel(month=1),'K','tsurf_January (K)','temp',0,0)
 
 print('JJA tsurf_avg (global) = '+str(tsurf_seasonal_avg.sel(season=JJA).mean()))
 print('DJF tsurf_avg (global) = '+str(tsurf_seasonal_avg.sel(season=DJF).mean()))

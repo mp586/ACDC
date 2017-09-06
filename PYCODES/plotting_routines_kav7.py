@@ -7,7 +7,7 @@ import pandas as pd
 import os
 import matplotlib.colors as colors
 import sys
-sys.path.insert(0, '/scratch/mp586/PYCODES') # personal module
+sys.path.insert(0, '/scratch/mp586/Code/PYCODES') # personal module
 import stats as st
 from scipy import signal
 
@@ -58,7 +58,7 @@ def globavg_var_timeseries(testdir,varname,runmin,runmax):
     plt.show()    
     return(timeseries)
 
-def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,varname2,factor2,varname3,factor3,height3,runmin,runmax,squareland):
+def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,color1,varname2,factor2,color2,varname3,factor3,color3,height3,runmin,runmax,squareland):
 
 # for squareland this is naturally only for tropics 
 # for continents -- selected latitude slice
@@ -161,7 +161,7 @@ def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,varname2,fa
     axes[-1].patch.set_visible(False)
 
 # And finally we get to plot things...
-    colors = ('Green', 'Red', 'Blue')
+    colors = (color1, color2, color3)
     field = (timeseries1,timeseries2,timeseries3)
     names = (varname1,varname2,varname3)
     i=0
@@ -181,7 +181,7 @@ def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,varname2,fa
     plt.title('Tropical Land Only')
     plt.show()
 
-def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,varname2,factor2,varname3,factor3,height3,runmin,runmax,squareland):
+def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,varname2,factor2,color2,varname3,factor3,color3,height3,runmin,runmax,squareland):
 
 
     if squareland == 'true': 
@@ -287,7 +287,7 @@ def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,varname2,f
     axes[-1].patch.set_visible(False)
 
 # And finally we get to plot things...
-    colors = ('Green', 'Red', 'Blue')
+    colors = (color1, color2, color3)
     field = (timeseries1,timeseries2,timeseries3)
     names = (varname1,varname2,varname3)
     i=0
@@ -405,7 +405,7 @@ def seasonal_surface_variable(testdir,runmin,runmax,varname,units): # only works
 
 #    zonavg_plot(var_seasonal_avg.sel(season=JJA),'zonal mean JJA '+varname,varname,units)
 
-    zonavg_plot(var_avg,'zonal mean avg '+varname,varname,units)   
+    #zonavg_plot(var_avg,'zonal mean avg '+varname,varname,units)   
     
     return(var,var_avg,var_seasonal_avg,var_month_avg,time)
 
@@ -441,7 +441,7 @@ def several_vars_zonalavg(field1,varname1,field2,varname2,field3,varname3): #fie
 
 # adapted from http://stackoverflow.com/questions/7733693/matplotlib-overlay-plots-with-different-scales
 # with 3 different y axes
-def several_vars_zonalavg2(field1,varname1,field2,varname2,field3,varname3,title):
+def several_vars_zonalavg2(field1,varname1,color1,field2,varname2,color2,field3,varname3,color3,title):
 
     field1=xr.DataArray(field1)
     field1_zonavg=field1.mean(dim='lon',keep_attrs=True)
@@ -467,7 +467,7 @@ def several_vars_zonalavg2(field1,varname1,field2,varname2,field3,varname3,title
     axes[-1].patch.set_visible(False)
 
 # And finally we get to plot things...
-    colors = ('Green', 'Red', 'Blue')
+    colors = (color1, color2, color3)
     field = (field1_zonavg,field2_zonavg,field3_zonavg)
     lats=field1['lat']
     names = (varname1,varname2,varname3)
@@ -563,6 +563,7 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
     array, lons_cyclic = addcyclic(array, lons)
     array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
     zonavg_thin = array.mean(dim='lon')
+    meravg_thin = array.mean(dim='lat')
 # Because our lon and lat variables are 1D, 
 # use meshgrid to create 2D arrays 
 # Not necessary if coordinates are already in 2D arrays.
@@ -576,12 +577,30 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
 
 #latlon=True --> wrap lons so that map can go from -180 to 180, otherwise there is nothing from -180 to 0
 
+
+    minval = np.absolute(array.min())
+    maxval = np.absolute(array.max())
+    
+    if maxval >= minval:
+	    minval = - maxval
+    else: 
+	    maxval = minval
+	    minval = - minval
+
+
     if palette=='rainnorm':
-        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG')
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG',vmin=minval, vmax=maxval)
     elif palette == 'raindefault':
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
     elif palette=='temp': 
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.seismic)
+    elif palette=='fromwhite': 
+	    pal = plt.cm.Blues
+	    pal.set_under('w',None)
+	    #Array = np.ma.masked_invalid(array) # np.ma.array(array,mask=np.isnan(array))
+	    #Array = xr.DataArray(Array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+	    cs = m.pcolormesh(xi,yi,array.sel(lat=selected_lats),cmap=pal,vmin=0,vmax=maxval)
+
     else:
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats))
 
@@ -669,6 +688,15 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
     ax2.yaxis.set_label_position('right')
     ax2.invert_xaxis()
     plt.show()
+
+    # for producing a meridional average plot
+    # plt.plot(meravg_thin,array['lon'])
+    # plt.ylabel('Longitude')
+    # plt.xlabel(title+' ('+units+')')
+    # ax2.yaxis.tick_right()
+    # ax2.yaxis.set_label_position('right')
+    # ax2.invert_xaxis()
+    # plt.show()
 
     plt.show()
     print(square_lons.min(),square_lons.max(),square_lats.min(),square_lats.max()+dlats)
@@ -1151,7 +1179,6 @@ def worldmap_inputfile(filename,varname): # assuming that the input file has the
     nc=Dataset(filename,mode='r')
 
     array=xr.DataArray(nc.variables[varname][:])
-
     lats=xr.DataArray(nc.variables['lat'][:])
     lons=xr.DataArray(nc.variables['lon'][:])
 
@@ -1169,7 +1196,7 @@ def worldmap_inputfile(filename,varname): # assuming that the input file has the
     m.drawcoastlines()
     m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
     m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
-    array = array.mean('dim_0')
+#    array = array.mean('dim_0')
     array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
 
     zonavg_thin = array.mean(dim='lon')
@@ -1208,46 +1235,64 @@ def worldmap_variable(field,units,title,palette,minval,maxval):
     lon_0 = lons.mean() # trick to find central lon lat (lon from 0 to 360)
     lat_0 = lats.mean() # ~= 0 because lat from -90 to 90
 
+    m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 
-
-    m = Basemap(projection='cyl',llcrnrlat=-90,urcrnrlat=90,\
-            llcrnrlon=0,urcrnrlon=360,resolution='c')
-    m.drawcoastlines()
-#m.fillcontinents(color='coral',lake_color='aqua')
+    field,lons = shiftgrid(np.max(lons)-180.,field,lons,start=False,cyclic=np.max(lons))
 # draw parallels and meridians.
-    m.drawparallels(np.arange(-90.,91.,30.))
-    m.drawmeridians(np.arange(0.,361.,60.))
-
+    field, lons_cyclic = addcyclic(field, lons)
+    field = xr.DataArray(field,coords=[lats,lons_cyclic],dims=['lat','lon'])
 
 # Because our lon and lat variables are 1D, 
 # use meshgrid to create 2D arrays 
 # Not necessary if coordinates are already in 2D arrays.
-    lon, lat = np.meshgrid(lons, lats)
+
+
+    lon, lat = np.meshgrid(lons_cyclic, lats)
     xi, yi = m(lon, lat)
 
 
+#     m = Basemap(projection='cyl',llcrnrlat=-90,urcrnrlat=90,\
+#             llcrnrlon=0,urcrnrlon=360,resolution='c')
+    m.drawcoastlines()
+# #m.fillcontinents(color='coral',lake_color='aqua')
+# # draw parallels and meridians.
+    m.drawparallels(np.arange(-90.,91.,30.))
+    m.drawmeridians(np.arange(0.,361.,60.))
+    m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+
+# # Because our lon and lat variables are 1D, 
+# # use meshgrid to create 2D arrays 
+# # Not necessary if coordinates are already in 2D arrays.
+#     lon, lat = np.meshgrid(lons, lats)
+#     xi, yi = m(lon, lat)
 
 
     if (minval==0) & (maxval==0):
 
 	    if palette=='rainnorm':
-		    cs = m.pcolor(xi,yi,field,norm=MidpointNormalize(midpoint=0.),cmap='BrBG', latlon=True)
+		    cs = m.pcolor(xi,yi,field,norm=MidpointNormalize(midpoint=0.),cmap='BrBG')
 	    elif palette == 'raindefault':
-		    cs = m.pcolor(xi,yi,field, cmap=plt.cm.BrBG,latlon=True)
+		    cs = m.pcolor(xi,yi,field, cmap=plt.cm.BrBG)
 	    elif palette=='temp': 
-		    cs = m.pcolor(xi,yi,field, cmap=plt.cm.seismic,latlon=True)
+		    cs = m.pcolor(xi,yi,field, cmap=plt.cm.seismic)
 	    else:
-		    cs = m.pcolor(xi,yi,field,latlon=True)
+		    cs = m.pcolor(xi,yi,field)
     else:
 
 	    if palette=='rainnorm':
-		    cs = m.pcolor(xi,yi,field,norm=MidpointNormalize(midpoint=0.),cmap='BrBG', vmin=minval, vmax=maxval, latlon=True)
+		    cs = m.pcolor(xi,yi,field,norm=MidpointNormalize(midpoint=0.),cmap='BrBG', vmin=minval, vmax=maxval)
 	    elif palette == 'raindefault':
-		    cs = m.pcolor(xi,yi,field, cmap=plt.cm.BrBG, vmin=minval, vmax=maxval, latlon=True)
+		    cs = m.pcolor(xi,yi,field, cmap=plt.cm.BrBG, vmin=minval, vmax=maxval)
 	    elif palette=='temp': 
-		    cs = m.pcolor(xi,yi,field, cmap=plt.cm.seismic, vmin=minval, vmax=maxval, latlon=True)
+		    cs = m.pcolor(xi,yi,field, cmap=plt.cm.seismic, vmin=minval, vmax=maxval)
+	    elif palette=='fromwhite':
+		    pal = plt.cm.Blues
+		    pal.set_under('w',None)
+		    cs = m.pcolormesh(xi,yi,field,cmap=pal,vmin=0,vmax=maxval)
+
 	    else:
-		    cs = m.pcolor(xi,yi,field, vmin=minval, vmax=maxval, latlon=True)
+		    cs = m.pcolor(xi,yi,field, vmin=minval, vmax=maxval)
 
     
 
@@ -1265,7 +1310,94 @@ def worldmap_variable(field,units,title,palette,minval,maxval):
     return(cs)
 
 
-def squareland_inputfile(filename,varname):
+def squareland_inputfile_4dvar(filename,varname):
+	
+	nc=Dataset(filename,mode='r')
+
+	array=xr.DataArray(nc.variables[varname][:])
+	array = array.sum(dim='dim=1').mean(dim='dim_0')
+	lats=xr.DataArray(nc.variables['lat'][:])
+	lons=xr.DataArray(nc.variables['lon'][:])
+
+	fig = plt.figure()
+	ax1 = plt.subplot2grid((3,7), (0,0), colspan = 5, rowspan = 3)
+
+
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+
+	array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+# draw parallels and meridians.
+
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+	array, lons_cyclic = addcyclic(array, lons)
+	array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+	zonavg_thin = array.mean(dim='lon')
+# Because our lon and lat variables are 1D, 
+# use meshgrid to create 2D arrays 
+# Not necessary if coordinates are already in 2D arrays.
+
+
+	lon, lat = np.meshgrid(lons_cyclic, lats)
+	xi, yi = m(lon, lat)
+
+	dlons = lons[100] - lons[99]
+	dlats = lats[60] - lats[59]
+
+      	cs = m.pcolor(xi,yi,array)
+# Add Colorbar
+	cbar = m.colorbar(cs, location='right', pad="10%")
+# sns.palplot(sns.color_palette("BrBG", 7))
+
+# Show landmask
+	landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+	landmask=landfile.variables['land_mask'][:]
+	landlats=landfile.variables['lat'][:]
+	landlons=landfile.variables['lon'][:]
+	
+#    m.contour(xi, yi, landmask, colors='k')
+
+	square_lons,square_lats=(xr.DataArray(np.meshgrid(landlons, landlats))).where(landmask==1.)
+	square_lons = square_lons + dlons
+
+# adjust square so that it optically fits eg evaporation    
+#    square_lons = square_lons + dlons
+#    square_lats = square_lats + dlats
+
+
+
+# Add rectangle
+# xs = [sq_minlon,sq_maxlon,sq_maxlon,sq_minlon,sq_minlon]
+# ys = [sq_minlat,sq_minlat,sq_maxlat,sq_maxlat,sq_minlat]
+    #xs=[square_lons.min(),square_lons.max(),square_lons.max(),square_lons.min(),square_lons.min()]
+    #ys=[square_lats.min(),square_lats.min(),square_lats.max()+dlats,square_lats.max()+dlats,square_lats.min()]
+    #m.plot(xs, ys)
+
+	m.drawgreatcircle(square_lons.min(), square_lats.min(), square_lons.min(), square_lats.max()+dlats, del_s=100., color='b')
+	m.drawgreatcircle(square_lons.max(), square_lats.min(), square_lons.max(), square_lats.max()+dlats, del_s=100., color='b')
+
+	lats = [square_lats.min(),square_lats.min()] 
+	lons = [square_lons.min(),square_lons.max()] 
+	x, y = m(lons, lats) 
+	m.plot(x, y, color='b') 
+
+	lats = [square_lats.max()+dlats,square_lats.max()+dlats] 
+	lons = [square_lons.min(),square_lons.max()] 
+	x, y = m(lons, lats) 
+	m.plot(x, y, color='b') 
+	plt.title(varname)	
+
+	ax2 = plt.subplot2grid((3,7), (0,6), rowspan = 3)
+	
+	plt.plot(zonavg_thin,array['lat'])
+	plt.ylabel('Latitude')
+	plt.xlabel(varname)
+	ax2.yaxis.tick_right()
+	ax2.yaxis.set_label_position('right')
+	ax2.invert_xaxis()
+	plt.show()
+
+def squareland_inputfile_3dvar(filename,varname):
 	
 	nc=Dataset(filename,mode='r')
 
@@ -1351,6 +1483,64 @@ def squareland_inputfile(filename,varname):
 	ax2.yaxis.set_label_position('right')
 	ax2.invert_xaxis()
 	plt.show()
+
+def aquaplanet_inputfile(filename,varname):
+	
+	nc=Dataset(filename,mode='r')
+
+	array=xr.DataArray(nc.variables[varname][:])
+	array = array.mean(dim='dim_0')
+	lats=xr.DataArray(nc.variables['lat'][:])
+	lons=xr.DataArray(nc.variables['lon'][:])
+
+	fig = plt.figure()
+	ax1 = plt.subplot2grid((3,7), (0,0), colspan = 5, rowspan = 3)
+
+
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+
+	array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+# draw parallels and meridians.
+
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+	array, lons_cyclic = addcyclic(array, lons)
+	array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+	zonavg_thin = array.mean(dim='lon')
+# Because our lon and lat variables are 1D, 
+# use meshgrid to create 2D arrays 
+# Not necessary if coordinates are already in 2D arrays.
+
+
+	lon, lat = np.meshgrid(lons_cyclic, lats)
+	xi, yi = m(lon, lat)
+
+	dlons = lons[100] - lons[99]
+	dlats = lats[60] - lats[59]
+
+      	cs = m.pcolor(xi,yi,array)
+# Add Colorbar
+	cbar = m.colorbar(cs, location='right', pad="10%")
+# sns.palplot(sns.color_palette("BrBG", 7))
+
+
+	plt.title(varname)	
+
+	ax2 = plt.subplot2grid((3,7), (0,6), rowspan = 3)
+	
+	plt.plot(zonavg_thin,array['lat'])
+	plt.ylabel('Latitude')
+	plt.xlabel(varname)
+	ax2.yaxis.tick_right()
+	ax2.yaxis.set_label_position('right')
+	ax2.invert_xaxis()
+	plt.show()
+
+
+
+
+
+
 
 def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
 
