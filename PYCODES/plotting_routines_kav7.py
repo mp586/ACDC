@@ -32,18 +32,24 @@ class MidpointNormalize(colors.Normalize):
 
 
 def globavg_var_timeseries(testdir,varname,runmin,runmax):
-    
-    for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
+#	""" Plots & returns time series of specified variable """
+# runmin = first month for timeseries
+# runmax = last month for timeseries
+# testdir = experiment directorz name in GFDL_DATA
+# varname = variable name, e.g. 't_surf'
+
+    for i in range (runmin,runmax): # excludes last one!
         runnr="{0:03}".format(i)
         filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
-        
         var=nc.variables[varname][:]
-        
+        if len(np.shape(var))==4: 
+		var=(xr.DataArray(var)).sum(dim='dim_1')
+    
         if i==runmin:
             timeseries=[var.mean()] # make timeseries be a list, not a float so that I can append later
             print(type(timeseries))
-        else:
+	else:
             timeseries.append(var.mean())
 
     timeseries=np.asarray(timeseries)
@@ -58,9 +64,15 @@ def globavg_var_timeseries(testdir,varname,runmin,runmax):
     return(timeseries)
 
 def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,color1,varname2,factor2,color2,varname3,factor3,color3,height3,runmin,runmax,squareland):
+#
+#	""" Plots timeseries of three variables over tropical land.
+	# Using three different axes.  
+	# The colors are chosen at input for each variable
+	# Variable 3 can be at a specified height. If var3 is 3D, set height3 to 0 """
 
-# for squareland this is naturally only for tropics 
-# for continents -- selected latitude slice
+# for squareland = True this is naturally only for tropics (-30. - 30.)
+# for continents (i.e. squareland == False) -- selected latitude slice: hard coded -30. to 30. 
+# factor is needed to convert eg precip from kg/s to mm/day 
 
     if squareland == 'true': 
 	    print('Squareland mode')
@@ -177,6 +189,13 @@ def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,color1,varn
 
 def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,varname2,factor2,color2,varname3,factor3,color3,height3,runmin,runmax,squareland):
 
+	# """ Plots timeseries of three variables over tropical ocean.
+	# Using three different axes.  
+	# The colors are chosen at input for each variable
+	# Variable 3 can be at a specified height. If var3 is 3D, set height3 to 0 """
+
+# lat slice hard coded to -30. - 30. 
+# factor is needed to convert eg precip from kg/s to mm/day 
 
     if squareland == 'true': 
 	    print('Squareland mode')
@@ -302,6 +321,9 @@ def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,var
 
 def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,squareland):
     
+#	""" Plots and returns timeseries of global average for specified variable """
+# factor is needed to convert eg precip from kg/s to mm/day 
+
     if squareland == 'true': 
 	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
 	    landmask=landfile.variables['land_mask'][:]
@@ -372,14 +394,32 @@ def seasonal_surface_variable(testdir,runmin,runmax,varname,units): # only works
     var_seasonal_avg=var.groupby('time.season').mean('time') 
     var_month_avg=var.groupby('time.month').mean('time')
 
-    JJA='JJA'
-    DJF='DJF'
-    MAM='MAM'
-    SON='SON'
-#     #does not work if I write .....sel(season='JJA') because the resulting array has the dimensions (1,nrlats,nrlons), but if I select indirectly using the above definitions, it works!
-
     return(var,var_avg,var_seasonal_avg,var_month_avg,time)
 
+def seasonal_4D_variable(testdir,runmin,runmax,varname,units): 
+
+    for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
+        runnr="{0:03}".format(i)
+        filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
+        nc = Dataset(filename,mode='r')
+              
+        if i==runmin:
+            var=xr.DataArray(nc.variables[varname][:]) # only monthly avg for month i
+        else:
+            var_i=xr.DataArray(nc.variables[varname][:])
+            var=xr.concat([var,var_i],'dim_0')
+    
+    lons= nc.variables['lon'][:]
+    lats= nc.variables['lat'][:]
+    pres_levs= nc.variables['pfull'][:]
+
+    time=[np.array(np.linspace(0,(runmax-runmin-1),(runmax-runmin),dtype='datetime64[M]'))]
+    var=xr.DataArray(var.values,coords=[time[0],pres_levs,lats,lons],dims=['time','pres_lev','lat','lon'])
+    var_avg=var.mean(dim='time')
+    var_seasonal_avg=var.groupby('time.season').mean('time') 
+    var_month_avg=var.groupby('time.month').mean('time')
+
+    return(var,var_avg,var_seasonal_avg,var_month_avg,time)
 
 def zonavg_plot(field,title,varname,units): #field needs to have dimensions lat|lon
 
@@ -393,8 +433,11 @@ def zonavg_plot(field,title,varname,units): #field needs to have dimensions lat|
     plt.xlabel('Latitude')
     plt.show()
 
-def several_vars_zonalavg(field1,varname1,field2,varname2,field3,varname3): #fields needs to have dimensions lat|lon
-    
+def several_vars_zonalavg(field1,varname1,field2,varname2,field3,varname3): 
+
+# fields needs to have dimensions lat|lon
+# same y axis for all vars
+
     field1=xr.DataArray(field1)
     field1_zonavg=field1.mean(dim='lon',keep_attrs=True)
     field2=xr.DataArray(field2)
@@ -410,9 +453,10 @@ def several_vars_zonalavg(field1,varname1,field2,varname2,field3,varname3): #fie
     plt.xlabel('latitude')
     plt.show()
 
-# adapted from http://stackoverflow.com/questions/7733693/matplotlib-overlay-plots-with-different-scales
-# with 3 different y axes
 def several_vars_zonalavg2(field1,varname1,color1,field2,varname2,color2,field3,varname3,color3,title):
+# with 3 different y axes
+# adapted from http://stackoverflow.com/questions/7733693/matplotlib-overlay-plots-with-different-scales
+
 
     field1=xr.DataArray(field1)
     field1_zonavg=field1.mean(dim='lon',keep_attrs=True)
@@ -603,6 +647,8 @@ def squareland_plot_zon_mearvg(minlat,maxlat,array,units,title,palette):
 
 
 def squareland_plot(minlat,maxlat,array,units,title,palette):
+# kept most of the comments in this function
+
 # plotting only the zonal average next to the map 
     plt.close()
 
@@ -642,7 +688,7 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
 # use meshgrid to create 2D arrays 
 # Not necessary if coordinates are already in 2D arrays.
 
-
+ 
     lon, lat = np.meshgrid(lons_cyclic, selected_lats)
     xi, yi = m(lon, lat)
 
@@ -666,7 +712,8 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
     elif palette == 'raindefault':
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
     elif palette=='temp': 
-        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.seismic)
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r)
+        # cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.RdBu_r)
     elif palette=='fromwhite': 
 	    pal = plt.cm.Blues
 	    pal.set_under('w',None)
@@ -733,13 +780,16 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
     plt.title(title)
    
     ax2 = plt.subplot2grid((3,7), (0,6), rowspan = 3)
-    
+    # if palette=='temp':
+    # 	    plt.plot((zonavg_thin-273.15),array['lat'])
+    # else: 
     plt.plot(zonavg_thin,array['lat'])
+
     plt.ylabel('Latitude')
     plt.xlabel(title+' ('+units+')')
     ax2.yaxis.tick_right()
     ax2.yaxis.set_label_position('right')
-    ax2.invert_xaxis()
+    #ax2.invert_xaxis()
     plt.show()
 
     plt.show()
@@ -857,7 +907,8 @@ def aquaplanet_plot(minlat,maxlat,array,units,title,palette):
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 
-    array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons)    array, lons_cyclic = addcyclic(array, lons)
+    array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+    array,lons_cyclic = addcyclic(array, lons)
     array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
 
     lon, lat = np.meshgrid(lons_cyclic, selected_lats)
@@ -1336,7 +1387,8 @@ def aquaplanet_inputfile(filename,varname):
 	
 	nc=Dataset(filename,mode='r')
 
-	array=xr.DataArray(nc.variables[varname][6,:,:])
+	array=xr.DataArray(nc.variables[varname][:]
+)
  	array = array.mean(dim='dim_0')
 	lats=xr.DataArray(nc.variables['lat'][:])
 	lons=xr.DataArray(nc.variables['lon'][:])
@@ -1528,16 +1580,13 @@ def two_continents_plot(minlat,maxlat,array,units,title,palette):
     landlats=landfile.variables['lat'][:]
     landlons=landfile.variables['lon'][:]
     
-    square_lons,square_lats=(xr.DataArray(np.meshgrid(lons, lats))).where(landmask==1.)
-    square_lons = square_lons + 180. + dlons
+#    square_lons,square_lats=(xr.DataArray(np.meshgrid(lons, lats))).where(landmask==1.)
+#    square_lons = square_lons + 180. + dlons
 
 
-# Add rectangle
-    # xs = [sq_minlon,sq_maxlon,sq_maxlon,sq_minlon,sq_minlon]
-    # ys = [sq_minlat,sq_minlat,sq_maxlat,sq_maxlat,sq_minlat]
-    #xs=[square_lons.min(),square_lons.max(),square_lons.max(),square_lons.min(),square_lons.min()]
-    #ys=[square_lats.min(),square_lats.min(),square_lats.max()+dlats,square_lats.max()+dlats,square_lats.min()]
-    #m.plot(xs, ys)
+# Add rectangles
+#    xi, yi = m(landlons, landlats)
+#    m.contour(xi,yi,landmask)
 
     plt.title(title)
    
@@ -1554,7 +1603,7 @@ def two_continents_plot(minlat,maxlat,array,units,title,palette):
 
 
 
-def animated_map(testdir,array,units,title,plot_title,palette):
+def animated_map(testdir,array,units,title,plot_title,palette,imin,imax):
     
     lats=array.lat
     lons=array.lon
@@ -1595,19 +1644,96 @@ def animated_map(testdir,array,units,title,plot_title,palette):
 	    pal = plt.cm.Blues
 	    pal.set_under('w',None)
 	    
-	    for idx in range (0,12):
-		    cs = m.pcolormesh(xi,yi,array[idx,:,:],cmap=pal,vmin=0,vmax=maxval)
+	    for idx in range (imin,imax):
+		    cs = m.pcolormesh(xi,yi,array[idx,:,:],cmap=pal,vmin=0.,vmax=1.)
 		    cbar = m.colorbar(cs, location='bottom', pad="10%")
 		    cbar.set_label(units)
 		    plt.title(title)
 		    plt.annotate('Month #'+str(idx+1), xy=(0.15,0.8), xycoords='figure fraction')
-		    plt.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month'+str(100+idx)+'.png',bbox_inches='tight')
+		    plt.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month'+str(1000+idx)+'.png',bbox_inches='tight')
 		    fig.clf()
 
     else:
         cs = m.pcolor(xi,yi,array)
 
-    os.system('convert -delay 100 /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
+    os.system('convert -delay 50 /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
     # Use ffmeg to convert animated gif to mp4
-    # os.system('ffmpeg -f gif -i /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.mp4')
+    os.system('ffmpeg -f gif -i /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.mp4')
 
+#def streamfunction_plot():
+	
+def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval):
+
+# Plots every third wind vector at specified height level
+# onto a world map of the 'array' which could be e.g. precip
+
+# uwind and vwind are 4D arrays, 
+# level should be between 0 and 39 for MiMA
+# array is the underlying plot (e.g. Tsurf, precip, ...)
+# palette is for the underlying plot
+# units are for the underlying plot
+
+	fig = plt.figure()
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+	lons = uwind.lon
+	lats = uwind.lat
+	pres = uwind.pres_lev[level]	
+	uwind,lons_shift = shiftgrid(np.max(lons)-180.,uwind,lons,start=False,
+			       cyclic=np.max(lons))
+	vwind,lons_shift = shiftgrid(np.max(lons)-180.,vwind,lons,start=False,
+			       cyclic=np.max(lons))	
+	uwind, lons_cyclic = addcyclic(uwind, lons_shift)
+	vwind, lons_cyclic = addcyclic(vwind, lons_shift)
+
+	lon, lat = np.meshgrid(lons_cyclic, lats)
+	xi, yi = m(lon, lat)
+
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+
+	plt.title('Wind at '+str(pres)+' hPa')
+
+	array, array_lons = shiftgrid(np.max(lons)-180.,array,array.lon,
+				     start=False,cyclic=np.max(lons))
+	array, lons_cyclic = addcyclic(array, lons)
+	array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+
+	if palette=='rainnorm':
+
+		if maxval >= minval:
+			minval = - maxval
+		else: 
+			maxval = minval
+			minval = - minval
+
+		cs = m.pcolor(xi,yi,array,
+			      norm=MidpointNormalize(midpoint=0.),
+			      cmap='BrBG',vmin=minval, vmax=maxval)
+
+	elif palette == 'raindefault':
+		cs = m.pcolor(xi,yi,array, 
+			      cmap=plt.cm.BrBG)
+
+	elif palette=='temp': 
+		cs = m.pcolor(xi,yi,array, 
+			      norm=MidpointNormalize(midpoint=273.15), 
+			      cmap=plt.cm.RdBu_r)
+
+	elif palette=='fromwhite': 
+		pal = plt.cm.Blues
+		pal.set_under('w',None)
+		cs = m.pcolormesh(xi,yi,array,
+				  cmap=pal,vmin=0,vmax=maxval)
+
+	else:
+		cs = m.pcolor(xi,yi,array)
+
+	cbar = m.colorbar(cs, location='right', pad="10%")
+	cbar.set_label(units)
+
+	Q = plt.quiver(xi[::3,::3], yi[::3,::3], uwind[level,::3,::3], vwind[level,::3,::3], units='width')
+	qk = plt.quiverkey(Q, 0.9, 0.9, 10, r'$10 \frac{m}{s}$', 
+			   labelpos='E', coordinates='figure')
+
+	# plt.show()
+	return fig
