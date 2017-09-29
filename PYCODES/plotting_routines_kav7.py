@@ -1383,13 +1383,13 @@ def squareland_inputfile_3dvar(filename,varname):
 	plt.show()
 
 
-def aquaplanet_inputfile(filename,varname):
+def aquaplanet_inputfile(filename,varname) #,month):
 	
 	nc=Dataset(filename,mode='r')
 
-	array=xr.DataArray(nc.variables[varname][:]
-)
+	array=xr.DataArray(nc.variables[varname][:] #[month,:,:])
  	array = array.mean(dim='dim_0')
+	
 	lats=xr.DataArray(nc.variables['lat'][:])
 	lons=xr.DataArray(nc.variables['lon'][:])
 
