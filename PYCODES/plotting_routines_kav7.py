@@ -76,7 +76,7 @@ def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,color1,varn
 
     if squareland == 'true': 
 	    print('Squareland mode')
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
 	    landmask=landfile.variables['land_mask'][:]
 	    landlats=landfile.variables['lat'][:]
 	    landlons=landfile.variables['lon'][:]
@@ -107,7 +107,7 @@ def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,color1,varn
 
     else:
 	    print('Continental landmask')
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land.nc',mode='r')
+	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
 	    landmask=xr.DataArray(landfile.variables['land_mask'][:])
 	    landlats=landfile.variables['lat'][:]
 	    landlons=landfile.variables['lon'][:]
@@ -199,7 +199,7 @@ def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,var
 
     if squareland == 'true': 
 	    print('Squareland mode')
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
 	    landmask=landfile.variables['land_mask'][:]
 	    landlats=landfile.variables['lat'][:]
 	    landlons=landfile.variables['lon'][:]
@@ -235,7 +235,7 @@ def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,var
 
     else:
 	    print('Continental landmask')
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land.nc',mode='r')
+	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
 	    landmask=xr.DataArray(landfile.variables['land_mask'][:])
 	    landlats=landfile.variables['lat'][:]
 	    landlons=landfile.variables['lon'][:]
@@ -325,12 +325,12 @@ def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,s
 # factor is needed to convert eg precip from kg/s to mm/day 
 
     if squareland == 'true': 
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
 	    landmask=landfile.variables['land_mask'][:]
 	    landlats=landfile.variables['lat'][:]
 	    landlons=landfile.variables['lon'][:]
     else:
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land.nc',mode='r')
+	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
 	    landmask=landfile.variables['land_mask'][:]
 	    landlats=landfile.variables['lat'][:]
 	    landlons=landfile.variables['lon'][:]
@@ -601,7 +601,7 @@ def squareland_plot_zon_mearvg(minlat,maxlat,array,units,title,palette):
     cbar = m.colorbar(cs, location='right', pad="10%")
     cbar.set_label(units)
 
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
     landmask=landfile.variables['land_mask'][:]
     landlats=landfile.variables['lat'][:]
     landlons=landfile.variables['lon'][:]
@@ -757,7 +757,7 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
     cbar = m.colorbar(cs, location='right', pad="10%")
     cbar.set_label(units)
 
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
     landmask=landfile.variables['land_mask'][:]
     landlats=landfile.variables['lat'][:]
     landlons=landfile.variables['lon'][:]
@@ -855,7 +855,7 @@ def squareland_plot_minuszonavg(minlat,maxlat,array,units,title,palette,zonavgti
     cbar = m.colorbar(cs, location='right', pad="10%")
     cbar.set_label(units)
 
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
     landmask=landfile.variables['land_mask'][:]
     landlats=landfile.variables['lat'][:]
     landlons=landfile.variables['lon'][:]
@@ -1041,7 +1041,7 @@ def squareland_plot_several(minlat,maxlat,array1,title1,array2,title2,array3,tit
     lon, lat = np.meshgrid(lons, selected_lats)
     xi, yi = m(lon, lat)
 
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
     landmask=landfile.variables['land_mask'][:]
     landlats=landfile.variables['lat'][:]
     landlons=landfile.variables['lon'][:]
@@ -1089,7 +1089,7 @@ def squareland_plot_several(minlat,maxlat,array1,title1,array2,title2,array3,tit
     lon, lat = np.meshgrid(lons, selected_lats)
     xi, yi = m(lon, lat)
 
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
     landmask=landfile.variables['land_mask'][:]
     landlats=landfile.variables['lat'][:]
     landlons=landfile.variables['lon'][:]
@@ -1276,7 +1276,7 @@ def squareland_inputfile_4dvar(filename,varname):
 	cbar = m.colorbar(cs, location='right', pad="10%")
 
 # Show landmask
-	landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+	landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
 	landmask=landfile.variables['land_mask'][:]
 	landlats=landfile.variables['lat'][:]
 	landlons=landfile.variables['lon'][:]
@@ -1341,7 +1341,7 @@ def squareland_inputfile_3dvar(filename,varname):
 	cbar = m.colorbar(cs, location='right', pad="10%")
 
 # Show landmask
-	landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+	landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
 	landmask=landfile.variables['land_mask'][:]
 	landlats=landfile.variables['lat'][:]
 	landlons=landfile.variables['lon'][:]
@@ -1383,12 +1383,15 @@ def squareland_inputfile_3dvar(filename,varname):
 	plt.show()
 
 
-def aquaplanet_inputfile(filename,varname) #,month):
+def aquaplanet_inputfile(filename,varname,month):
 	
 	nc=Dataset(filename,mode='r')
 
-	array=xr.DataArray(nc.variables[varname][:] #[month,:,:])
- 	array = array.mean(dim='dim_0')
+	if month!=12:
+		array=xr.DataArray(nc.variables[varname][month,:,:])
+ 	else:
+		array=xr.DataArray(nc.variables[varname][:])
+		array = array.mean(dim='dim_0')
 	
 	lats=xr.DataArray(nc.variables['lat'][:])
 	lons=xr.DataArray(nc.variables['lon'][:])
@@ -1414,7 +1417,7 @@ def aquaplanet_inputfile(filename,varname) #,month):
 
 	dlons = lons[100] - lons[99]
 	dlats = lats[60] - lats[59]
-	cs = m.pcolor(xi,yi,array,norm=MidpointNormalize(midpoint=0.),cmap='seismic')
+	cs = m.pcolor(xi,yi,array,cmap='hot')
 	cbar = m.colorbar(cs, location='right', pad="10%")
 
 	plt.title(varname)	
@@ -1437,6 +1440,10 @@ def aquaplanet_inputfile(filename,varname) #,month):
 	ax3.yaxis.set_label_position('right')
 	ax3.invert_xaxis()
 	plt.show()
+
+
+	print array.max()
+	return array
 
 def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
 
@@ -1489,7 +1496,7 @@ def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
     # sns.palplot(sns.color_palette("BrBG", 7))
 
 # Show landmask
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
     landmask=landfile.variables['land_mask'][:]
     landlats=landfile.variables['lat'][:]
     landlons=landfile.variables['lon'][:]
@@ -1575,7 +1582,7 @@ def two_continents_plot(minlat,maxlat,array,units,title,palette):
     # sns.palplot(sns.color_palette("BrBG", 7))
 
 # Show landmask
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_two_continents.nc',mode='r')
+    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/two_continents/land_two_continents.nc',mode='r')
     landmask=landfile.variables['land_mask'][:]
     landlats=landfile.variables['lat'][:]
     landlons=landfile.variables['lon'][:]

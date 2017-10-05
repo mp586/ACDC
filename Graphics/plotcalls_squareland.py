@@ -16,14 +16,14 @@ testdir= input('Enter data directory name as string ')
 runmin=97 #input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
 runmax=241 #input('Enter runmax number ')
 
-landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_square.nc',mode='r')
+landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
 landmask=landfile.variables['land_mask'][:]
 lats=landfile.variables['lat'][:]
 lons=landfile.variables['lon'][:]
 
 #plotting_routines_kav7.globavg_var_timeseries(testdir,'t_surf',109,122)
-#plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,runmax,1.,'true')
-# plotting_routines_kav7.globavg_var_timeseries(testdir,'co2',1,runmax)
+plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,runmax,1.,'true')
+#plotting_routines_kav7.globavg_var_timeseries(testdir,'co2',1,runmax)
 
 # # plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'coszen',1,runmax,1.,'true')
 
