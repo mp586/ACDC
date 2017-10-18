@@ -985,12 +985,15 @@ def squareland_plot_minuszonavg(minlat,maxlat,array,units,title,palette,zonavgti
     plt.show()
     return(square_lons,square_lats)
 
-def aquaplanet_plot(minlat,maxlat,array,units,title,palette):
+def aquaplanet_plot(minlat,maxlat,array,month,units,title,palette):
 
-    plt.close()
+    lats=np.linspace(-90.,90.,len(array.dim_1))
+    lons=np.linspace(0.,360.,len(array.dim_2))
 
-    lats=array.lat
-    lons=array.lon
+    if month == 12:
+	    array = array.mean('dim_0')
+    else:
+	    array = array[month,:,:]
     print(np.shape(lons))
     
     minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
@@ -1021,7 +1024,7 @@ def aquaplanet_plot(minlat,maxlat,array,units,title,palette):
     elif palette == 'raindefault':
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
     elif palette=='temp': 
-        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.seismic)
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r')
     else:
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats))
 
@@ -1050,8 +1053,6 @@ def aquaplanet_plot(minlat,maxlat,array,units,title,palette):
     ax3.yaxis.set_label_position('right')
     ax3.invert_xaxis()
     plt.show()
-
-
 
 def aquaplanet_plot_minuszonavg(minlat,maxlat,array,units,title,palette):
 
@@ -1731,33 +1732,41 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax):
     minval = np.absolute(array.min())
     maxval = np.absolute(array.max())
     
-    if maxval >= minval:
-	    minval = - maxval
-    else: 
-	    maxval = minval
-	    minval = - minval
+    for idx in range (imin,imax): # exclues last value
+	    if palette == 'rainnorm':
 
-    if palette=='rainnorm':
-        cs = m.pcolor(xi,yi,array,norm=MidpointNormalize(midpoint=0.),cmap='BrBG',vmin=minval, vmax=maxval)
-    elif palette == 'raindefault':
-        cs = m.pcolor(xi,yi,array, cmap=plt.cm.BrBG)
-    elif palette=='temp': 
-        cs = m.pcolor(xi,yi,array, cmap=plt.cm.seismic)
-    elif palette=='fromwhite': 
-	    pal = plt.cm.Blues
-	    pal.set_under('w',None)
+		    minval = np.absolute(array.min())
+		    maxval = np.absolute(array.max())
+    
+		    if maxval >= minval:
+			    minval = - maxval
+		    else: 
+			    maxval = minval
+			    minval = - minval
+
+		    cs = m.pcolormesh(xi,yi,array[idx,:,:],cmap='BrBG',
+				      norm=MidpointNormalize(midpoint=0.),
+				      vmin=minval,vmax=maxval)
+	    elif palette == 'raindefault':
+		    cs = m.pcolor(xi,yi,array[idx,:,:],cmap=plt.cm.BrBG)
 	    
-	    for idx in range (imin,imax):
-		    cs = m.pcolormesh(xi,yi,array[idx,:,:],cmap=pal,vmin=0.,vmax=1.)
-		    cbar = m.colorbar(cs, location='bottom', pad="10%")
-		    cbar.set_label(units)
-		    plt.title(title)
-		    plt.annotate('Month #'+str(idx+1), xy=(0.15,0.8), xycoords='figure fraction')
-		    plt.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month'+str(1000+idx)+'.png',bbox_inches='tight')
-		    fig.clf()
+	    elif palette=='temp':
+		    minval = array.min()
+		    maxval = array.max()
+		    cs = m.pcolor(xi,yi,array[idx,:,:],norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin=minval,vmax=maxval)
+	    elif palette=='fromwhite': 
+		    pal = plt.cm.Blues
+		    pal.set_under('w',None)
+		    maxval = np.max(array)
+		    cs = m.pcolormesh(xi,yi,array[idx,:,:],cmap=pal,vmin=0.,vmax=maxval)	    
+	    cbar = m.colorbar(cs, location='bottom', pad="10%")
+	    cbar.set_label(units)
+	    plt.title(title)
+	    plt.annotate('Month #'+str(idx+1), xy=(0.15,0.8), xycoords='figure fraction')
+	    plt.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month'+str(1000+idx)+'.png',bbox_inches='tight')
+	    fig.clf()
+   
 
-    else:
-        cs = m.pcolor(xi,yi,array)
 
     os.system('convert -delay 50 /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
     # Use ffmeg to convert animated gif to mp4
