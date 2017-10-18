@@ -891,7 +891,121 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
 
     print(square_lons.min(),square_lons.max(),square_lats.min(),square_lats.max()+dlats)
 
+def squareland_plot_forpaper(minlat,maxlat,array,units,title,palette):
+# kept most of the comments in this function
 
+# plotting only the zonal average next to the map 
+    plt.close()
+
+    lats=array.lat
+    lons=array.lon
+
+    
+    minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
+    maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0] # there might be a better way of doing this!
+    selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
+
+    # sqlatindex=np.asarray(np.where(lats>sq_minlat))[0,0]
+    # sqlatreverseindex=np.asarray(np.where(lats[::-1]<sq_maxlat))[0,0] # there might be a better way of doing this!
+    # square_lats=lats[sqlatindex:(lats.size-sqlatreverseindex)]
+
+    # sqlonindex=np.asarray(np.where(lons>sq_minlon))[0,0]
+    # sqlonreverseindex=np.asarray(np.where(lons[::-1]<sq_maxlon))[0,0] # there might be a better way of doing this!
+    # square_lons=lons[sqlonindex:(lons.size-sqlonreverseindex)+1]
+
+
+    fig = plt.figure()
+    ax1 = plt.subplot2grid((3,7), (0,0), colspan = 5, rowspan = 3)
+
+
+    m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+
+    array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+# draw parallels and meridians.
+
+    m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+    array, lons_cyclic = addcyclic(array, lons)
+    array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+    zonavg_thin = array.mean(dim='lon')
+    meravg_thin = array.mean(dim='lat')
+# Because our lon and lat variables are 1D, 
+# use meshgrid to create 2D arrays 
+# Not necessary if coordinates are already in 2D arrays.
+
+ 
+    lon, lat = np.meshgrid(lons_cyclic, selected_lats)
+    xi, yi = m(lon, lat)
+
+    dlons = lons[100] - lons[99]
+    dlats = lats[60] - lats[59]
+
+#latlon=True --> wrap lons so that map can go from -180 to 180, otherwise there is nothing from -180 to 0
+
+    minval = np.absolute(array.min())
+    maxval = np.absolute(array.max())
+    
+    if maxval >= minval:
+	    minval = - maxval
+    else: 
+	    maxval = minval
+	    minval = - minval
+
+
+    if palette=='rainnorm':
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG',vmin=minval, vmax=maxval)
+    elif palette == 'raindefault':
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
+    elif palette=='temp': 
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r)
+        # cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.RdBu_r)
+    elif palette=='fromwhite': 
+	    pal = plt.cm.Blues
+	    pal.set_under('w',None)
+	    cs = m.pcolormesh(xi,yi,array.sel(lat=selected_lats),cmap=pal,vmin=0,vmax=maxval)
+
+    else:
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats))
+
+
+    cbar = m.colorbar(cs, location='right', pad="10%")
+    cbar.set_label(units)
+
+    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+    landmask=landfile.variables['land_mask'][:]
+    landlats=landfile.variables['lat'][:]
+    landlons=landfile.variables['lon'][:]
+    
+    square_lons,square_lats=(xr.DataArray(np.meshgrid(lons, lats))).where(landmask==1.)
+    square_lons = square_lons + 180. + dlons
+
+    m.drawgreatcircle(square_lons.min(), square_lats.min(), square_lons.min(), square_lats.max()+dlats, del_s=100., color='b')
+    m.drawgreatcircle(square_lons.max(), square_lats.min(), square_lons.max(), square_lats.max()+dlats, del_s=100., color='b')
+
+    lats = [square_lats.min(),square_lats.min()] 
+    lons = [square_lons.min(),square_lons.max()] 
+    x, y = m(lons, lats) 
+    m.plot(x, y, color='b') 
+
+    lats = [square_lats.max()+dlats,square_lats.max()+dlats] 
+    lons = [square_lons.min(),square_lons.max()] 
+    x, y = m(lons, lats) 
+    m.plot(x, y, color='b') 
+    plt.title(title)
+   
+    ax2 = plt.subplot2grid((3,7), (0,6), rowspan = 3)
+    # if palette=='temp':
+    # 	    plt.plot((zonavg_thin-273.15),array['lat'])
+    # else: 
+    plt.plot(zonavg_thin,array['lat'])
+
+    plt.ylabel('Latitude')
+    plt.xlabel(title+' ('+units+')')
+    ax2.yaxis.tick_right()
+    ax2.yaxis.set_label_position('right')
+#    ax2.invert_xaxis()
+
+    plt.show()
 
 def squareland_plot_minuszonavg(minlat,maxlat,array,units,title,palette,zonavgtitle):
 
@@ -1770,9 +1884,8 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax):
 
     os.system('convert -delay 50 /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
     # Use ffmeg to convert animated gif to mp4
-    os.system('ffmpeg -f gif -i /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.mp4')
+    # os.system('ffmpeg -f gif -i /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.mp4')
 
-#def streamfunction_plot():
 	
 def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval):
 

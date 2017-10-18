@@ -113,6 +113,18 @@ plotting_routines_kav7.squareland_plot(-90.,90.,precipitation_avg*86400,'mm/day'
 # plotting_routines_kav7.squareland_plot(-90.,90.,net_lhe_avg/28.,'mm/day','E avg','fromwhite')
 plotting_routines_kav7.squareland_plot(-90.,90.,flux_oceanq_avg,'W/$m^2$','qflux avg','rainnorm')
 
+
+
+
+plotting_routines_kav7.squareland_plot_forpaper(-100.,100.,PE_avg,'mm/day','P-E avg','rainnorm')
+plotting_routines_kav7.squareland_plot_forpaper(-100.,100.,PE_avg.where(landmask==1.),'mm/day','P-E avg','rainnorm')
+plotting_routines_kav7.squareland_plot_forpaper(-90.,90.,tsurf_avg,'K','$T_S$ avg','temp')
+plotting_routines_kav7.squareland_plot_forpaper(-90.,90.,(precipitation_avg*86400).where(landmask==1.),'mm/day','P avg','fromwhite')
+
+
+
+
+
 land_temp_global=tsurf_avg.where(landmask==1.).mean()
 ocean_temp_global=tsurf_avg.where(landmask==0.).mean()
 print('Average temperature over land (global) = '+str(land_temp_global))
