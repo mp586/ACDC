@@ -12,9 +12,13 @@ import plotting_routines
 import plotting_routines_kav7
 import stats as st
 
+spinup_dir= input('Enter spin up directory name as string ')
+
 testdir= input('Enter data directory name as string ')
 runmin=97 #input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
-runmax=241 #input('Enter runmax number ')
+runmax=481 #input('Enter runmax number ')
+
+
 
 landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
 landmask=landfile.variables['land_mask'][:]
@@ -22,8 +26,10 @@ lats=landfile.variables['lat'][:]
 lons=landfile.variables['lon'][:]
 
 #plotting_routines_kav7.globavg_var_timeseries(testdir,'t_surf',109,122)
-plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,runmax,1.,'true')
-#plotting_routines_kav7.globavg_var_timeseries(testdir,'co2',1,runmax)
+plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,'t_surf',1,runmax,1.,'true',spinup_dir,1,241)
+plotting_routines_kav7.globavg_var_timeseries(testdir,'co2',1,runmax)
+
+
 
 # # plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'coszen',1,runmax,1.,'true')
 
@@ -41,6 +47,12 @@ plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,
 [convection_rain,convection_rain_avg,convection_rain_seasonal_avg,convection_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'convection_rain','kg/m2s')
 [condensation_rain,condensation_rain_avg,condensation_rain_seasonal_avg,condensation_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'condensation_rain','kg/m2s')
 #[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'bucket_depth','m')
+
+[tsurf_spup,tsurf_avg_spup,tsurf_seasonal_avg_spup,tsurf_month_avg_spup,time_spup]=plotting_routines_kav7.seasonal_surface_variable(spinup_dir,97,241,'t_surf','K')
+[net_lhe_spup,net_lhe_avg_spup,net_lhe_seasonal_avg_spup,net_lhe_month_avg_spup,time_spup]=plotting_routines_kav7.seasonal_surface_variable(spinup_dir,97,241,'flux_lhe','W/m^2') # latent heat flux at surface (UP)
+[precipitation_spup,precipitation_avg_spup,precipitation_seasonal_avg_spup,precipitation_month_avg_spup,time_spup]=plotting_routines_kav7.seasonal_surface_variable(spinup_dir,97,241,'precipitation','kg/m2s')
+
+
 
 
 # [ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'ucomp','m/s')
@@ -100,9 +112,10 @@ PE_avg=precipitation_avg*86400-net_lhe_avg/28. # 28.=conversion from W/m^# 2 to 
 plotting_routines_kav7.squareland_plot(-100.,100.,PE_avg,'mm/day','P-E avg','rainnorm')
 # # #plotting_routines_kav7.squareland_plot_minuszonavg(-90.,90.,PE_avg,'mm/day','P-E avg minus zonavg','rainnorm','P-E avg')
 plotting_routines_kav7.squareland_plot(-90.,90.,tsurf_avg,'K','$T_S$ avg','temp') # degrees C symbol : ...,u"\u00b0"+'C',...
-
+plotting_routines_kav7.squareland_plot(-90.,90.,(tsurf_avg-tsurf_avg_spup),'K','$T_S$ avg minus ctrl','fromwhite')
 # # #plotting_routines_kav7.squareland_plot_minuszonavg(-90.,90.,tsurf_avg,'K','tsurf avg minus zonavg','temp','T avg')
 plotting_routines_kav7.squareland_plot(-90.,90.,precipitation_avg*86400,'mm/day','P avg','fromwhite')
+plotting_routines_kav7.squareland_plot(-90.,90.,(precipitation_avg - precipitation_avg_spup)*86400,'mm/day','P avg minus ctrl','rainnorm')
 # # #plotting_routines_kav7.squareland_plot_minuszonavg(-90.,90.,precipitation_avg*86400,'mm/day','P avg minus zonavg','rainnorm','P avg')
 # plotting_routines_kav7.squareland_plot(-90.,90.,net_lhe_avg/28.,'mm/day','E avg','fromwhite')
 

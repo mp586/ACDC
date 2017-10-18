@@ -370,6 +370,90 @@ def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,s
     return(timeseries)
 
 
+def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runmax,factor,squareland,spinup_dir,spinup_runmin, spinup_runmax):
+    
+#	""" Plots and returns timeseries of global average for specified variable """
+# factor is needed to convert eg precip from kg/s to mm/day 
+
+    if squareland == 'true': 
+	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+	    landmask=landfile.variables['land_mask'][:]
+	    landlats=landfile.variables['lat'][:]
+	    landlons=landfile.variables['lon'][:]
+    else:
+	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
+	    landmask=landfile.variables['land_mask'][:]
+	    landlats=landfile.variables['lat'][:]
+	    landlons=landfile.variables['lon'][:]
+
+    for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
+        runnr="{0:03}".format(i)
+        filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
+        nc = Dataset(filename,mode='r')
+        
+        var=nc.variables[varname][:]*factor
+	var_land = (xr.DataArray(var)).where(landmask==1.)
+	var_ocean = (xr.DataArray(var)).where(landmask!=1.)
+        if i==runmin:
+            timeseries=[var.mean()]
+	    timeseries_land=[var_land.mean()]
+	    timeseries_ocean=[var_ocean.mean()]
+          
+        else:
+            timeseries.append(var.mean())
+	    timeseries_land.append(var_land.mean())
+	    timeseries_ocean.append(var_ocean.mean())
+
+#same for spin up 
+    for i in range (spinup_runmin,spinup_runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
+        runnr="{0:03}".format(i)
+        filename = '/scratch/mp586/GFDL_DATA/'+spinup_dir+'/run'+runnr+'/atmos_monthly.nc'
+        nc = Dataset(filename,mode='r')
+        
+        var=nc.variables[varname][:]*factor
+	var_land = (xr.DataArray(var)).where(landmask==1.)
+	var_ocean = (xr.DataArray(var)).where(landmask!=1.)
+        if i==spinup_runmin:
+            ts_spinup=[var.mean()]
+	    ts_spinup_land=[var_land.mean()]
+	    ts_spinup_ocean=[var_ocean.mean()]
+          
+        else:
+            ts_spinup.append(var.mean())
+	    ts_spinup_land.append(var_land.mean())
+	    ts_spinup_ocean.append(var_ocean.mean())
+
+
+
+    timeseries=xr.DataArray(timeseries)
+    timeseries_land=xr.DataArray(timeseries_land)
+    timeseries_ocean=xr.DataArray(timeseries_ocean)
+
+    ts_spinup=xr.DataArray(ts_spinup)
+    ts_spinup_land=xr.DataArray(ts_spinup_land)
+    ts_spinup_ocean=xr.DataArray(ts_spinup_ocean) 
+
+    timeseries = xr.concat([ts_spinup,timeseries],'dim_0')
+    timeseries_land = xr.concat([ts_spinup_land,timeseries_land],'dim_0')
+    timeseries_ocean = xr.concat([ts_spinup_ocean,timeseries_ocean],'dim_0')
+
+
+    figure = plt.plot()
+    months=np.linspace(runmin,((spinup_runmax+runmax)-1),timeseries.size)
+    plt.plot(months,timeseries,'r',label='total')
+    plt.plot(months,timeseries_land,'g',label='land only')
+    plt.plot(months,timeseries_ocean,'b',label='ocean only')
+    plt.title('globavg '+varname+' total and land/ocean only')
+    plt.xlabel('Month #')
+    plt.ylabel('Global average')
+    plt.legend()
+    plt.grid(b=True)
+    plt.show()    
+    return(timeseries)
+
+
+
+
 def seasonal_surface_variable(testdir,runmin,runmax,varname,units): # only works for surface variables (dims time, lat, lon) at the moment
     
     plt.close()
@@ -670,7 +754,7 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
 
 
     fig = plt.figure()
-    ax1 = plt.subplot2grid((3,7), (0,0), colspan = 5, rowspan = 3)
+    ax1 = plt.subplot2grid((3,9), (0,0), colspan = 5, rowspan = 3)
 
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -779,7 +863,7 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
     m.plot(x, y, color='b') 
     plt.title(title)
    
-    ax2 = plt.subplot2grid((3,7), (0,6), rowspan = 3)
+    ax2 = plt.subplot2grid((3,9), (0,6), rowspan = 3)
     # if palette=='temp':
     # 	    plt.plot((zonavg_thin-273.15),array['lat'])
     # else: 
@@ -789,10 +873,22 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
     plt.xlabel(title+' ('+units+')')
     ax2.yaxis.tick_right()
     ax2.yaxis.set_label_position('right')
-    #ax2.invert_xaxis()
-    plt.show()
+    ax2.invert_xaxis()
+
+    meravg_thin_land = (array.sel(lat=slice(square_lats.min(),square_lats.max()))).mean(dim='lat')
+
+
+    ax3 = plt.subplot2grid((3,9), (0,8), rowspan = 3)
+
+    plt.plot(meravg_thin_land,array['lon'])
+    plt.ylabel('Longitude')
+    plt.xlabel(title+' ('+units+') only for land latitudes')
+    ax3.yaxis.tick_right()
+    ax3.yaxis.set_label_position('right')
+    ax3.invert_xaxis()
 
     plt.show()
+
     print(square_lons.min(),square_lons.max(),square_lats.min(),square_lats.max()+dlats)
 
 
@@ -1417,7 +1513,7 @@ def aquaplanet_inputfile(filename,varname,month):
 
 	dlons = lons[100] - lons[99]
 	dlats = lats[60] - lats[59]
-	cs = m.pcolor(xi,yi,array,cmap='hot')
+	cs = m.pcolor(xi,yi,array,cmap='bwr')
 	cbar = m.colorbar(cs, location='right', pad="10%")
 
 	plt.title(varname)	
@@ -1744,3 +1840,18 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval):
 
 	# plt.show()
 	return fig
+
+
+def plot_a_climatology(clim_field):
+# Plots each month of the climatology as separate curve
+# Only works for climatology input field (i.e. 'dim_0' = 12)	
+	clim_field = xr.DataArray(clim_field)
+	zonavg = clim_field.mean('dim_2')
+	colors = ['Yellow','Orange','r','Purple','Blue','Gray',
+		  'Brown','Black','Green','Cyan','Teal','Navy']
+	lats = np.linspace(-90.,90.,np.shape(zonavg.dim_1)[0])
+	
+	for i in range (0,12):
+		plt.plot(lats,zonavg[i,:],colors[i],label='Month '+str(i+1))
+	plt.legend()
+	plt.show()
