@@ -16,7 +16,7 @@ spinup_dir= input('Enter spin up directory name as string ')
 
 testdir= input('Enter data directory name as string ')
 runmin=97 #input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
-runmax=481 #input('Enter runmax number ')
+runmax=315 #input('Enter runmax number ')
 
 
 
