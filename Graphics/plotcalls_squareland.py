@@ -13,7 +13,7 @@ import plotting_routines_kav7
 import stats as st
 
 testdir= input('Enter data directory name as string ')
-runmin=97 #input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
+runmin=1 #input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
 runmax=241 #input('Enter runmax number ')
 
 landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
@@ -22,7 +22,7 @@ lats=landfile.variables['lat'][:]
 lons=landfile.variables['lon'][:]
 
 #plotting_routines_kav7.globavg_var_timeseries(testdir,'t_surf',109,122)
-plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,runmax,1.,'true')
+##plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,runmax,1.,'true')
 #plotting_routines_kav7.globavg_var_timeseries(testdir,'co2',1,runmax)
 
 # # plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'coszen',1,runmax,1.,'true')
@@ -41,7 +41,7 @@ plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,
 # [convection_rain,convection_rain_avg,convection_rain_seasonal_avg,convection_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'convection_rain','kg/m2s')
 # [condensation_rain,condensation_rain_avg,condensation_rain_seasonal_avg,condensation_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'condensation_rain','kg/m2s')
 [bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'bucket_depth','m')
-[flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'flux_oceanq','W/m^2')
+#[flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'flux_oceanq','W/m^2')
 
 # [ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'ucomp','m/s')
 # [vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'vcomp','m/s')
@@ -62,7 +62,7 @@ plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,
 
 # for i in range(1,13):
 
-#     month_plot = plotting_routines_kav7.winds_at_heightlevel(ucomp_month_avg.sel(month=i),vcomp_month_avg.sel(month=i),39,(omega_month_avg[:,39,:,:]).sel(month=i),'rainnorm','mm/day',minval_omega_surf,maxval_omega_surf)
+#     month_plot = plotting_routines_kav7.winds_at_heightlevel(ucomp_month_avg.sel(month=i),vcomp_month_avg.sel(month=i),39,(omega_month_avg[:,39,:,:]).sel(month=i),'rainnorm','dp/dt',minval_omega_surf,maxval_omega_surf)
 #     month_plot.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/anim_plot_omega'+str(i)+'.png',bbox_inches='tight')
 # os.system('convert -delay 100 /scratch/mp586/Code/Graphics/'+testdir+'/anim_plot_omega*.png /scratch/mp586/Code/Graphics/'+testdir+'/omega_wind_monthly_clim.gif')
 
@@ -84,15 +84,19 @@ plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,
 # os.system('convert -delay 50 anim_plot*.png animation_seasons.gif')
 
 
-plotting_routines_kav7.animated_map(testdir,flux_oceanq_month_avg,'W/m^2','resulting_q_flux','qflux_clim_animated','rainnorm',0,12)
+#plotting_routines_kav7.animated_map(testdir,flux_oceanq_month_avg,'W/m^2','resulting_q_flux','qflux_clim_animated','rainnorm',0,12)
 
-plotting_routines_kav7.animated_map(testdir,tsurf_month_avg,'K','$T_S$','tsurf_clim_animated','temp',0,12)
+# plotting_routines_kav7.animated_map(testdir,tsurf_month_avg,'K','$T_S$','tsurf_clim_animated','temp',0,12)
 
 plotting_routines_kav7.animated_map(testdir,(precipitation_month_avg*86400.),'mm/day','P','P_clim_animated','fromwhite',0,12)
 
-plotting_routines_kav7.animated_map(testdir,(net_lhe_month_avg)/28.,'mm/day','E','E_clim_animated','fromwhite',0,12)
+plotting_routines_kav7.animated_map(testdir,(precipitation*86400.).where(landmask==1.),'mm/day','P','P_evolution_land','fromwhite',0,200)
 
+plotting_routines_kav7.animated_map(testdir,tsurf.where(landmask==1.),'mm/day','T','T_evolution_land','temp',0,100)
 
+# plotting_routines_kav7.animated_map(testdir,(net_lhe_month_avg)/28.,'mm/day','E','E_clim_animated','fromwhite',0,12)
+
+plotting_routines_kav7.animated_map(testdir,bucket_depth.where(landmask==1.),'mm/day','bucket','bucket_depth_animated','fromwhite',0,100)
 
 PE_avg=precipitation_avg*86400-net_lhe_avg/28. # 28.=conversion from W/m^# 2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
 # # # see www.ce.utexas.edu/prof/maidment/CE374KSpr12/.../Latent%20heat%20flux.pptx @30DegC
@@ -108,20 +112,20 @@ plotting_routines_kav7.squareland_plot(-100.,100.,PE_avg,'mm/day','P-E avg','rai
 plotting_routines_kav7.squareland_plot(-90.,90.,tsurf_avg,'K','$T_S$ avg','temp') # degrees C symbol : ...,u"\u00b0"+'C',...
 
 # # #plotting_routines_kav7.squareland_plot_minuszonavg(-90.,90.,tsurf_avg,'K','tsurf avg minus zonavg','temp','T avg')
-plotting_routines_kav7.squareland_plot(-90.,90.,precipitation_avg*86400,'mm/day','P avg','fromwhite')
+plotting_routines_kav7.squareland_plot(-90.,90.,precipitation_avg*86400,'mm/day','P avg','fromwhite',contourson=True)
 # # #plotting_routines_kav7.squareland_plot_minuszonavg(-90.,90.,precipitation_avg*86400,'mm/day','P avg minus zonavg','rainnorm','P avg')
-# plotting_routines_kav7.squareland_plot(-90.,90.,net_lhe_avg/28.,'mm/day','E avg','fromwhite')
-plotting_routines_kav7.squareland_plot(-90.,90.,flux_oceanq_avg,'W/$m^2$','qflux avg','rainnorm')
+plotting_routines_kav7.squareland_plot(-90.,90.,net_lhe_avg/28.,'mm/day','E avg','fromwhite')
+# plotting_routines_kav7.squareland_plot(-90.,90.,flux_oceanq_avg,'W/$m^2$','qflux avg','rainnorm')
 
 
 
 
-plotting_routines_kav7.squareland_plot_forpaper(-100.,100.,PE_avg,'mm/day','P-E avg','rainnorm')
-plotting_routines_kav7.squareland_plot_forpaper(-100.,100.,PE_avg.where(landmask==1.),'mm/day','P-E avg','rainnorm')
-plotting_routines_kav7.squareland_plot_forpaper(-90.,90.,tsurf_avg,'K','$T_S$ avg','temp')
-plotting_routines_kav7.squareland_plot_forpaper(-90.,90.,(precipitation_avg*86400).where(landmask==1.),'mm/day','P avg','fromwhite')
-
-
+# plotting_routines_kav7.squareland_plot_forpaper(-100.,100.,PE_avg,'mm/day','P-E avg','rainnorm',contourson=True)
+# plotting_routines_kav7.squareland_plot_forpaper(-100.,100.,PE_avg.where(landmask==1.),'mm/day','P-E avg','rainnorm')
+# plotting_routines_kav7.squareland_plot_forpaper(-90.,90.,tsurf_avg,'K','$T_S$ avg','temp')
+# # plotting_routines_kav7.squareland_plot_forpaper(-90.,90.,(precipitation_avg*86400).where(landmask==1.),'mm/day','P avg','fromwhite')
+# plotting_routines_kav7.squareland_plot_forpaper(-90.,90.,(precipitation_avg*86400),'mm/day','P avg','fromwhite',contourson=True)
+# plotting_routines_kav7.squareland_plot_forpaper(-90.,90.,(precipitation_avg*86400),'mm/day','P avg','fromwhite')
 
 
 

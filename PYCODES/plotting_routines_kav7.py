@@ -730,7 +730,7 @@ def squareland_plot_zon_mearvg(minlat,maxlat,array,units,title,palette):
     return(square_lons,square_lats)
 
 
-def squareland_plot(minlat,maxlat,array,units,title,palette):
+def squareland_plot(minlat,maxlat,array,units,title,palette,contourson = False):
 # kept most of the comments in this function
 
 # plotting only the zonal average next to the map 
@@ -861,6 +861,13 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
     lons = [square_lons.min(),square_lons.max()] 
     x, y = m(lons, lats) 
     m.plot(x, y, color='b') 
+
+
+    if contourson == True:  # add contours 
+	    cont = m.contour(xi,yi,array,4,cmap='PuBu_r',
+			     linewidth=5)
+	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=12)
+
     plt.title(title)
    
     ax2 = plt.subplot2grid((3,9), (0,6), rowspan = 3)
@@ -891,7 +898,7 @@ def squareland_plot(minlat,maxlat,array,units,title,palette):
 
     print(square_lons.min(),square_lons.max(),square_lats.min(),square_lats.max()+dlats)
 
-def squareland_plot_forpaper(minlat,maxlat,array,units,title,palette):
+def squareland_plot_forpaper(minlat,maxlat,array,units,title,palette,contourson=False):
 # kept most of the comments in this function
 
 # plotting only the zonal average next to the map 
@@ -960,13 +967,17 @@ def squareland_plot_forpaper(minlat,maxlat,array,units,title,palette):
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r)
         # cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.RdBu_r)
     elif palette=='fromwhite': 
-	    pal = plt.cm.Blues
-	    pal.set_under('w',None)
+	    pal = 'Blues'
+	    #pal.set_under('w',None)
 	    cs = m.pcolormesh(xi,yi,array.sel(lat=selected_lats),cmap=pal,vmin=0,vmax=maxval)
 
     else:
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats))
 
+    if contourson == True:  # add contours 
+	    cont = m.contour(xi,yi,array,4,cmap='PuBu_r',
+			     linewidth=5)
+	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=12)
 
     cbar = m.colorbar(cs, location='right', pad="10%")
     cbar.set_label(units)
@@ -1396,8 +1407,8 @@ def worldmap_inputfile(filename,varname): # assuming that the input file has the
 def worldmap_variable(field,units,title,palette,minval,maxval):
     plt.close()
     
-    lats=field.lat
-    lons=field.lon
+    lats=np.linspace(-90.,90.,len(field.dim_0))
+    lons=np.linspace(0.,360.,len(field.dim_1))
     lon_0 = lons.mean() 
     lat_0 = lats.mean() 
 
@@ -1593,6 +1604,80 @@ def squareland_inputfile_3dvar(filename,varname):
 	ax3.invert_xaxis()
 	plt.show()
 
+def squareland_inputfile_2dvar(filename,varname):
+	
+	nc=Dataset(filename,mode='r')
+
+	array=xr.DataArray(nc.variables[varname][:])
+	lats=xr.DataArray(nc.variables['lat'][:])
+	lons=xr.DataArray(nc.variables['lon'][:])
+
+	fig = plt.figure()
+	ax1 = plt.subplot2grid((3,9), (0,0), colspan = 5, rowspan = 3)
+
+
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+
+	array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+	array, lons_cyclic = addcyclic(array, lons)
+	array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+	zonavg_thin = array.mean(dim='lon')
+	meravg_thin = array.mean(dim='lat')
+
+	lon, lat = np.meshgrid(lons_cyclic, lats)
+	xi, yi = m(lon, lat)
+
+	dlons = lons[100] - lons[99]
+	dlats = lats[60] - lats[59]
+
+	cs = m.pcolor(xi,yi,array,norm=MidpointNormalize(midpoint=0.),cmap='seismic')
+	cbar = m.colorbar(cs, location='right', pad="10%")
+
+# Show landmask
+	landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+	landmask=landfile.variables['land_mask'][:]
+	landlats=landfile.variables['lat'][:]
+	landlons=landfile.variables['lon'][:]
+	
+	square_lons,square_lats=(xr.DataArray(np.meshgrid(landlons, landlats))).where(landmask==1.)
+	square_lons = square_lons + dlons
+
+	m.drawgreatcircle(square_lons.min(), square_lats.min(), square_lons.min(), square_lats.max()+dlats, del_s=100., color='b')
+	m.drawgreatcircle(square_lons.max(), square_lats.min(), square_lons.max(), square_lats.max()+dlats, del_s=100., color='b')
+
+	lats = [square_lats.min(),square_lats.min()] 
+	lons = [square_lons.min(),square_lons.max()] 
+	x, y = m(lons, lats) 
+	m.plot(x, y, color='b') 
+
+	lats = [square_lats.max()+dlats,square_lats.max()+dlats] 
+	lons = [square_lons.min(),square_lons.max()] 
+	x, y = m(lons, lats) 
+	m.plot(x, y, color='b') 
+	plt.title(varname)	
+
+	ax2 = plt.subplot2grid((3,9), (0,6), rowspan = 3)
+	
+	plt.plot(zonavg_thin,array['lat'])
+	plt.ylabel('Latitude')
+	plt.xlabel(varname)
+	ax2.yaxis.tick_right()
+	ax2.yaxis.set_label_position('right')
+	ax2.invert_xaxis()
+
+	ax3 = plt.subplot2grid((3,9), (0,8), rowspan = 3)
+#    for producing a meridional average plot
+	plt.plot(meravg_thin,array['lon'])
+	plt.ylabel('Longitude')
+	plt.xlabel(varname)
+	ax3.yaxis.tick_right()
+	ax3.yaxis.set_label_position('right')
+	ax3.invert_xaxis()
+	plt.show()
+
+
 
 def aquaplanet_inputfile(filename,varname,month):
 	
@@ -1626,9 +1711,19 @@ def aquaplanet_inputfile(filename,varname,month):
 	lon, lat = np.meshgrid(lons_cyclic, lats)
 	xi, yi = m(lon, lat)
 
+	minval = np.absolute(array.min())
+	maxval = np.absolute(array.max())
+	
+	if maxval >= minval:
+		minval = - maxval
+	else: 
+		maxval = minval
+		minval = - minval
+
 	dlons = lons[100] - lons[99]
 	dlats = lats[60] - lats[59]
-	cs = m.pcolor(xi,yi,array,cmap='bwr')
+	cs = m.pcolor(xi,yi,array,norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r',
+		      vmin = minval, vmax = maxval)
 	cbar = m.colorbar(cs, location='right', pad="10%")
 
 	plt.title(varname)	
@@ -1822,7 +1917,7 @@ def two_continents_plot(minlat,maxlat,array,units,title,palette):
 
 
 def animated_map(testdir,array,units,title,plot_title,palette,imin,imax):
-    
+    plt.close()
     lats=array.lat
     lons=array.lon
 
@@ -1842,22 +1937,22 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax):
 
     lon, lat = np.meshgrid(lons_cyclic, lats)
     xi, yi = m(lon, lat)
-
-    minval = np.absolute(array.min())
-    maxval = np.absolute(array.max())
     
+    minval = np.min(array)
+    maxval = np.max(array)
+
     for idx in range (imin,imax): # exclues last value
 	    if palette == 'rainnorm':
 
 		    minval = np.absolute(array.min())
 		    maxval = np.absolute(array.max())
+		    
     
 		    if maxval >= minval:
 			    minval = - maxval
 		    else: 
 			    maxval = minval
 			    minval = - minval
-
 		    cs = m.pcolormesh(xi,yi,array[idx,:,:],cmap='BrBG',
 				      norm=MidpointNormalize(midpoint=0.),
 				      vmin=minval,vmax=maxval)
@@ -1865,14 +1960,11 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax):
 		    cs = m.pcolor(xi,yi,array[idx,:,:],cmap=plt.cm.BrBG)
 	    
 	    elif palette=='temp':
-		    minval = array.min()
-		    maxval = array.max()
 		    cs = m.pcolor(xi,yi,array[idx,:,:],norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin=minval,vmax=maxval)
 	    elif palette=='fromwhite': 
 		    pal = plt.cm.Blues
 		    pal.set_under('w',None)
-		    maxval = np.max(array)
-		    cs = m.pcolormesh(xi,yi,array[idx,:,:],cmap=pal,vmin=0.,vmax=maxval)	    
+		    cs = m.pcolormesh(xi,yi,array[idx,:,:],cmap=pal,vmin=0,vmax=maxval)	    
 	    cbar = m.colorbar(cs, location='bottom', pad="10%")
 	    cbar.set_label(units)
 	    plt.title(title)
