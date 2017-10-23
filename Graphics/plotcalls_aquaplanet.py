@@ -28,10 +28,10 @@ PE_avg=precipitation_avg*86400-net_lhe_avg/28. # 28.=conversion from W/m^2 to mm
 
 # plotting_routines_kav7.aquaplanet_plot_minuszonavg(-90.,90.,PE_avg,'mm/day','P-E avg minus zonavg','rainnorm')
 # plotting_routines_kav7.aquaplanet_plot_minuszonavg(-90.,90.,precipitation_avg*86400,'mm/day','P avg minus zonavg','raindefault')
-plotting_routines_kav7.aquaplanet_plot(-90.,90.,PE_avg,12,'mm/day','P-E avg','rainnorm')
-plotting_routines_kav7.aquaplanet_plot(-90.,90.,precipitation_avg*86400,12,'mm/day','P avg','rainnorm')
-plotting_routines_kav7.aquaplanet_plot(-90.,90.,net_lhe_avg/28.,12,'mm/day','E avg','rainnorm')
-plotting_routines_kav7.aquaplanet_plot(-90.,90.,tsurf_avg,12,'K','tsurf avg','temp')
+plotting_routines_kav7.aquaplanet_plot(-90.,90.,PE_avg,'mm/day','P-E avg','rainnorm')
+plotting_routines_kav7.aquaplanet_plot(-90.,90.,precipitation_avg*86400,'mm/day','P avg','rainnorm')
+plotting_routines_kav7.aquaplanet_plot(-90.,90.,net_lhe_avg/28.,'mm/day','E avg','rainnorm')
+plotting_routines_kav7.aquaplanet_plot(-90.,90.,tsurf_avg,'K','tsurf avg','temp')
 # plotting_routines_kav7.aquaplanet_plot_minuszonavg(-90.,90.,tsurf_avg,'K','tsurf avg minus zonavg','temp')
 
 # plotting_routines.globavg_tsurf_timeseries(testdir,1,runmax)
