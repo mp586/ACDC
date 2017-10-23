@@ -16,6 +16,7 @@ testdir=input('Enter data directory name as string ')
 runmin=97 #input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
 runmax=241 #input('Enter runmax number ')
 
+plotting_routines_kav7.globavg_var_timeseries(testdir,'t_surf',1,runmax)
 
 [tsurf,tsurf_avg,tsurf_seasonal_avg,tsurf_month_avg,time]=plotting_routines.seasonal_surface_variable(testdir,runmin,runmax,'t_surf','K')
 
@@ -27,10 +28,10 @@ PE_avg=precipitation_avg*86400-net_lhe_avg/28. # 28.=conversion from W/m^2 to mm
 
 # plotting_routines_kav7.aquaplanet_plot_minuszonavg(-90.,90.,PE_avg,'mm/day','P-E avg minus zonavg','rainnorm')
 # plotting_routines_kav7.aquaplanet_plot_minuszonavg(-90.,90.,precipitation_avg*86400,'mm/day','P avg minus zonavg','raindefault')
-plotting_routines_kav7.aquaplanet_plot(-90.,90.,PE_avg,'mm/day','P-E avg','rainnorm')
-plotting_routines_kav7.aquaplanet_plot(-90.,90.,precipitation_avg*86400,'mm/day','P avg','rainnorm')
-plotting_routines_kav7.aquaplanet_plot(-90.,90.,net_lhe_avg/28.,'mm/day','E avg','rainnorm')
-plotting_routines_kav7.aquaplanet_plot(-90.,90.,tsurf_avg,'K','tsurf avg','temp')
+plotting_routines_kav7.aquaplanet_plot(-90.,90.,PE_avg,12,'mm/day','P-E avg','rainnorm')
+plotting_routines_kav7.aquaplanet_plot(-90.,90.,precipitation_avg*86400,12,'mm/day','P avg','rainnorm')
+plotting_routines_kav7.aquaplanet_plot(-90.,90.,net_lhe_avg/28.,12,'mm/day','E avg','rainnorm')
+plotting_routines_kav7.aquaplanet_plot(-90.,90.,tsurf_avg,12,'K','tsurf avg','temp')
 # plotting_routines_kav7.aquaplanet_plot_minuszonavg(-90.,90.,tsurf_avg,'K','tsurf avg minus zonavg','temp')
 
 # plotting_routines.globavg_tsurf_timeseries(testdir,1,runmax)

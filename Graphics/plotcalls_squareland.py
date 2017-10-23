@@ -14,7 +14,7 @@ import stats as st
 
 testdir= input('Enter data directory name as string ')
 runmin=1 #input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
-runmax=241 #input('Enter runmax number ')
+runmax=13 #input('Enter runmax number ')
 
 landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
 landmask=landfile.variables['land_mask'][:]
@@ -88,15 +88,15 @@ lons=landfile.variables['lon'][:]
 
 # plotting_routines_kav7.animated_map(testdir,tsurf_month_avg,'K','$T_S$','tsurf_clim_animated','temp',0,12)
 
-plotting_routines_kav7.animated_map(testdir,(precipitation_month_avg*86400.),'mm/day','P','P_clim_animated','fromwhite',0,12)
+# plotting_routines_kav7.animated_map(testdir,(precipitation_month_avg*86400.),'mm/day','P','P_clim_animated','fromwhite',0,12)
 
-plotting_routines_kav7.animated_map(testdir,(precipitation*86400.).where(landmask==1.),'mm/day','P','P_evolution_land','fromwhite',0,200)
+# plotting_routines_kav7.animated_map(testdir,(precipitation*86400.).where(landmask==1.),'mm/day','P','P_evolution_land','fromwhite',0,200)
 
-plotting_routines_kav7.animated_map(testdir,tsurf.where(landmask==1.),'mm/day','T','T_evolution_land','temp',0,100)
+# plotting_routines_kav7.animated_map(testdir,tsurf.where(landmask==1.),'mm/day','T','T_evolution_land','temp',0,100)
 
-# plotting_routines_kav7.animated_map(testdir,(net_lhe_month_avg)/28.,'mm/day','E','E_clim_animated','fromwhite',0,12)
+# # plotting_routines_kav7.animated_map(testdir,(net_lhe_month_avg)/28.,'mm/day','E','E_clim_animated','fromwhite',0,12)
 
-plotting_routines_kav7.animated_map(testdir,bucket_depth.where(landmask==1.),'mm/day','bucket','bucket_depth_animated','fromwhite',0,100)
+# plotting_routines_kav7.animated_map(testdir,bucket_depth.where(landmask==1.),'mm/day','bucket','bucket_depth_animated','fromwhite',0,100)
 
 PE_avg=precipitation_avg*86400-net_lhe_avg/28. # 28.=conversion from W/m^# 2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
 # # # see www.ce.utexas.edu/prof/maidment/CE374KSpr12/.../Latent%20heat%20flux.pptx @30DegC
