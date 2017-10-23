@@ -1110,7 +1110,7 @@ def squareland_plot_minuszonavg(minlat,maxlat,array,units,title,palette,zonavgti
     plt.show()
     return(square_lons,square_lats)
 
-def aquaplanet_plot(minlat,maxlat,array,month,units,title,palette):
+def aquaplanet_plot_for_iPython(minlat,maxlat,array,month,units,title,palette):
 
     lats=np.linspace(-90.,90.,len(array.dim_1))
     lons=np.linspace(0.,360.,len(array.dim_2))
@@ -1178,6 +1178,67 @@ def aquaplanet_plot(minlat,maxlat,array,month,units,title,palette):
     ax3.yaxis.set_label_position('right')
     ax3.invert_xaxis()
     plt.show()
+
+def aquaplanet_plot(minlat,maxlat,array,units,title,palette):
+    
+    minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
+    maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0] 
+    selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
+
+    fig = plt.figure()
+    ax1 = plt.subplot2grid((3,9), (0,0), colspan = 5, rowspan = 3)
+
+
+    m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+
+    array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+    array,lons_cyclic = addcyclic(array, lons)
+    array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+
+    lon, lat = np.meshgrid(lons_cyclic, selected_lats)
+    xi, yi = m(lon, lat)
+
+    zonavg_thin = array.mean(dim='lon')
+    meravg_thin = array.mean(dim='lat')
+    m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+
+
+    if palette=='rainnorm':
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG')
+    elif palette == 'raindefault':
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
+    elif palette=='temp': 
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r')
+    else:
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats))
+
+
+    cbar = m.colorbar(cs, location='right', pad="10%")
+    cbar.set_label(units)
+
+    plt.title(title)
+
+    ax2 = plt.subplot2grid((3,9), (0,6), rowspan = 3)
+    # zonal average plot
+    plt.plot(zonavg_thin,array['lat'])
+    plt.ylabel('Latitude')
+    plt.xlabel(title+' ('+units+')')
+    ax2.yaxis.tick_right()
+    ax2.yaxis.set_label_position('right')
+    ax2.invert_xaxis()
+
+    ax3 = plt.subplot2grid((3,9), (0,8), rowspan = 3)
+
+#    for producing a meridional average plot
+    plt.plot(meravg_thin,array['lon'])
+    plt.ylabel('Longitude')
+    plt.xlabel(title+' ('+units+')')
+    ax3.yaxis.tick_right()
+    ax3.yaxis.set_label_position('right')
+    ax3.invert_xaxis()
+    plt.show()
+
 
 def aquaplanet_plot_minuszonavg(minlat,maxlat,array,units,title,palette):
 
