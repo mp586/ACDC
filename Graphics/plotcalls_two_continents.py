@@ -13,10 +13,10 @@ import plotting_routines_kav7
 import stats as st
 
 testdir=input('Enter data directory name as string ')
-runmin=97 #input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
-runmax=241 #input('Enter runmax number ')
+runmin=input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
+runmax=input('Enter runmax number ')
 
-landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/land_two_continents.nc',mode='r')
+landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/two_continents/land_two_continents.nc',mode='r')
 landmask=landfile.variables['land_mask'][:]
 lats=landfile.variables['lat'][:]
 lons=landfile.variables['lon'][:]
@@ -39,6 +39,32 @@ lons=landfile.variables['lon'][:]
 [convection_rain,convection_rain_avg,convection_rain_seasonal_avg,convection_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'convection_rain','kg/m2s')
 [condensation_rain,condensation_rain_avg,condensation_rain_seasonal_avg,condensation_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'condensation_rain','kg/m2s')
 [bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'bucket_depth','m')
+
+[ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'ucomp','m/s')
+[vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'vcomp','m/s')
+[omega,omega_avg,omega_seasonal_avg,omega_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'omega','Pa/s')
+
+
+# maxval_omega_surf = np.absolute((omega_month_avg[:,39,:,:]).max())
+# minval_omega_surf = np.absolute((omega_month_avg[:,39,:,:]).min())
+
+
+# for i in range(1,13):
+
+#     month_plot = plotting_routines_kav7.winds_at_heightlevel(ucomp_month_avg.sel(month=i),vcomp_month_avg.sel(month=i),39,(omega_month_avg[:,39,:,:]).sel(month=i),'rainnorm','dp/dt',minval_omega_surf,maxval_omega_surf)
+#     month_plot.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/anim_plot_omega'+str(i)+'.png',bbox_inches='tight')
+# os.system('convert -delay 100 /scratch/mp586/Code/Graphics/'+testdir+'/anim_plot_omega*.png /scratch/mp586/Code/Graphics/'+testdir+'/omega_wind_monthly_clim.gif')
+
+
+maxval_precip = np.absolute((precipitation_month_avg*86400).max())
+
+for i in range(1,13):
+
+    month_plot = plotting_routines_kav7.winds_at_heightlevel(ucomp_month_avg.sel(month=i),vcomp_month_avg.sel(month=i),39,precipitation_month_avg.sel(month=i)*86400,'fromwhite','mm/day',0,maxval_precip)
+    month_plot.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/anim_plot_precip'+str(i)+'.png',bbox_inches='tight')
+os.system('convert -delay 100 /scratch/mp586/Code/Graphics/'+testdir+'/anim_plot_precip*.png /scratch/mp586/Code/Graphics/'+testdir+'/precip_wind_monthly_clim.gif')
+
+
 
 #plotting_routines_kav7.animated_map(testdir,precipitation_month_avg*86400,'mm/day','P','precip_climatology','fromwhite',0,12)
 

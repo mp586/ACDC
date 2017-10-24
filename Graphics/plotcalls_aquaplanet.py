@@ -29,19 +29,19 @@ PE_avg=precipitation_avg*86400-net_lhe_avg/28. # 28.=conversion from W/m^2 to mm
 # plotting_routines_kav7.aquaplanet_plot_minuszonavg(-90.,90.,PE_avg,'mm/day','P-E avg minus zonavg','rainnorm')
 # plotting_routines_kav7.aquaplanet_plot_minuszonavg(-90.,90.,precipitation_avg*86400,'mm/day','P avg minus zonavg','raindefault')
 plotting_routines_kav7.aquaplanet_plot(-90.,90.,PE_avg,'mm/day','P-E avg','rainnorm')
-plotting_routines_kav7.aquaplanet_plot(-90.,90.,precipitation_avg*86400,'mm/day','P avg','rainnorm')
-plotting_routines_kav7.aquaplanet_plot(-90.,90.,net_lhe_avg/28.,'mm/day','E avg','rainnorm')
+plotting_routines_kav7.aquaplanet_plot(-90.,90.,precipitation_avg*86400,'mm/day','P avg','fromwhite')
+plotting_routines_kav7.aquaplanet_plot(-90.,90.,net_lhe_avg/28.,'mm/day','E avg','fromwhite')
 plotting_routines_kav7.aquaplanet_plot(-90.,90.,tsurf_avg,'K','tsurf avg','temp')
 # plotting_routines_kav7.aquaplanet_plot_minuszonavg(-90.,90.,tsurf_avg,'K','tsurf avg minus zonavg','temp')
 
 # plotting_routines.globavg_tsurf_timeseries(testdir,1,runmax)
 
-# JJA = 'JJA'
-# DJF = 'DJF'
-# MAM = 'MAM'
-# SON = 'SON'
-# plotting_routines_kav7.several_vars_zonalavg2(tsurf_seasonal_avg.sel(season=JJA),'tsurf (K)','r',precipitation_seasonal_avg.sel(season=JJA)*86400,'P (mm/day)','b',net_lhe_seasonal_avg.sel(season=JJA)/28.,'E (mm/day)','Orange','JJA tsurf, P and E') # 28.=conversion from W/m^2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
-# plotting_routines_kav7.several_vars_zonalavg2(tsurf_seasonal_avg.sel(season=DJF),'tsurf (K)','r',precipitation_seasonal_avg.sel(season=DJF)*86400,'P (mm/day)','b',net_lhe_seasonal_avg.sel(season=DJF)/28.,'E (mm/day)','Orange','DJF tsurf, P and E')
+JJA = 'JJA'
+DJF = 'DJF'
+MAM = 'MAM'
+SON = 'SON'
+plotting_routines_kav7.several_vars_zonalavg2(tsurf_seasonal_avg.sel(season=JJA),'tsurf (K)','r',precipitation_seasonal_avg.sel(season=JJA)*86400,'P (mm/day)','b',net_lhe_seasonal_avg.sel(season=JJA)/28.,'E (mm/day)','Orange','JJA tsurf, P and E') # 28.=conversion from W/m^2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
+plotting_routines_kav7.several_vars_zonalavg2(tsurf_seasonal_avg.sel(season=DJF),'tsurf (K)','r',precipitation_seasonal_avg.sel(season=DJF)*86400,'P (mm/day)','b',net_lhe_seasonal_avg.sel(season=DJF)/28.,'E (mm/day)','Orange','DJF tsurf, P and E')
 # plotting_routines_kav7.several_vars_zonalavg2(tsurf_avg,'tsurf (K)','r',precipitation_avg*86400,'P (mm/day)','b',net_lhe_avg/28.,'E (mm/day)','Orange','avg tsurf, P and E')
 
 print('January tsurf_avg (global) = '+str(tsurf_month_avg.sel(month=1).mean()))

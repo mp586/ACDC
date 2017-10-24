@@ -638,7 +638,7 @@ def squareland_plot_zon_mearvg(minlat,maxlat,array,units,title,palette):
     selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
 
     fig = plt.figure()
-    ax1 = plt.subplot2grid((3,9), (0,0), colspan = 5, rowspan = 3)
+    ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
 
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -707,7 +707,7 @@ def squareland_plot_zon_mearvg(minlat,maxlat,array,units,title,palette):
     m.plot(x, y, color='b') 
     plt.title(title)
    
-    ax2 = plt.subplot2grid((3,9), (0,6), rowspan = 3)
+    ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
     
     plt.plot(zonavg_thin,array['lat'])
     plt.ylabel('Latitude')
@@ -716,14 +716,11 @@ def squareland_plot_zon_mearvg(minlat,maxlat,array,units,title,palette):
     ax2.yaxis.set_label_position('right')
     ax2.invert_xaxis()
 
-    ax3 = plt.subplot2grid((3,9), (0,8), rowspan = 3)
+    ax3 = plt.subplot2grid((5,7), (4,0), colspan = 4)
 
-    plt.plot(meravg_thin,array['lon'])
-    plt.ylabel('Longitude')
-    plt.xlabel(title+' ('+units+')')
-    ax2.yaxis.tick_right()
-    ax2.yaxis.set_label_position('right')
-    ax2.invert_xaxis()
+    plt.plot(array['lon'],meravg_thin)
+    plt.xlabel('Longitude')
+    plt.ylabel(title+' ('+units+')')
     plt.show()
 
     print(square_lons.min(),square_lons.max(),square_lats.min(),square_lats.max()+dlats)
@@ -754,7 +751,7 @@ def squareland_plot(minlat,maxlat,array,units,title,palette,contourson = False):
 
 
     fig = plt.figure()
-    ax1 = plt.subplot2grid((3,9), (0,0), colspan = 5, rowspan = 3)
+    ax1 = plt.subplot2grid((5,8), (0,1), colspan = 5, rowspan = 3)
 
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -870,7 +867,7 @@ def squareland_plot(minlat,maxlat,array,units,title,palette,contourson = False):
 
     plt.title(title)
    
-    ax2 = plt.subplot2grid((3,9), (0,6), rowspan = 3)
+    ax2 = plt.subplot2grid((5,8), (0,7), rowspan = 3)
     # if palette=='temp':
     # 	    plt.plot((zonavg_thin-273.15),array['lat'])
     # else: 
@@ -884,16 +881,12 @@ def squareland_plot(minlat,maxlat,array,units,title,palette,contourson = False):
 
     meravg_thin_land = (array.sel(lat=slice(square_lats.min(),square_lats.max()))).mean(dim='lat')
 
+    ax3 = plt.subplot2grid((5,8), (4,1), colspan = 4)
 
-    ax3 = plt.subplot2grid((3,9), (0,8), rowspan = 3)
-
-    plt.plot(meravg_thin_land,array['lon'])
-    plt.ylabel('Longitude')
-    plt.xlabel(title+' ('+units+') only for land latitudes')
-    ax3.yaxis.tick_right()
-    ax3.yaxis.set_label_position('right')
-    ax3.invert_xaxis()
-
+    plt.plot(array['lon'],meravg_thin)
+    plt.xlabel('Longitude')
+    plt.ylabel(title+' ('+units+') over landlats only')
+    
     plt.show()
 
     print(square_lons.min(),square_lons.max(),square_lats.min(),square_lats.max()+dlats)
@@ -922,7 +915,7 @@ def squareland_plot_forpaper(minlat,maxlat,array,units,title,palette,contourson=
 
 
     fig = plt.figure()
-    ax1 = plt.subplot2grid((3,7), (0,0), colspan = 5, rowspan = 3)
+    ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
 
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -1004,7 +997,7 @@ def squareland_plot_forpaper(minlat,maxlat,array,units,title,palette,contourson=
     m.plot(x, y, color='b') 
     plt.title(title)
    
-    ax2 = plt.subplot2grid((3,7), (0,6), rowspan = 3)
+    ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
     # if palette=='temp':
     # 	    plt.plot((zonavg_thin-273.15),array['lat'])
     # else: 
@@ -1030,7 +1023,7 @@ def squareland_plot_minuszonavg(minlat,maxlat,array,units,title,palette,zonavgti
     selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
 
     fig = plt.figure()
-    ax1 = plt.subplot2grid((3,7), (0,0), colspan = 5, rowspan = 3)
+    ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 
@@ -1099,7 +1092,7 @@ def squareland_plot_minuszonavg(minlat,maxlat,array,units,title,palette,zonavgti
     m.plot(x, y, color='b') 
     plt.title(title)
 
-    ax2 = plt.subplot2grid((3,7), (0,6), rowspan = 3)
+    ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
     
     plt.plot(zonavg_thin,array['lat'])
     plt.ylabel('Latitude')
@@ -1126,7 +1119,7 @@ def aquaplanet_plot_for_iPython(minlat,maxlat,array,month,units,title,palette):
     selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
 
     fig = plt.figure()
-    ax1 = plt.subplot2grid((3,9), (0,0), colspan = 5, rowspan = 3)
+    ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
 
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -1150,6 +1143,10 @@ def aquaplanet_plot_for_iPython(minlat,maxlat,array,month,units,title,palette):
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
     elif palette=='temp': 
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r')
+    elif palette=='fromwhite':
+       	    pal = plt.cm.Blues
+            pal.set_under('w',None)
+      	    cs = m.pcolormesh(xi,yi,field,cmap=pal,vmin=0,vmax=maxval)
     else:
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats))
 
@@ -1157,9 +1154,14 @@ def aquaplanet_plot_for_iPython(minlat,maxlat,array,month,units,title,palette):
     cbar = m.colorbar(cs, location='right', pad="10%")
     cbar.set_label(units)
 
+    if contourson == True:  # add contours 
+	    cont = m.contour(xi,yi,array,4,cmap='PuBu_r',
+			     linewidth=5)
+	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=12)
+
     plt.title(title)
 
-    ax2 = plt.subplot2grid((3,9), (0,6), rowspan = 3)
+    ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
     # zonal average plot
     plt.plot(zonavg_thin,array['lat'])
     plt.ylabel('Latitude')
@@ -1168,7 +1170,7 @@ def aquaplanet_plot_for_iPython(minlat,maxlat,array,month,units,title,palette):
     ax2.yaxis.set_label_position('right')
     ax2.invert_xaxis()
 
-    ax3 = plt.subplot2grid((3,9), (0,8), rowspan = 3)
+    ax3 = plt.subplot2grid((5,7), (4,0), colspan = 4)
 
 #    for producing a meridional average plot
     plt.plot(meravg_thin,array['lon'])
@@ -1179,14 +1181,14 @@ def aquaplanet_plot_for_iPython(minlat,maxlat,array,month,units,title,palette):
     ax3.invert_xaxis()
     plt.show()
 
-def aquaplanet_plot(minlat,maxlat,array,units,title,palette):
+def aquaplanet_plot(minlat,maxlat,array,units,title,palette,contourson = False):
     
     minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
     maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0] 
     selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
 
     fig = plt.figure()
-    ax1 = plt.subplot2grid((3,9), (0,0), colspan = 5, rowspan = 3)
+    ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
 
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -1210,6 +1212,10 @@ def aquaplanet_plot(minlat,maxlat,array,units,title,palette):
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
     elif palette=='temp': 
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r')
+    elif palette=='fromwhite':
+       	    pal = plt.cm.Blues
+            pal.set_under('w',None)
+      	    cs = m.pcolormesh(xi,yi,field,cmap=pal,vmin=0,vmax=maxval)
     else:
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats))
 
@@ -1217,9 +1223,14 @@ def aquaplanet_plot(minlat,maxlat,array,units,title,palette):
     cbar = m.colorbar(cs, location='right', pad="10%")
     cbar.set_label(units)
 
+    if contourson == True:  # add contours 
+	    cont = m.contour(xi,yi,array,4,cmap='PuBu_r',
+			     linewidth=5)
+	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=12)
+
     plt.title(title)
 
-    ax2 = plt.subplot2grid((3,9), (0,6), rowspan = 3)
+    ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
     # zonal average plot
     plt.plot(zonavg_thin,array['lat'])
     plt.ylabel('Latitude')
@@ -1228,7 +1239,7 @@ def aquaplanet_plot(minlat,maxlat,array,units,title,palette):
     ax2.yaxis.set_label_position('right')
     ax2.invert_xaxis()
 
-    ax3 = plt.subplot2grid((3,9), (0,8), rowspan = 3)
+    ax3 = plt.subplot2grid((5,7), (4,0), colspan = 4)
 
 #    for producing a meridional average plot
     plt.plot(meravg_thin,array['lon'])
@@ -1312,7 +1323,7 @@ def squareland_plot_several(minlat,maxlat,array1,title1,array2,title2,array3,tit
 
 
     fig = plt.figure()
-    ax1 = plt.subplot2grid((3,7), (0,0), colspan = 5, rowspan = 3)
+    ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
     
     m = Basemap(projection='cyl',llcrnrlat=minlat,urcrnrlat=maxlat,\
             llcrnrlon=-181.,urcrnrlon=180.,resolution='c')
@@ -1423,7 +1434,7 @@ def worldmap_inputfile(filename,varname): # assuming that the input file has the
 
 
     fig = plt.figure()
-    ax1 = plt.subplot2grid((3,9), (0,0), colspan = 5, rowspan = 3)
+    ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
 
 
     m = Basemap(projection='kav7',lon_0=180.,resolution='c')
@@ -1444,7 +1455,7 @@ def worldmap_inputfile(filename,varname): # assuming that the input file has the
     cbar = m.colorbar(cs, location='right', pad="10%")
     
 
-    ax2 = plt.subplot2grid((3,9), (0,6), rowspan = 3)
+    ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
     # zonal average plot
     plt.plot(zonavg_thin,array['lat'])
     plt.ylabel('Latitude')
@@ -1453,7 +1464,7 @@ def worldmap_inputfile(filename,varname): # assuming that the input file has the
     ax2.yaxis.set_label_position('right')
     ax2.invert_xaxis()
 
-    ax3 = plt.subplot2grid((3,9), (0,8), rowspan = 3)
+    ax3 = plt.subplot2grid((5,7), (4,0), colspan = 4)
     # meridional average plot
     plt.plot(meravg_thin,array['lon'])
     plt.ylabel('Longitude')
@@ -1535,7 +1546,7 @@ def squareland_inputfile_4dvar(filename,varname):
 	lons=xr.DataArray(nc.variables['lon'][:])
 
 	fig = plt.figure()
-	ax1 = plt.subplot2grid((3,7), (0,0), colspan = 5, rowspan = 3)
+	ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
 
 
 	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -1581,7 +1592,7 @@ def squareland_inputfile_4dvar(filename,varname):
 	m.plot(x, y, color='b') 
 	plt.title(varname)	
 
-	ax2 = plt.subplot2grid((3,7), (0,6), rowspan = 3)
+	ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
 	
 	plt.plot(zonavg_thin,array['lat'])
 	plt.ylabel('Latitude')
@@ -1601,7 +1612,7 @@ def squareland_inputfile_3dvar(filename,varname):
 	lons=xr.DataArray(nc.variables['lon'][:])
 
 	fig = plt.figure()
-	ax1 = plt.subplot2grid((3,9), (0,0), colspan = 5, rowspan = 3)
+	ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
 
 
 	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -1646,7 +1657,7 @@ def squareland_inputfile_3dvar(filename,varname):
 	m.plot(x, y, color='b') 
 	plt.title(varname)	
 
-	ax2 = plt.subplot2grid((3,9), (0,6), rowspan = 3)
+	ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
 	
 	plt.plot(zonavg_thin,array['lat'])
 	plt.ylabel('Latitude')
@@ -1655,7 +1666,7 @@ def squareland_inputfile_3dvar(filename,varname):
 	ax2.yaxis.set_label_position('right')
 	ax2.invert_xaxis()
 
-	ax3 = plt.subplot2grid((3,9), (0,8), rowspan = 3)
+	ax3 = plt.subplot2grid((5,7), (4,0), colspan = 4)
 #    for producing a meridional average plot
 	plt.plot(meravg_thin,array['lon'])
 	plt.ylabel('Longitude')
@@ -1674,7 +1685,7 @@ def squareland_inputfile_2dvar(filename,varname):
 	lons=xr.DataArray(nc.variables['lon'][:])
 
 	fig = plt.figure()
-	ax1 = plt.subplot2grid((3,9), (0,0), colspan = 5, rowspan = 3)
+	ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
 
 
 	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -1719,7 +1730,7 @@ def squareland_inputfile_2dvar(filename,varname):
 	m.plot(x, y, color='b') 
 	plt.title(varname)	
 
-	ax2 = plt.subplot2grid((3,9), (0,6), rowspan = 3)
+	ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
 	
 	plt.plot(zonavg_thin,array['lat'])
 	plt.ylabel('Latitude')
@@ -1728,7 +1739,7 @@ def squareland_inputfile_2dvar(filename,varname):
 	ax2.yaxis.set_label_position('right')
 	ax2.invert_xaxis()
 
-	ax3 = plt.subplot2grid((3,9), (0,8), rowspan = 3)
+	ax3 = plt.subplot2grid((5,7), (4,0), colspan = 4)
 #    for producing a meridional average plot
 	plt.plot(meravg_thin,array['lon'])
 	plt.ylabel('Longitude')
@@ -1754,7 +1765,7 @@ def aquaplanet_inputfile(filename,varname,month):
 	lons=xr.DataArray(nc.variables['lon'][:])
 
 	fig = plt.figure()
-	ax1 = plt.subplot2grid((3,9), (0,0), colspan = 5, rowspan = 3)
+	ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
 
 
 	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -1789,7 +1800,7 @@ def aquaplanet_inputfile(filename,varname,month):
 
 	plt.title(varname)	
 
-	ax2 = plt.subplot2grid((3,9), (0,6), rowspan = 3)
+	ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
 	# zonal average plot
 	plt.plot(zonavg_thin,array['lat'])
 	plt.ylabel('Latitude')
@@ -1798,7 +1809,7 @@ def aquaplanet_inputfile(filename,varname,month):
 	ax2.yaxis.set_label_position('right')
 	ax2.invert_xaxis()
 
-	ax3 = plt.subplot2grid((3,9), (0,8), rowspan = 3)
+	ax3 = plt.subplot2grid((5,7), (4,0), colspan = 4)
 	# meridional average plot
 	plt.plot(meravg_thin,array['lon'])
 	plt.ylabel('Longitude')
@@ -1899,7 +1910,7 @@ def two_continents_plot(minlat,maxlat,array,units,title,palette):
     selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
 
     fig = plt.figure()
-    ax1 = plt.subplot2grid((3,7), (0,0), colspan = 5, rowspan = 3)
+    ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
 
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -1964,7 +1975,7 @@ def two_continents_plot(minlat,maxlat,array,units,title,palette):
 
     plt.title(title)
    
-    ax2 = plt.subplot2grid((3,7), (0,6), rowspan = 3)
+    ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
     
     plt.plot(zonavg_thin,array['lat'])
     plt.ylabel('Latitude')
@@ -1978,6 +1989,9 @@ def two_continents_plot(minlat,maxlat,array,units,title,palette):
 
 
 def animated_map(testdir,array,units,title,plot_title,palette,imin,imax):
+
+# Can be used for a surface variable, e.g. to animate the climatology of evaporation
+
     plt.close()
     lats=array.lat
     lons=array.lon
@@ -2035,7 +2049,7 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax):
    
 
 
-    os.system('convert -delay 50 /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
+    os.system('convert -delay 15 /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
     # Use ffmeg to convert animated gif to mp4
     # os.system('ffmpeg -f gif -i /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.mp4')
 
@@ -2116,6 +2130,94 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval):
 	# plt.show()
 	return fig
 
+
+
+def animated_winds(testdir,uwind,vwind,level,array,palette,units,imin,imax,plot_title):
+# Can be used to animate monhtly wind plots for entire period 
+
+	print np.shape(array)
+	fig = plt.figure()
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+	lons = uwind.lon
+	lats = uwind.lat
+	pres = uwind.pres_lev[level]	
+	uwind,lons_shift = shiftgrid(np.max(lons)-180.,uwind[:,level,:,:],lons,start=False,
+			       cyclic=np.max(lons))
+	vwind,lons_shift = shiftgrid(np.max(lons)-180.,vwind[:,level,:,:],lons,start=False,
+			       cyclic=np.max(lons))	
+	uwind, lons_cyclic = addcyclic(uwind, lons_shift)
+	vwind, lons_cyclic = addcyclic(vwind, lons_shift)
+
+	lon, lat = np.meshgrid(lons_cyclic, lats)
+	xi, yi = m(lon, lat)
+
+#	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+#	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+
+	plt.title('Wind at '+str(pres)+' hPa')
+
+	array, array_lons = shiftgrid(np.max(lons)-180.,array,array.lon,
+				     start=False,cyclic=np.max(lons))
+	array, lons_cyclic = addcyclic(array, lons)
+
+	minval = np.min(array)
+	maxval = np.max(array)
+
+	array_all = array
+	uwind_all = uwind
+	vwind_all = vwind
+
+	for idx in range (imin,imax): 
+		
+		array = xr.DataArray(array_all[idx,:,:],coords=[lats,lons_cyclic],dims=['lat','lon'])
+
+		uwind = uwind_all[idx,:,:]
+		vwind = vwind_all[idx,:,:]
+
+		if palette=='rainnorm':
+			minval = np.absolute(np.min(array))
+			maxval = no.absolute(np.max(array))	
+			if maxval >= minval:
+				minval = - maxval
+			else: 
+				maxval = minval
+				minval = - minval
+
+				cs = m.pcolor(xi,yi,array,
+					      norm=MidpointNormalize(midpoint=0.),
+					      cmap='BrBG',vmin=minval, vmax=maxval)
+
+		elif palette == 'raindefault':
+			cs = m.pcolor(xi,yi,array, 
+				      cmap=plt.cm.BrBG)
+
+		elif palette=='temp': 
+			cs = m.pcolor(xi,yi,array, 
+				      norm=MidpointNormalize(midpoint=273.15), 
+				      cmap=plt.cm.RdBu_r,vmin=minval,vmax=maxval)
+
+		elif palette=='fromwhite': 
+			pal = plt.cm.Blues
+			pal.set_under('w',None)
+			cs = m.pcolormesh(xi,yi,array,
+					  cmap=pal,vmin=0,vmax=maxval)
+
+		else:
+			cs = m.pcolor(xi,yi,array)
+
+		cbar = m.colorbar(cs, location='right', pad="10%")
+		cbar.set_label(units)
+
+		Q = plt.quiver(xi[::3,::3], yi[::3,::3], uwind[::3,::3], 
+			       vwind[::3,::3], units='width')
+		qk = plt.quiverkey(Q, 0.9, 0.9, 10, r'$10 \frac{m}{s}$', 
+				   labelpos='E', coordinates='figure')
+
+		plt.annotate('Month #'+str(idx+1), xy=(0.15,0.8), xycoords='figure fraction')
+		plt.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month'+str(1000+idx)+'.png',bbox_inches='tight')
+		fig.clf()
+   
+	os.system('convert -delay 30 /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
 
 def plot_a_climatology(clim_field):
 # Plots each month of the climatology as separate curve

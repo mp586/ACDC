@@ -13,8 +13,8 @@ import plotting_routines_kav7
 import stats as st
 
 testdir= input('Enter data directory name as string ')
-runmin=1 #input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
-runmax=13 #input('Enter runmax number ')
+runmin=input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
+runmax=input('Enter runmax number ')
 
 landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
 landmask=landfile.variables['land_mask'][:]
@@ -22,7 +22,7 @@ lats=landfile.variables['lat'][:]
 lons=landfile.variables['lon'][:]
 
 #plotting_routines_kav7.globavg_var_timeseries(testdir,'t_surf',109,122)
-##plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,runmax,1.,'true')
+# plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'t_surf',1,runmax,1.,'true')
 #plotting_routines_kav7.globavg_var_timeseries(testdir,'co2',1,runmax)
 
 # # plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'coszen',1,runmax,1.,'true')
@@ -31,7 +31,7 @@ lons=landfile.variables['lon'][:]
 # plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,'flux_lhe',1,runmax,1./28.,'true')
 # plotting_routines_kav7.tropics_severalvars_timeseries_landonly(testdir,'precipitation',86400,'Blue','flux_lhe',1./28.,'g','rh',1.,'m',39,1,runmax,'true')
 # plotting_routines_kav7.tropics_severalvars_timeseries_oceanonly(testdir,'precipitation',86400,'Blue','flux_lhe',1./28.,'g','rh',1.,'m',39,1,runmax,'true')
-# #plotting_routines_kav7.tropics_severalvars_timeseries_landonly(testdir,'precipitation',86400,'Blue','flux_lhe',1./28.,'g','bucket_depth',1.,'k',0,1,runmax,'true')
+# plotting_routines_kav7.tropics_severalvars_timeseries_landonly(testdir,'precipitation',86400,'Blue','flux_lhe',1./28.,'g','bucket_depth',1.,'k',0,1,runmax,'true')
 # plotting_routines_kav7.tropics_severalvars_timeseries_landonly(testdir,'precipitation',86400,'Blue','flux_lhe',1./28.,'g','t_surf',1.,'r',0,1,runmax,'true')
 # plotting_routines_kav7.tropics_severalvars_timeseries_oceanonly(testdir,'precipitation',86400,'Blue','flux_lhe',1./28.,'g','t_surf',1.,'r',0,1,runmax,'true')
 
@@ -40,30 +40,39 @@ lons=landfile.variables['lon'][:]
 [precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'precipitation','kg/m2s')
 # [convection_rain,convection_rain_avg,convection_rain_seasonal_avg,convection_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'convection_rain','kg/m2s')
 # [condensation_rain,condensation_rain_avg,condensation_rain_seasonal_avg,condensation_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'condensation_rain','kg/m2s')
-[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'bucket_depth','m')
+# [bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'bucket_depth','m')
 #[flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'flux_oceanq','W/m^2')
 
-# [ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'ucomp','m/s')
-# [vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'vcomp','m/s')
-# [omega,omega_avg,omega_seasonal_avg,omega_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'omega','Pa/s')
+[ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'ucomp','m/s')
+[vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'vcomp','m/s')
+[omega,omega_avg,omega_seasonal_avg,omega_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'omega','Pa/s')
 
+# plotting_routines_kav7.animated_winds(testdir,ucomp,vcomp,39,(net_lhe/28.),'fromwhite','mm/day',0,(runmax-1),'evap_surfwinds')
 
 # maxval_precip = np.absolute((precipitation_month_avg*86400).max())
 
 # for i in range(1,13):
 
 #     month_plot = plotting_routines_kav7.winds_at_heightlevel(ucomp_month_avg.sel(month=i),vcomp_month_avg.sel(month=i),39,precipitation_month_avg.sel(month=i)*86400,'fromwhite','mm/day',0,maxval_precip)
-#     month_plot.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/anim_plot_precip'+str(i)+'.png',bbox_inches='tight')
-# os.system('convert -delay 100 /scratch/mp586/Code/Graphics/'+testdir+'/anim_plot_precip*.png /scratch/mp586/Code/Graphics/'+testdir+'/precip_wind_monthly_clim.gif')
+#     month_plot.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/precip_month_'+str(i)+'_run'+str(runmin)+'-run'+str(runmax)+'.png',bbox_inches='tight')
+# os.system('convert -delay 100 /scratch/mp586/Code/Graphics/'+testdir+'/precip_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/precip_wind_monthly_clim_run'+str(runmin)+'-run'+str(runmax)+'.gif')
 
-# maxval_omega_surf = np.absolute((omega_month_avg[:,39,:,:]).max())
-# minval_omega_surf = np.absolute((omega_month_avg[:,39,:,:]).min())
+maxval_evap = np.absolute((net_lhe_month_avg/28.).max())
+
+for i in range(1,13):
+
+    month_plot = plotting_routines_kav7.winds_at_heightlevel(ucomp_month_avg.sel(month=i),vcomp_month_avg.sel(month=i),39,net_lhe_month_avg.sel(month=i)/28.,'fromwhite','mm/day',0,maxval_evap)
+    month_plot.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/evap_month_'+str(i)+'_run'+str(runmin)+'-run'+str(runmax)+'.png',bbox_inches='tight')
+os.system('convert -delay 100 /scratch/mp586/Code/Graphics/'+testdir+'/evap_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/evap_wind_monthly_clim_run'+str(runmin)+'-run'+str(runmax)+'.gif')
+
+maxval_omega_surf = np.absolute((omega_month_avg[:,39,:,:]).max())
+minval_omega_surf = np.absolute((omega_month_avg[:,39,:,:]).min())
 
 
 # for i in range(1,13):
 
 #     month_plot = plotting_routines_kav7.winds_at_heightlevel(ucomp_month_avg.sel(month=i),vcomp_month_avg.sel(month=i),39,(omega_month_avg[:,39,:,:]).sel(month=i),'rainnorm','dp/dt',minval_omega_surf,maxval_omega_surf)
-#     month_plot.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/anim_plot_omega'+str(i)+'.png',bbox_inches='tight')
+#     month_plot.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/anim_plot_omega_month'+str(i)+'_run'+str(runmin)+'-run'+str(runmax)+'.png',bbox_inches='tight')
 # os.system('convert -delay 100 /scratch/mp586/Code/Graphics/'+testdir+'/anim_plot_omega*.png /scratch/mp586/Code/Graphics/'+testdir+'/omega_wind_monthly_clim.gif')
 
 
@@ -90,13 +99,13 @@ lons=landfile.variables['lon'][:]
 
 # plotting_routines_kav7.animated_map(testdir,(precipitation_month_avg*86400.),'mm/day','P','P_clim_animated','fromwhite',0,12)
 
-# plotting_routines_kav7.animated_map(testdir,(precipitation*86400.).where(landmask==1.),'mm/day','P','P_evolution_land','fromwhite',0,200)
-
-# plotting_routines_kav7.animated_map(testdir,tsurf.where(landmask==1.),'mm/day','T','T_evolution_land','temp',0,100)
+# plotting_routines_kav7.animated_map(testdir,(precipitation*86400.).where(landmask==1.),'mm/day','P','P_evolution_land','fromwhite',0,720)
+# plotting_routines_kav7.animated_map(testdir,(precipitation*86400.),'mm/day','P','P_evolutioun','fromwhite',0,720)
+# plotting_routines_kav7.animated_map(testdir,tsurf,'K','T','T_evolution','temp',0,240)
 
 # # plotting_routines_kav7.animated_map(testdir,(net_lhe_month_avg)/28.,'mm/day','E','E_clim_animated','fromwhite',0,12)
-
-# plotting_routines_kav7.animated_map(testdir,bucket_depth.where(landmask==1.),'mm/day','bucket','bucket_depth_animated','fromwhite',0,100)
+#plotting_routines_kav7.animated_map(testdir,(net_lhe)/28.,'mm/day','E','E_evolution','fromwhite',0,240)
+# plotting_routines_kav7.animated_map(testdir,bucket_depth.where(landmask==1.),'mm/day','bucket','bucket_depth_animated','fromwhite',0,720)
 
 PE_avg=precipitation_avg*86400-net_lhe_avg/28. # 28.=conversion from W/m^# 2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
 # # # see www.ce.utexas.edu/prof/maidment/CE374KSpr12/.../Latent%20heat%20flux.pptx @30DegC
@@ -205,8 +214,8 @@ print('Spatial correlation between tsurf_JJA and P_JJA ocean ('+str(minlat)+'N t
 #plotting_routines_kav7.squareland_plot_correlation(-90.,90.,tsurf_avg,precipitation_avg,'tsurf vs precip')
 
 
-plotting_routines_kav7.squareland_plot(-90.,90.,precipitation_month_avg.sel(month=7)*86400,'mm/day','P_July (mm/day)','rainnorm')
-plotting_routines_kav7.squareland_plot(-90.,90.,precipitation_month_avg.sel(month=1)*86400,'mm/day','P_January (mm/day)','rainnorm')
+plotting_routines_kav7.squareland_plot(-90.,90.,precipitation_month_avg.sel(month=7)*86400,'mm/day','P_July (mm/day)','fromwhite',contourson=True)
+plotting_routines_kav7.squareland_plot(-90.,90.,precipitation_month_avg.sel(month=1)*86400,'mm/day','P_January (mm/day)','fromwhite',contourson=True)
 plotting_routines_kav7.squareland_plot(-90.,90.,tsurf_month_avg.sel(month=7),'K','tsurf_July (K)','temp')
 plotting_routines_kav7.squareland_plot(-90.,90.,tsurf_month_avg.sel(month=1),'K','tsurf_January (K)','temp')
 
