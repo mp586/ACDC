@@ -63,57 +63,13 @@ def globavg_var_timeseries(testdir,varname,runmin,runmax):
     plt.show()    
     return(timeseries)
 
-def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,color1,varname2,factor2,color2,varname3,factor3,color3,height3,runmin,runmax,squareland):
+def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,color1,varname2,factor2,color2,varname3,factor3,color3,height3,runmin,runmax,landmaskxr):
 #
 #	""" Plots timeseries of three variables over tropical land.
 	# Using three different axes.  
 	# The colors are chosen at input for each variable
-	# Variable 3 can be at a specified height. If var3 is 3D, set height3 to 0 """
+	# Variable 3 can be at a specified height. If var3 is 3D, set height3 to 0 ""
 
-# for squareland = True this is naturally only for tropics (-30. - 30.)
-# for continents (i.e. squareland == False) -- selected latitude slice: hard coded -30. to 30. 
-# factor is needed to convert eg precip from kg/s to mm/day 
-
-    if squareland == 'one': 
-	    print('Squareland mode')
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
-    elif squareland == 'two': 
-	    print 'two continents mode'
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/two_continents/land_two_continents.nc',mode='r')
-
-	    # for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-	    # 	    runnr="{0:03}".format(i)
-	    # 	    filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
-	    # 	    nc = Dataset(filename,mode='r')
-	    
-	    # 	    var1=(xr.DataArray(nc.variables[varname1][:])).where(landmask==1.)*factor1
-	    # 	    var2=(xr.DataArray(nc.variables[varname2][:])).where(landmask==1.)*factor2
-	    # 	    if height3 != 0:
-	    # 		    var3=(xr.DataArray(nc.variables[varname3][:,height3,:,:])).where(landmask==1.)*factor3
-	    # 	    else:
-	    # 		    var3=(xr.DataArray(nc.variables[varname3][:])).where(landmask==1.)*factor3
-
-
-	    # 	    if i==runmin:
-	    # 		    timeseries1=[var1.mean()] # make timeseries be a list, not a float so that I can append later
-	    # 		    timeseries2=[var2.mean()]
-	    # 		    timeseries3=[var3.mean()]
-	    # 	    else:
-	    # 		    timeseries1.append(var1.mean())
-	    # 		    timeseries2.append(var2.mean())
-	    # 		    timeseries3.append(var3.mean())
-
-
-
-
-    else:
-	    print('Continental landmask')
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
-
-    landmask=xr.DataArray(landfile.variables['land_mask'][:])
-    landlats=landfile.variables['lat'][:]
-    landlons=landfile.variables['lon'][:]
-    landmaskxr=xr.DataArray(landmask,coords=[landlats,landlons],dims=['lat','lon'])
 
     for i in range (runmin,runmax):
 		    runnr="{0:03}".format(i)
@@ -131,7 +87,6 @@ def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,color1,varn
 			    var3=(xr.DataArray(nc.variables[varname3][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor3
 
 		    var1 = var1.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))==1.)
-		    print(np.shape(var1))
 		    var2 = var2.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))==1.)
 		    var3 = var3.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))==1.)
 
@@ -144,10 +99,6 @@ def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,color1,varn
 			    timeseries1.append(var1.mean())
 			    timeseries2.append(var2.mean())
 			    timeseries3.append(var3.mean())
-
-		    print(runnr)
-
-
 
     timeseries1=np.asarray(timeseries1)
     timeseries2=np.asarray(timeseries2)
@@ -189,7 +140,7 @@ def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,color1,varn
     plt.title('Tropical Land Only')
     plt.show()
 
-def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,varname2,factor2,color2,varname3,factor3,color3,height3,runmin,runmax,squareland):
+def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,varname2,factor2,color2,varname3,factor3,color3,height3,runmin,runmax,landmaskxr):
 
 	# """ Plots timeseries of three variables over tropical ocean.
 	# Using three different axes.  
@@ -198,22 +149,6 @@ def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,var
 
 # lat slice hard coded to -30. - 30. 
 # factor is needed to convert eg precip from kg/s to mm/day 
-
-    if squareland == 'one': 
-	    print('Squareland mode')
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
-    elif squareland == 'two': 
-	    print 'two continents mode'
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/two_continents/land_two_continents.nc',mode='r')
-
-    else:
-	    print('Continental landmask')
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
-
-    landmask=xr.DataArray(landfile.variables['land_mask'][:])
-    landlats=landfile.variables['lat'][:]
-    landlons=landfile.variables['lon'][:]
-    landmaskxr=xr.DataArray(landmask,coords=[landlats,landlons],dims=['lat','lon'])
 
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
 	    runnr="{0:03}".format(i)
@@ -229,7 +164,6 @@ def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,var
 	    else:
 		    var3=(xr.DataArray(nc.variables[varname3][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor3
 	    var1 = var1.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))!=1.)
-	    print(np.shape(var1))
 	    var2 = var2.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))!=1.)
 	    var3 = var3.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))!=1.)
 
@@ -242,10 +176,6 @@ def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,var
 		    timeseries1.append(var1.mean())
 		    timeseries2.append(var2.mean())
 		    timeseries3.append(var3.mean())
-
-	    print(runnr)
-
-
 
     timeseries1=np.asarray(timeseries1)
     timeseries2=np.asarray(timeseries2)
@@ -291,28 +221,10 @@ def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,var
     plt.title('Tropical Ocean Only')
     plt.show()
 
-def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,squareland):
+def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,landmask):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
-
-    if squareland == 'one': 
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
-	    landmask=landfile.variables['land_mask'][:]
-	    landlats=landfile.variables['lat'][:]
-	    landlons=landfile.variables['lon'][:]
-    
-    elif squareland == 'two': 
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/two_continents/land_two_continents.nc',mode='r')
-	    landmask=landfile.variables['land_mask'][:]
-	    landlats=landfile.variables['lat'][:]
-	    landlons=landfile.variables['lon'][:]    
-
-    else:
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
-	    landmask=landfile.variables['land_mask'][:]
-	    landlats=landfile.variables['lat'][:]
-	    landlons=landfile.variables['lon'][:]
 
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
         runnr="{0:03}".format(i)
@@ -349,20 +261,11 @@ def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,s
     return(timeseries)
 
 
-def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runmax,factor,squareland,spinup_dir,spinup_runmin, spinup_runmax):
+def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runmax,factor,landmask,spinup_dir,spinup_runmin, spinup_runmax):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
 
-    if squareland == 'one': 
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
-    elif squareland == 'two':
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/two_continents/land_two_continents.nc',mode='r')
-    else:
-	    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
-    landmask=landfile.variables['land_mask'][:]
-    landlats=landfile.variables['lat'][:]
-    landlons=landfile.variables['lon'][:]
 
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
         runnr="{0:03}".format(i)
@@ -561,10 +464,6 @@ def several_vars_zonalavg2(field1,varname1,color1,field2,varname2,color2,field3,
     plt.title(title)
     plt.show()
 
-
-
-
-
 def tropics_plot(lats,lons,field,units,title):
     plt.close()
     trop_minindex=np.asarray(np.where(lats>=-30.))[0,0]
@@ -602,107 +501,6 @@ def tropics_plot(lats,lons,field,units,title):
 
     plt.show()
     return(cs)
-
-def squareland_plot_zon_mearvg(minlat,maxlat,array,units,title,palette):
-#plotting zonal and meridional averages next to the map
-    plt.close()
-
-    lats=array.lat
-    lons=array.lon
-
-    
-    minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
-    maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0] 
-    selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
-
-    fig = plt.figure()
-    ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
-
-
-    m = Basemap(projection='kav7',lon_0=0.,resolution='c')
-
-    array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
-
-    m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
-    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
-    array, lons_cyclic = addcyclic(array, lons)
-    array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
-    zonavg_thin = array.mean(dim='lon')
-    meravg_thin = array.mean(dim='lat')
-
-    lon, lat = np.meshgrid(lons_cyclic, selected_lats)
-    xi, yi = m(lon, lat)
-
-    dlons = lons[100] - lons[99]
-    dlats = lats[60] - lats[59]
-
-    minval = np.absolute(array.min())
-    maxval = np.absolute(array.max())
-    
-    if maxval >= minval:
-	    minval = - maxval
-    else: 
-	    maxval = minval
-	    minval = - minval
-
-
-    if palette=='rainnorm':
-        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG',vmin=minval, vmax=maxval)
-    elif palette == 'raindefault':
-        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
-    elif palette=='temp': 
-        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.seismic)
-    elif palette=='fromwhite': 
-	    pal = plt.cm.Blues
-	    pal.set_under('w',None)
-	    cs = m.pcolormesh(xi,yi,array.sel(lat=selected_lats),cmap=pal,vmin=0,vmax=maxval)
-
-    else:
-        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats))
-
-    cbar = m.colorbar(cs, location='right', pad="10%")
-    cbar.set_label(units)
-
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
-    landmask=landfile.variables['land_mask'][:]
-    landlats=landfile.variables['lat'][:]
-    landlons=landfile.variables['lon'][:]
-
-    square_lons,square_lats=(xr.DataArray(np.meshgrid(lons, lats))).where(landmask==1.)
-    square_lons = square_lons + 180. + dlons
-
-    m.drawgreatcircle(square_lons.min(), square_lats.min(), square_lons.min(), square_lats.max()+dlats, del_s=100., color='b')
-    m.drawgreatcircle(square_lons.max(), square_lats.min(), square_lons.max(), square_lats.max()+dlats, del_s=100., color='b')
-
-    lats = [square_lats.min(),square_lats.min()] 
-    lons = [square_lons.min(),square_lons.max()] 
-    x, y = m(lons, lats) 
-    m.plot(x, y, color='b') 
-
-    lats = [square_lats.max()+dlats,square_lats.max()+dlats] 
-    lons = [square_lons.min(),square_lons.max()] 
-    x, y = m(lons, lats) 
-    m.plot(x, y, color='b') 
-    plt.title(title)
-   
-    ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
-    
-    plt.plot(zonavg_thin,array['lat'])
-    plt.ylabel('Latitude')
-    plt.xlabel(title+' ('+units+')')
-    ax2.yaxis.tick_right()
-    ax2.yaxis.set_label_position('right')
-    ax2.invert_xaxis()
-
-    ax3 = plt.subplot2grid((5,7), (4,0), colspan = 4)
-
-    plt.plot(array['lon'],meravg_thin)
-    plt.xlabel('Longitude')
-    plt.ylabel(title+' ('+units+')')
-    plt.show()
-
-    print(square_lons.min(),square_lons.max(),square_lats.min(),square_lats.max()+dlats)
-    return(square_lons,square_lats)
 
 
 def squareland_plot(minlat,maxlat,array,units,title,palette,contourson = False):
@@ -867,7 +665,7 @@ def squareland_plot(minlat,maxlat,array,units,title,palette,contourson = False):
 
     plt.plot(array['lon'],meravg_thin)
     plt.xlabel('Longitude')
-    plt.ylabel(title+' ('+units+') over landlats only')
+    plt.ylabel(title+' ('+units+') 30S-30N only')
     
     plt.show()
 
@@ -1883,8 +1681,9 @@ def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
 
     plt.show()
 
-def two_continents_plot(minlat,maxlat,array,units,title,palette,contourson=False):
+def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmask,landlats,landlons,contourson=False,):
 # plotting only the zonal average next to the map 
+# currently hard coded -30.,30. slice instead of squarelats_min, squarelats_max
     plt.close()
 
     lats=array.lat
@@ -1896,7 +1695,7 @@ def two_continents_plot(minlat,maxlat,array,units,title,palette,contourson=False
     selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
 
     fig = plt.figure()
-    ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
+    ax1 = plt.subplot2grid((5,8), (0,1), colspan = 5, rowspan = 3)
 
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -1952,23 +1751,20 @@ def two_continents_plot(minlat,maxlat,array,units,title,palette,contourson=False
     cbar.set_label(units)
     # sns.palplot(sns.color_palette("BrBG", 7))
 
-# Show landmask
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/two_continents/land_two_continents.nc',mode='r')
-    landmask=landfile.variables['land_mask'][:]
-    landlats=landfile.variables['lat'][:]
-    landlons=landfile.variables['lon'][:]
-    
-#    square_lons,square_lats=(xr.DataArray(np.meshgrid(lons, lats))).where(landmask==1.)
-#    square_lons = square_lons + 180. + dlons
-
+# Read landmask
 
 # Add rectangles
-#    xi, yi = m(landlons, landlats)
-#    m.contour(xi,yi,landmask)
+#    xl, yl = m(landlons, landlats)
+    landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
+    landmask, lons_cyclic = addcyclic(landmask, landlons)
+
+    print np.shape(xi)
+    print np.shape(landmask)
+    m.contour(xi,yi,landmask, 1)
 
     plt.title(title)
    
-    ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
+    ax2 = plt.subplot2grid((5,8), (0,6), rowspan = 3)
     
     plt.plot(zonavg_thin,array['lat'])
     plt.ylabel('Latitude')
@@ -1976,12 +1772,19 @@ def two_continents_plot(minlat,maxlat,array,units,title,palette,contourson=False
     ax2.yaxis.tick_right()
     ax2.yaxis.set_label_position('right')
     ax2.invert_xaxis()
+    
+    meravg_thin_land = (array.sel(lat=slice(-30.,30.))).mean(dim='lat')
 
+
+    ax3 = plt.subplot2grid((5,8), (4,1), colspan = 4)
+    plt.plot(array['lon'],meravg_thin)
+    plt.xlabel('Longitude')
+    plt.ylabel(title+' ('+units+') only 30S-30N')
+    
     plt.show()
 
 
-
-def animated_map(testdir,array,units,title,plot_title,palette,imin,imax):
+def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval,maxval):
 
 # Can be used for a surface variable, e.g. to animate the climatology of evaporation
 
@@ -2006,22 +1809,22 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax):
     lon, lat = np.meshgrid(lons_cyclic, lats)
     xi, yi = m(lon, lat)
     
-    minval = np.min(array)
-    maxval = np.max(array)
-    print minval, maxval
+    # minval = np.min(array)
+    # maxval = np.max(array)
+    # print minval, maxval
 
     for idx in range (imin,imax): # exclues last value
 	    if palette == 'rainnorm':
 
-		    minval = np.absolute(array.min())
-		    maxval = np.absolute(array.max())
+		    # minval = np.absolute(array.min())
+		    # maxval = np.absolute(array.max())
 		    
     
-		    if maxval >= minval:
-			    minval = - maxval
-		    else: 
-			    maxval = minval
-			    minval = - minval
+		    # if maxval >= minval:
+		    # 	    minval = - maxval
+		    # else: 
+		    # 	    maxval = minval
+		    # 	    minval = - minval
 		    cs = m.pcolormesh(xi,yi,array[idx,:,:],cmap='BrBG',
 				      norm=MidpointNormalize(midpoint=0.),
 				      vmin=minval,vmax=maxval)
