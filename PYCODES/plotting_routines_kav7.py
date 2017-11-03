@@ -575,6 +575,11 @@ def squareland_plot(minlat,maxlat,array,units,title,palette,contourson = False):
 		      norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r, 
 		      vmin = 273.15-(maxval-273.15),
 		      vmax=maxval)
+    elif palette=='tempdiff': 
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), 
+		      norm=MidpointNormalize(midpoint=0), cmap=plt.cm.RdBu_r, 
+		      vmin = -maxval,
+		      vmax = maxval)
     elif palette=='fromwhite': 
 	    pal = plt.cm.Blues
 	    pal.set_under('w',None)
@@ -1092,115 +1097,115 @@ def aquaplanet_plot_minuszonavg(minlat,maxlat,array,units,title,palette):
 
 
 
-def squareland_plot_several(minlat,maxlat,array1,title1,array2,title2,array3,title3,units,title,palette):
+# def squareland_plot_several(minlat,maxlat,array1,title1,array2,title2,array3,title3,units,title,palette):
 
-    plt.close()
+#     plt.close()
 
-    lats=array1.lat
-    lons=array1.lon
-
-
-    minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
-    maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0]
-    selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
+#     lats=array1.lat
+#     lons=array1.lon
 
 
+#     minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
+#     maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0]
+#     selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
 
-    fig = plt.figure()
-    ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
+
+
+#     fig = plt.figure()
+#     ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
     
-    m = Basemap(projection='cyl',llcrnrlat=minlat,urcrnrlat=maxlat,\
-            llcrnrlon=-181.,urcrnrlon=180.,resolution='c')
+#     m = Basemap(projection='cyl',llcrnrlat=minlat,urcrnrlat=maxlat,\
+#             llcrnrlon=-181.,urcrnrlon=180.,resolution='c')
 
-    m.drawparallels(np.arange(minlat,maxlat+1.,30.),labels=[1,0,0,0])
-    m.drawmeridians(np.arange(-180.,181.,60.),labels=[0,0,0,1])
+#     m.drawparallels(np.arange(minlat,maxlat+1.,30.),labels=[1,0,0,0])
+#     m.drawmeridians(np.arange(-180.,181.,60.),labels=[0,0,0,1])
 
 
-    lon, lat = np.meshgrid(lons, selected_lats)
-    xi, yi = m(lon, lat)
+#     lon, lat = np.meshgrid(lons, selected_lats)
+#     xi, yi = m(lon, lat)
 
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
-    landmask=landfile.variables['land_mask'][:]
-    landlats=landfile.variables['lat'][:]
-    landlons=landfile.variables['lon'][:]
+#     landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+#     landmask=landfile.variables['land_mask'][:]
+#     landlats=landfile.variables['lat'][:]
+#     landlons=landfile.variables['lon'][:]
     
 
-    square_lons,square_lats=(xr.DataArray(np.meshgrid(lons, lats))).where(landmask==1.)
+#     square_lons,square_lats=(xr.DataArray(np.meshgrid(lons, lats))).where(landmask==1.)
 
-    xs=[square_lons.min(),square_lons.max(),square_lons.max(),square_lons.min(),square_lons.min()]
-    ys=[square_lats.min(),square_lats.min(),square_lats.max()+dlats,square_lats.max()+dlats,square_lats.min()]
-
-
-
-    if palette=='rainnorm':
-        cs = m.pcolor(xi,yi,array1.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG',latlon=True)
-    elif palette == 'raindefault':
-        cs = m.pcolor(xi,yi,array1.sel(lat=selected_lats), cmap=plt.cm.BrBG,latlon=True)
-    elif palette=='temp':
-        cs = m.pcolor(xi,yi,array1.sel(lat=selected_lats), cmap=plt.cm.seismic,latlon=True)
-    else:
-        cs = m.pcolor(xi,yi,array1.sel(lat=selected_lats),latlon=True)
-
-    m.plot(xs, ys, latlon = True)
-
-    axes[1].set_title(title2)
-
-    if palette=='rainnorm':
-        cs = m.pcolor(xi,yi,array2.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG',latlon=True)
-    elif palette == 'raindefault':
-        cs = m.pcolor(xi,yi,array2.sel(lat=selected_lats), cmap=plt.cm.BrBG,latlon=True)
-    elif palette=='temp': 
-        cs = m.pcolor(xi,yi,array2.sel(lat=selected_lats), cmap=plt.cm.seismic,latlon=True)
-    else:
-        cs = m.pcolor(xi,yi,array2.sel(lat=selected_lats),latlon=True)
-
-    m.plot(xs, ys, latlon = True)
-
-    axes[2].set_title(title3)
-
-    m = Basemap(projection='cyl',llcrnrlat=minlat,urcrnrlat=maxlat,\
-            llcrnrlon=-181.,urcrnrlon=180.,resolution='c')
-    m.drawparallels(np.arange(minlat,maxlat+1.,30.),labels=[1,0,0,0])
-    m.drawmeridians(np.arange(-180.,181.,60.),labels=[0,0,0,1])
+#     xs=[square_lons.min(),square_lons.max(),square_lons.max(),square_lons.min(),square_lons.min()]
+#     ys=[square_lats.min(),square_lats.min(),square_lats.max()+dlats,square_lats.max()+dlats,square_lats.min()]
 
 
-    lon, lat = np.meshgrid(lons, selected_lats)
-    xi, yi = m(lon, lat)
 
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
-    landmask=landfile.variables['land_mask'][:]
-    landlats=landfile.variables['lat'][:]
-    landlons=landfile.variables['lon'][:]
+#     if palette=='rainnorm':
+#         cs = m.pcolor(xi,yi,array1.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG',latlon=True)
+#     elif palette == 'raindefault':
+#         cs = m.pcolor(xi,yi,array1.sel(lat=selected_lats), cmap=plt.cm.BrBG,latlon=True)
+#     elif palette=='temp':
+#         cs = m.pcolor(xi,yi,array1.sel(lat=selected_lats), cmap=plt.cm.seismic,latlon=True)
+#     else:
+#         cs = m.pcolor(xi,yi,array1.sel(lat=selected_lats),latlon=True)
 
-    square_lons,square_lats=(xr.DataArray(np.meshgrid(lons, lats))).where(landmask==1.)
+#     m.plot(xs, ys, latlon = True)
 
-    xs=[square_lons.min(),square_lons.max(),square_lons.max(),square_lons.min(),square_lons.min()]
-    ys=[square_lats.min(),square_lats.min(),square_lats.max()+dlats,square_lats.max()+dlats,square_lats.min()]
+#     axes[1].set_title(title2)
+
+#     if palette=='rainnorm':
+#         cs = m.pcolor(xi,yi,array2.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG',latlon=True)
+#     elif palette == 'raindefault':
+#         cs = m.pcolor(xi,yi,array2.sel(lat=selected_lats), cmap=plt.cm.BrBG,latlon=True)
+#     elif palette=='temp': 
+#         cs = m.pcolor(xi,yi,array2.sel(lat=selected_lats), cmap=plt.cm.seismic,latlon=True)
+#     else:
+#         cs = m.pcolor(xi,yi,array2.sel(lat=selected_lats),latlon=True)
+
+#     m.plot(xs, ys, latlon = True)
+
+#     axes[2].set_title(title3)
+
+#     m = Basemap(projection='cyl',llcrnrlat=minlat,urcrnrlat=maxlat,\
+#             llcrnrlon=-181.,urcrnrlon=180.,resolution='c')
+#     m.drawparallels(np.arange(minlat,maxlat+1.,30.),labels=[1,0,0,0])
+#     m.drawmeridians(np.arange(-180.,181.,60.),labels=[0,0,0,1])
 
 
-    if palette=='rainnorm':
-        cs = m.pcolor(xi,yi,array3.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG',latlon=True)
-    elif palette == 'raindefault':
-        cs = m.pcolor(xi,yi,array3.sel(lat=selected_lats), cmap=plt.cm.BrBG,latlon=True)
-    elif palette=='temp': 
-        cs = m.pcolor(xi,yi,array3.sel(lat=selected_lats), cmap=plt.cm.seismic,latlon=True)
-    else:
-        cs = m.pcolor(xi,yi,array3.sel(lat=selected_lats),latlon=True)
+#     lon, lat = np.meshgrid(lons, selected_lats)
+#     xi, yi = m(lon, lat)
 
-    m.plot(xs, ys, latlon = True)
+#     landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+#     landmask=landfile.variables['land_mask'][:]
+#     landlats=landfile.variables['lat'][:]
+#     landlons=landfile.variables['lon'][:]
 
+#     square_lons,square_lats=(xr.DataArray(np.meshgrid(lons, lats))).where(landmask==1.)
 
-# Add Title
-    plt.title(title)
+#     xs=[square_lons.min(),square_lons.max(),square_lons.max(),square_lons.min(),square_lons.min()]
+#     ys=[square_lats.min(),square_lats.min(),square_lats.max()+dlats,square_lats.max()+dlats,square_lats.min()]
 
 
-# Add Colorbar
-    cbar = plt.colorbar(cs, location='right', pad="10%")
-    cbar.set_label(units)
+#     if palette=='rainnorm':
+#         cs = m.pcolor(xi,yi,array3.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG',latlon=True)
+#     elif palette == 'raindefault':
+#         cs = m.pcolor(xi,yi,array3.sel(lat=selected_lats), cmap=plt.cm.BrBG,latlon=True)
+#     elif palette=='temp': 
+#         cs = m.pcolor(xi,yi,array3.sel(lat=selected_lats), cmap=plt.cm.seismic,latlon=True)
+#     else:
+#         cs = m.pcolor(xi,yi,array3.sel(lat=selected_lats),latlon=True)
 
-    plt.show()
+#     m.plot(xs, ys, latlon = True)
 
-    return(square_lons,square_lats)
+
+# # Add Title
+#     plt.title(title)
+
+
+# # Add Colorbar
+#     cbar = plt.colorbar(cs, location='right', pad="10%")
+#     cbar.set_label(units)
+
+#     plt.show()
+
+#     return(square_lons,square_lats)
 
 
 
@@ -1731,11 +1736,16 @@ def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmask,land
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
     elif palette=='temp':
 	    cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),vmax=maxval)
+
     elif palette=='fromwhite': 
 	    pal = plt.cm.Blues
 	    pal.set_under('w',None)
 	    cs = m.pcolormesh(xi,yi,array.sel(lat=selected_lats),cmap=pal,vmin=0,vmax=maxval)
-
+    elif palette=='tempdiff': 
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), 
+		      norm=MidpointNormalize(midpoint=0), cmap=plt.cm.RdBu_r, 
+		      vmin = -maxval,
+		      vmax = maxval)
     else:
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats))
 
@@ -1758,9 +1768,8 @@ def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmask,land
     landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
     landmask, lons_cyclic = addcyclic(landmask, landlons)
 
-    print np.shape(xi)
-    print np.shape(landmask)
-    m.contour(xi,yi,landmask, 1)
+    if np.any(landmask != 0.):
+	    m.contour(xi,yi,landmask, 1)
 
     plt.title(title)
    
