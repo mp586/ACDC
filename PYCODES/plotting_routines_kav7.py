@@ -890,94 +890,105 @@ def squareland_plot_minuszonavg(minlat,maxlat,array,units,title,palette,zonavgti
     plt.show()
     return(square_lons,square_lats)
 
-def aquaplanet_plot_for_iPython(minlat,maxlat,array,month,units,title,palette):
+# DONT USE UNTIL FIGURED OUT WHAT IS WRONG THERE! 
+# def aquaplanet_plot_for_iPython(minlat,maxlat,array,month,units,title,palette,contourson=False):
+# for some reason this plots a sort of zonal average or something (eg. for bucket depth just stripes over land as well, should be zero there and is zer o if I just use xarray .plot() )
+#     lats=np.linspace(-90.,90.,len(array.dim_2))
+#     lons=np.linspace(0.,360.,len(array.dim_3))
 
-    lats=np.linspace(-90.,90.,len(array.dim_1))
-    lons=np.linspace(0.,360.,len(array.dim_2))
-
-    if month == 12:
-	    array = array.mean('dim_0')
-    else:
-	    array = array[month,:,:]
-    print(np.shape(lons))
+#     if month == 12:
+# 	    array = array.mean('dim_0')
+#     else:
+# 	    array = array[month,:,:]
+#     print(np.shape(lons))
     
-    minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
-    maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0] 
-    selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
+#     minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
+#     maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0] 
+#     selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
 
-    fig = plt.figure()
-    ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
-
-
-    m = Basemap(projection='kav7',lon_0=0.,resolution='c')
-
-    array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
-    array,lons_cyclic = addcyclic(array, lons)
-    array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
-
-    lon, lat = np.meshgrid(lons_cyclic, selected_lats)
-    xi, yi = m(lon, lat)
-
-    zonavg_thin = array.mean(dim='lon')
-    meravg_thin = array.mean(dim='lat')
-    m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
-    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+#     fig = plt.figure()
+#     ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
 
 
-    if palette=='rainnorm':
-        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG')
-    elif palette == 'raindefault':
-        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
-    elif palette=='temp': 
-        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r',vmin = 273.15-(maxval-273.15),
-			      vmax=maxval)
-    elif palette=='fromwhite':
-       	    pal = plt.cm.Blues
-            pal.set_under('w',None)
-      	    cs = m.pcolormesh(xi,yi,field,cmap=pal,vmin=0,vmax=maxval)
-    else:
-        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats))
+#     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+
+#     array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+#     array,lons_cyclic = addcyclic(array, lons)
+#     array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+
+#     lon, lat = np.meshgrid(lons_cyclic, selected_lats)
+#     xi, yi = m(lon, lat)
+
+#     zonavg_thin = array.mean(dim='lon')
+#     meravg_thin = array.mean(dim='lat')
+#     m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+#     m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+    
+#     minval = np.absolute(array.min())
+#     maxval = np.absolute(array.max())
+    
+#     if maxval >= minval:
+# 	    minval = - maxval
+#     else: 
+# 	    maxval = minval
+# 	    minval = - minval
 
 
-    cbar = m.colorbar(cs, location='right', pad="10%")
-    cbar.set_label(units)
+#     if palette=='rainnorm':
+#         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG')
+#     elif palette == 'raindefault':
+#         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
+#     elif palette=='temp': 
+#         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r',vmin = 273.15-(maxval-273.15),
+# 			      vmax=maxval)
+#     elif palette=='fromwhite':
+#        	    pal = plt.cm.Blues
+#             pal.set_under('w',None)
+#       	    cs = m.pcolormesh(xi,yi,array,cmap=pal,vmin=0,vmax=maxval)
+#     else:
+#         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats))
 
-    if contourson == True:  # add contours 
-	    cont = m.contour(xi,yi,array,4,cmap='PuBu_r',
-			     linewidth=5)
-	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=12)
 
-    plt.title(title)
+#     cbar = m.colorbar(cs, location='right', pad="10%")
+#     cbar.set_label(units)
 
-    ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
-    # zonal average plot
-    plt.plot(zonavg_thin,array['lat'])
-    plt.ylabel('Latitude')
-    plt.xlabel(title+' ('+units+')')
-    ax2.yaxis.tick_right()
-    ax2.yaxis.set_label_position('right')
-    ax2.invert_xaxis()
+#     if contourson == True:  # add contours 
+# 	    cont = m.contour(xi,yi,array,4,cmap='PuBu_r',
+# 			     linewidth=5)
+# 	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=12)
 
-    ax3 = plt.subplot2grid((5,7), (4,0), colspan = 4)
+#     plt.title(title)
 
-#    for producing a meridional average plot
-    plt.plot(meravg_thin,array['lon'])
-    plt.ylabel('Longitude')
-    plt.xlabel(title+' ('+units+')')
-    ax3.yaxis.tick_right()
-    ax3.yaxis.set_label_position('right')
-    ax3.invert_xaxis()
-    plt.show()
+#     ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
+#     # zonal average plot
+#     plt.plot(zonavg_thin,array['lat'])
+#     plt.ylabel('Latitude')
+#     plt.xlabel(title+' ('+units+')')
+#     ax2.yaxis.tick_right()
+#     ax2.yaxis.set_label_position('right')
+#     ax2.invert_xaxis()
+
+#     ax3 = plt.subplot2grid((5,7), (4,0), colspan = 4)
+
+# #    for producing a meridional average plot
+#     plt.plot(array['lon'],meravg_thin)
+#     plt.xlabel('Longitude')
+#     plt.ylabel(title+' ('+units+')')
+#     plt.show()
 
 def aquaplanet_plot(minlat,maxlat,array,units,title,palette,contourson = False):
     
+
+    lats = array.lats
+    lons = array.lons
+
     minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
     maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0] 
     selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
 
+
     fig = plt.figure()
     ax1 = plt.subplot2grid((5,7), (0,0), colspan = 5, rowspan = 3)
-
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 
