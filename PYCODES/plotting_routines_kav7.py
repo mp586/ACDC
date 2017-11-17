@@ -43,7 +43,7 @@ def globavg_var_timeseries(testdir,varname,runmin,runmax):
         filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
         var=nc.variables[varname][:]
-        if len(np.shape(var))==4: 
+        if len(np.shape(var))==4: # 4d array, sum over height
 		var=(xr.DataArray(var)).sum(dim='dim_1')
     
         if i==runmin:
@@ -335,7 +335,7 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runma
 
 
 
-def seasonal_surface_variable(testdir,runmin,runmax,varname,units): # only works for surface variables (dims time, lat, lon) at the moment
+def seasonal_surface_variable(testdir,runmin,runmax,varname,units,factor=1.): # only works for surface variables (dims time, lat, lon) at the moment
     
     plt.close()
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
@@ -354,7 +354,7 @@ def seasonal_surface_variable(testdir,runmin,runmax,varname,units): # only works
     lats= nc.variables['lat'][:]
     
     time=[np.array(np.linspace(0,(runmax-runmin-1),(runmax-runmin),dtype='datetime64[M]'))]
-    var=xr.DataArray(var.values,coords=[time[0],lats,lons],dims=['time','lat','lon'])
+    var=xr.DataArray((var.values)*factor,coords=[time[0],lats,lons],dims=['time','lat','lon'])
     var_avg=var.mean(dim='time')
     var_seasonal_avg=var.groupby('time.season').mean('time') 
     var_month_avg=var.groupby('time.month').mean('time')
@@ -1555,12 +1555,15 @@ def aquaplanet_inputfile(filename,varname,month):
 	
 	nc=Dataset(filename,mode='r')
 
-	if month!=12:
-		array=xr.DataArray(nc.variables[varname][month,:,:])
- 	else:
+ 	if (month == 12): # want annual mean
 		array=xr.DataArray(nc.variables[varname][:])
 		array = array.mean(dim='dim_0')
-	
+	elif (month < 0): #no time dimension
+		array=xr.DataArray(nc.variables[varname][:])
+	else: # want specific month 0-11
+		array=xr.DataArray(nc.variables[varname][month,:,:])
+
+
 	lats=xr.DataArray(nc.variables['lat'][:])
 	lons=xr.DataArray(nc.variables['lon'][:])
 
@@ -2050,3 +2053,61 @@ def plot_a_climatology(clim_field):
 		plt.plot(lats,zonavg[i,:],colors[i],label='Month '+str(i+1))
 	plt.legend()
 	plt.show()
+
+
+# def global_areaweighted_avg_2d(array):
+	
+# 	lats = array.lat
+# 	lons = array.lon
+# 	latr = np.deg2rad(lats)
+# 	# zonalmean = array.mean(dim = 'lon')
+# 	# globavg_check = np.average(zonalmean,  weights = (np.cos(latr)))
+	
+# 	# print(globavg_check)
+
+# 	weights = (np.cos(latr))/(np.sum(np.cos(latr))*len(lons)) # grid cell area/total sfc area --> only works if taking the average over the entire globe, doesn't work to select landmask areas!
+
+# 	weights_2d = np.expand_dims(weights, axis = 1) # for lons
+# 	weights_2d = np.repeat(weights_2d, len(lons), axis = 1)
+	
+# 	weights_2d = xr.DataArray(weights_2d, coords=[lats,lons],dims=['lat','lon'])
+
+# 	# weights_2d.plot()
+# 	# plt.show()
+# 	# print(np.sum(weights_2d))
+
+# 	array.plot()
+# 	plt.show()
+
+	
+# 	weighted_array = xr.DataArray((array*weights_2d), coords=[lats,lons],dims=['lat','lon'])
+# 	globavg = weighted_array.sum()
+
+# 	# cos_1d = np.cos(latr)
+# 	# cos_2d = np.expand_dims(cos_1d, axis = 1) # for lons
+# 	# cos_2d = np.repeat(cos_2d, len(lons), axis = 1)
+
+# 	# check2 = np.average(array, cos_2d)
+
+# 	return globavg, weighted_array #, globint 
+
+
+def area_weighted_avg(array,landmask,option):
+	
+	lats = array.lat
+	lons = array.lon
+	latr = np.deg2rad(lats)
+	cos_1d = np.cos(latr)
+	cos_2d = np.expand_dims(cos_1d, axis = 1) # for lons
+	cos_2d = xr.DataArray(np.repeat(cos_2d, len(lons), axis = 1))	
+
+	if option=='global':
+		w_avg = np.average(array, weights=cos_2d)
+	elif option=='ocean':
+		ma =  np.ma.MaskedArray(array, mask=np.isnan(array.where(landmask!=1.)))
+		w_avg = np.ma.average(ma,weights=cos_2d)
+	elif option=='land': 
+		ma = np.ma.MaskedArray(array, mask=np.isnan(array.where(landmask==1.)))
+		w_avg = np.ma.average(ma,weights=cos_2d)
+
+	return w_avg
