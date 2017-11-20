@@ -22,11 +22,13 @@ runmax=input('Enter runmax number ')
 
 
 # landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/two_continents/land_two_continents.nc',mode='r')
-landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+# landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
 # landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/sqland_plus_antarctica/land_sqland_plus_antarctica.nc',mode='r')
 # landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/sqland_plus_antarctica/land_sqland_plus_antarctica_to35S.nc',mode='r')
 # landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/aquaplanet/land_aquaplanet.nc',mode='r')
 # landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/square_South_America/land_square_South_America.nc')
+landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
+
 
 landmask=landfile.variables['land_mask'][:]
 landlats=landfile.variables['lat'][:]
@@ -38,9 +40,11 @@ landmaskxr=xr.DataArray(landmask,coords=[landlats,landlons],dims=['lat','lon']) 
 
 #plotting_routines_kav7.globavg_var_timeseries(testdir,'t_surf',109,122)
 
+
+#not yet the weighted avg
 # for plotting a spin up run ('control') timeseries followed by the timeseries from the perturbed experiment
-plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,'t_surf',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
-plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,'bucket_depth',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
+# plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,'t_surf',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
+# plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,'bucket_depth',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
 
 
 # plotting_routines_kav7.globavg_var_timeseries(testdir,'co2',1,runmax)
@@ -51,12 +55,12 @@ plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,'
 [precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'precipitation','kg/m2s')
 [convection_rain,convection_rain_avg,convection_rain_seasonal_avg,convection_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'convection_rain','kg/m2s')
 [condensation_rain,condensation_rain_avg,condensation_rain_seasonal_avg,condensation_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'condensation_rain','kg/m2s')
-#[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'bucket_depth','m')
+[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'bucket_depth','m')
 
 [tsurf_ctl,tsurf_avg_ctl,tsurf_seasonal_avg_ctl,tsurf_month_avg_ctl,time_ctl]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'t_surf','K')
 [net_lhe_ctl,net_lhe_avg_ctl,net_lhe_seasonal_avg_ctl,net_lhe_month_avg_ctl,time_ctl]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'flux_lhe','W/m^2') # latent heat flux at surface (UP)
 [precipitation_ctl,precipitation_avg_ctl,precipitation_seasonal_avg_ctl,precipitation_month_avg_ctl,time_ctl]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'precipitation','kg/m2s')
-
+[bucket_depth_ctl,bucket_depth_avg_ctl,bucket_depth_seasonal_avg_ctl,bucket_depth_month_avg_ctl,time_ctl]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'bucket_depth','m')
 
 
 
@@ -114,7 +118,8 @@ plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,'
 PE_avg=precipitation_avg*86400-net_lhe_avg/28. # 28.=conversion from W/m^# 2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
 # # # see www.ce.utexas.edu/prof/maidment/CE374KSpr12/.../Latent%20heat%20flux.pptx @30DegC
 
-
+plotting_routines_kav7.any_configuration_plot(-90.,90.,(bucket_depth_avg - bucket_depth_avg_ctl),'mm/day','bucket depth avg minus ctrl','rainnorm',landmask,landlats,landlons,contourson = False)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,(bucket_depth_avg - bucket_depth_avg_ctl).where(landmask==1.),'mm/day','bucket depth avg minus ctrl','rainnorm',landmask,landlats,landlons,contourson = False)
 # # # plotting_routines_kav7.any_configuration_plot(-90.,90.,convection_rain_avg*86400,'mm/day','convection_rain avg','fromwhite')
 # # # plotting_routines_kav7.any_configuration_plot(-90.,90.,condensation_rain_avg*86400,'mm/day','condensation_rain avg','fromwhite')
 # #plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg.where(landmask==1.)*86400,'mm/day','P avg','fromwhite')
@@ -132,74 +137,76 @@ plotting_routines_kav7.any_configuration_plot(-90.,90.,(net_lhe_avg - net_lhe_av
 # # # #plotting_routines_kav7.any_configuration_plot_minuszonavg(-90.,90.,precipitation_avg*86400,'mm/day','P avg minus zonavg','rainnorm','P avg')
 # # plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg/28.,'mm/day','E avg','fromwhite')
 
-land_temp_global=tsurf_avg.where(landmask==1.).mean()
-ocean_temp_global=tsurf_avg.where(landmask==0.).mean()
-print('Average temperature over land (global) = '+str(land_temp_global))
-print('Average temperature over ocean (global) = '+str(ocean_temp_global))
 
 
-minlat=-30. #input('Enter minimum latitude ')
-maxlat=30. #input('Enter maximum latitude ')
-
-# difference between exp and control
-land_temp=(tsurf_avg-tsurf_avg_ctl).sel(lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==1.) # .where does not recognize xarray as argument!
-ocean_temp=(tsurf_avg-tsurf_avg_ctl).sel(lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==0.) # .where does not recognize xarray as argument!
-
-print('Average temperature diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_temp.mean()))
-print('Average temperature diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_temp.mean()))
-
-# difference between exp and control
-land_precip_global=(precipitation_avg-precipitation_avg_ctl).where(landmask==1.).mean() 
-ocean_precip_global=(precipitation_avg-precipitation_avg_ctl).where(landmask==0.).mean()
-print('Average precipitation diff over land (global) = '+str(land_precip_global*86400)+' mm/day')
-print('Average precipitation diff over ocean (global) = '+str(ocean_precip_global*86400)+' mm/day')
-
-# difference between exp and control
-land_precip=(precipitation_avg-precipitation_avg_ctl).sel(lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==1.) # .where does not recognize xarray as argument!
-ocean_precip=(precipitation_avg-precipitation_avg_ctl).sel(lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==0.) # .where does not recognize xarray as argument!
-print('Average precipitation diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_precip.mean()*86400)+'+/-'+str(land_precip.std()*86400)+'mm/day') # spatial standard deviation
-print('Average precipitation diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_precip.mean()*86400)+'+/-'+str(ocean_precip.std()*86400)+'mm/day')
-print('Min precipitation diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_precip.min()*86400)+'mm/day') # spatial standard deviation
-print('Max precipitation diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_precip.max()*86400)+'mm/day') # spatial standard deviation
-print('Min precipitation diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_precip.min()*86400)+'mm/day') # spatial standard deviation
-print('Max precipitation diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_precip.max()*86400)+'mm/day')
-
-# difference between exp and control
-land_lhe=(net_lhe_avg-net_lhe_avg_ctl).sel(lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==1.) # .where does not recognize xarray as argument!
-ocean_lhe=(net_lhe_avg-net_lhe_avg_ctl).sel(lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==0.) # .where does not recognize xarray as argument!
-print('Average net_lhe diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_lhe.mean()/28.)+'+/-'+str(land_lhe.std()/28.)+'mm/day') # spatial standard deviation
-print('Average net_lhe diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_lhe.mean()/28.)+'+/-'+str(ocean_lhe.std()/28.)+'mm/day')
-print('Min net_lhe diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_lhe.min()/28.)+'mm/day') # spatial standard deviation
-print('Max net_lhe diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_lhe.max()/28.)+'mm/day') # spatial standard deviation
-print('Min net_lhe diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_lhe.min()/28.)+'mm/day') # spatial standard deviation
-print('Max net_lhe diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_lhe.max()/28.)+'mm/day')
+# land_temp_global=tsurf_avg.where(landmask==1.).mean()
+# ocean_temp_global=tsurf_avg.where(landmask==0.).mean()
+# print('Average temperature over land (global) = '+str(land_temp_global))
+# print('Average temperature over ocean (global) = '+str(ocean_temp_global))
 
 
+# minlat=-30. #input('Enter minimum latitude ')
+# maxlat=30. #input('Enter maximum latitude ')
+
+# # difference between exp and control
+# land_temp=(tsurf_avg-tsurf_avg_ctl).sel(lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==1.) # .where does not recognize xarray as argument!
+# ocean_temp=(tsurf_avg-tsurf_avg_ctl).sel(lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==0.) # .where does not recognize xarray as argument!
+
+# print('Average temperature diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_temp.mean()))
+# print('Average temperature diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_temp.mean()))
+
+# # difference between exp and control
+# land_precip_global=(precipitation_avg-precipitation_avg_ctl).where(landmask==1.).mean() 
+# ocean_precip_global=(precipitation_avg-precipitation_avg_ctl).where(landmask==0.).mean()
+# print('Average precipitation diff over land (global) = '+str(land_precip_global*86400)+' mm/day')
+# print('Average precipitation diff over ocean (global) = '+str(ocean_precip_global*86400)+' mm/day')
+
+# # difference between exp and control
+# land_precip=(precipitation_avg-precipitation_avg_ctl).sel(lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==1.) # .where does not recognize xarray as argument!
+# ocean_precip=(precipitation_avg-precipitation_avg_ctl).sel(lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==0.) # .where does not recognize xarray as argument!
+# print('Average precipitation diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_precip.mean()*86400)+'+/-'+str(land_precip.std()*86400)+'mm/day') # spatial standard deviation
+# print('Average precipitation diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_precip.mean()*86400)+'+/-'+str(ocean_precip.std()*86400)+'mm/day')
+# print('Min precipitation diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_precip.min()*86400)+'mm/day') # spatial standard deviation
+# print('Max precipitation diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_precip.max()*86400)+'mm/day') # spatial standard deviation
+# print('Min precipitation diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_precip.min()*86400)+'mm/day') # spatial standard deviation
+# print('Max precipitation diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_precip.max()*86400)+'mm/day')
+
+# # difference between exp and control
+# land_lhe=(net_lhe_avg-net_lhe_avg_ctl).sel(lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==1.) # .where does not recognize xarray as argument!
+# ocean_lhe=(net_lhe_avg-net_lhe_avg_ctl).sel(lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==0.) # .where does not recognize xarray as argument!
+# print('Average net_lhe diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_lhe.mean()/28.)+'+/-'+str(land_lhe.std()/28.)+'mm/day') # spatial standard deviation
+# print('Average net_lhe diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_lhe.mean()/28.)+'+/-'+str(ocean_lhe.std()/28.)+'mm/day')
+# print('Min net_lhe diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_lhe.min()/28.)+'mm/day') # spatial standard deviation
+# print('Max net_lhe diff over land between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(land_lhe.max()/28.)+'mm/day') # spatial standard deviation
+# print('Min net_lhe diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_lhe.min()/28.)+'mm/day') # spatial standard deviation
+# print('Max net_lhe diff over ocean between '+str(minlat)+'N and '+str(maxlat)+'N = '+str(ocean_lhe.max()/28.)+'mm/day')
 
 
-JJA = 'JJA'
-DJF = 'DJF'
-MAM = 'MAM'
-SON = 'SON'
-
-land_precip_JJA=precipitation_seasonal_avg.sel(season=JJA,lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==1.) # .where does not recognize xarray as argument!
-ocean_precip_JJA=precipitation_seasonal_avg.sel(season=JJA,lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==0.) # .where does not recognize xarray as argument!
-land_temp_JJA=tsurf_seasonal_avg.sel(season=JJA,lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==1.) # .where does not recognize xarray as argument!
-ocean_temp_JJA=tsurf_seasonal_avg.sel(season=JJA,lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==0.) # .where does not recognize xarray as argument!
-
-plotting_routines_kav7.several_vars_zonalavg2(tsurf_seasonal_avg.sel(season=JJA),'T_S (K)','Red',precipitation_seasonal_avg.sel(season=JJA)*86400,'P (mm/day)','Blue',net_lhe_seasonal_avg.sel(season=JJA)/28.,'E (mm/day)','g','JJA T_S, P and E') # 28.=conversion from W/m^2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
-plotting_routines_kav7.several_vars_zonalavg2(tsurf_seasonal_avg.sel(season=DJF),'T_S (K)','Red',precipitation_seasonal_avg.sel(season=DJF)*86400,'P (mm/day)','Blue',net_lhe_seasonal_avg.sel(season=DJF)/28.,'E (mm/day)','g','DJF T_S, P and E')
-plotting_routines_kav7.several_vars_zonalavg2(tsurf_avg,'T_S (K)','Red',precipitation_avg*86400,'P (mm/day)','Blue',net_lhe_avg/28.,'E (mm/day)','g','avg T_S, P and E')
 
 
-plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_month_avg.sel(month=7)*86400,'mm/day','P_July (mm/day)','rainnorm',landmask,landlats,landlons)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_month_avg.sel(month=1)*86400,'mm/day','P_January (mm/day)','rainnorm',landmask,landlats,landlons)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_month_avg.sel(month=7),'K','tsurf_July (K)','temp',landmask,landlats,landlons)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_month_avg.sel(month=1),'K','tsurf_January (K)','temp',landmask,landlats,landlons)
+# JJA = 'JJA'
+# DJF = 'DJF'
+# MAM = 'MAM'
+# SON = 'SON'
 
-plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_month_avg.sel(month=7)*86400-net_lhe_month_avg.sel(month=7)/28.,'mm/day','P-E_July (mm/day)','rainnorm',landmask,landlats,landlons)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_month_avg.sel(month=1)*86400-net_lhe_month_avg.sel(month=1)/28.,'mm/day','P-E_January (mm/day)','rainnorm',landmask,landlats,landlons)
+# land_precip_JJA=precipitation_seasonal_avg.sel(season=JJA,lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==1.) # .where does not recognize xarray as argument!
+# ocean_precip_JJA=precipitation_seasonal_avg.sel(season=JJA,lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==0.) # .where does not recognize xarray as argument!
+# land_temp_JJA=tsurf_seasonal_avg.sel(season=JJA,lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==1.) # .where does not recognize xarray as argument!
+# ocean_temp_JJA=tsurf_seasonal_avg.sel(season=JJA,lat=slice(minlat,maxlat)).where(np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))==0.) # .where does not recognize xarray as argument!
+
+# plotting_routines_kav7.several_vars_zonalavg2(tsurf_seasonal_avg.sel(season=JJA),'T_S (K)','Red',precipitation_seasonal_avg.sel(season=JJA)*86400,'P (mm/day)','Blue',net_lhe_seasonal_avg.sel(season=JJA)/28.,'E (mm/day)','g','JJA T_S, P and E') # 28.=conversion from W/m^2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
+# plotting_routines_kav7.several_vars_zonalavg2(tsurf_seasonal_avg.sel(season=DJF),'T_S (K)','Red',precipitation_seasonal_avg.sel(season=DJF)*86400,'P (mm/day)','Blue',net_lhe_seasonal_avg.sel(season=DJF)/28.,'E (mm/day)','g','DJF T_S, P and E')
+# plotting_routines_kav7.several_vars_zonalavg2(tsurf_avg,'T_S (K)','Red',precipitation_avg*86400,'P (mm/day)','Blue',net_lhe_avg/28.,'E (mm/day)','g','avg T_S, P and E')
 
 
-print('JJA tsurf_avg (global) = '+str(tsurf_seasonal_avg.sel(season=JJA).mean()))
-print('DJF tsurf_avg (global) = '+str(tsurf_seasonal_avg.sel(season=DJF).mean()))
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_month_avg.sel(month=7)*86400,'mm/day','P_July (mm/day)','rainnorm',landmask,landlats,landlons)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_month_avg.sel(month=1)*86400,'mm/day','P_January (mm/day)','rainnorm',landmask,landlats,landlons)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_month_avg.sel(month=7),'K','tsurf_July (K)','temp',landmask,landlats,landlons)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_month_avg.sel(month=1),'K','tsurf_January (K)','temp',landmask,landlats,landlons)
+
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_month_avg.sel(month=7)*86400-net_lhe_month_avg.sel(month=7)/28.,'mm/day','P-E_July (mm/day)','rainnorm',landmask,landlats,landlons)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_month_avg.sel(month=1)*86400-net_lhe_month_avg.sel(month=1)/28.,'mm/day','P-E_January (mm/day)','rainnorm',landmask,landlats,landlons)
+
+
+# print('JJA tsurf_avg (global) = '+str(tsurf_seasonal_avg.sel(season=JJA).mean()))
+# print('DJF tsurf_avg (global) = '+str(tsurf_seasonal_avg.sel(season=DJF).mean()))

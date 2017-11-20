@@ -30,198 +30,202 @@ class MidpointNormalize(colors.Normalize):
 # This maps minimum, midpoint and maximum values to 0, 0.5 and 1 respectively i.e. forcing the middle of the scale bar to match your midpoint
 
 
+# not using area weights yet
+# def globavg_var_timeseries(testdir,varname,runmin,runmax):
+# #	""" Plots & returns time series of specified variable """
+# # runmin = first month for timeseries
+# # runmax = last month for timeseries
+# # testdir = experiment directorz name in GFDL_DATA
+# # varname = variable name, e.g. 't_surf'
 
-def globavg_var_timeseries(testdir,varname,runmin,runmax):
-#	""" Plots & returns time series of specified variable """
-# runmin = first month for timeseries
-# runmax = last month for timeseries
-# testdir = experiment directorz name in GFDL_DATA
-# varname = variable name, e.g. 't_surf'
-
-    for i in range (runmin,runmax): # excludes last one!
-        runnr="{0:03}".format(i)
-        filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
-        nc = Dataset(filename,mode='r')
-        var=nc.variables[varname][:]
-        if len(np.shape(var))==4: # 4d array, sum over height
-		var=(xr.DataArray(var)).sum(dim='dim_1')
+#     for i in range (runmin,runmax): # excludes last one!
+#         runnr="{0:03}".format(i)
+#         filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
+#         nc = Dataset(filename,mode='r')
+#         var=nc.variables[varname][:]
+#         if len(np.shape(var))==4: # 4d array, sum over height
+# 		var=(xr.DataArray(var)).sum(dim='dim_1')
     
-        if i==runmin:
-            timeseries=[var.mean()] # make timeseries be a list, not a float so that I can append later
-            print(type(timeseries))
-	else:
-            timeseries.append(var.mean())
+#         if i==runmin:
+#             timeseries=[var.mean()] # make timeseries be a list, not a float so that I can append later
+#             print(type(timeseries))
+# 	else:
+#             timeseries.append(var.mean())
 
-    timeseries=np.asarray(timeseries)
-    months=np.linspace(runmin,(runmax-1),timeseries.size)
+#     timeseries=np.asarray(timeseries)
+#     months=np.linspace(runmin,(runmax-1),timeseries.size)
     
-    plt.plot(months,timeseries)
-    plt.title('globavg '+varname)
-    plt.xlabel('Month #')
-    plt.ylabel('Global average')
-    plt.grid(b=True)
-    plt.show()    
-    return(timeseries)
-
-def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,color1,varname2,factor2,color2,varname3,factor3,color3,height3,runmin,runmax,landmaskxr):
-#
-#	""" Plots timeseries of three variables over tropical land.
-	# Using three different axes.  
-	# The colors are chosen at input for each variable
-	# Variable 3 can be at a specified height. If var3 is 3D, set height3 to 0 ""
+#     plt.plot(months,timeseries)
+#     plt.title('globavg '+varname)
+#     plt.xlabel('Month #')
+#     plt.ylabel('Global average')
+#     plt.grid(b=True)
+#     plt.show()    
+#     return(timeseries)
 
 
-    for i in range (runmin,runmax):
-		    runnr="{0:03}".format(i)
-		    filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
-		    nc = Dataset(filename,mode='r')
+#NOT YET USING AREA WEIGHTED AVG
+# def tropics_severalvars_timeseries_landonly(testdir,varname1,factor1,color1,varname2,factor2,color2,varname3,factor3,color3,height3,runmin,runmax,landmaskxr):
+# #
+# #	""" Plots timeseries of three variables over tropical land.
+# 	# Using three different axes.  
+# 	# The colors are chosen at input for each variable
+# 	# Variable 3 can be at a specified height. If var3 is 3D, set height3 to 0 ""
 
-		    lats = nc.variables['lat'][:]
-		    lons = nc.variables['lon'][:]
+
+#     for i in range (runmin,runmax):
+# 		    runnr="{0:03}".format(i)
+# 		    filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
+# 		    nc = Dataset(filename,mode='r')
+
+# 		    lats = nc.variables['lat'][:]
+# 		    lons = nc.variables['lon'][:]
 		    
-		    var1=(xr.DataArray(nc.variables[varname1][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor1
-		    var2=(xr.DataArray(nc.variables[varname2][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor2
-		    if height3 != 0:
-			    var3=(xr.DataArray(nc.variables[varname3][0,height3,:,:],coords=[lats,lons],dims=['lat','lon']))*factor3
-		    else:
-			    var3=(xr.DataArray(nc.variables[varname3][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor3
+# 		    var1=(xr.DataArray(nc.variables[varname1][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor1
+# 		    var2=(xr.DataArray(nc.variables[varname2][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor2
+# 		    if height3 != 0:
+# 			    var3=(xr.DataArray(nc.variables[varname3][0,height3,:,:],coords=[lats,lons],dims=['lat','lon']))*factor3
+# 		    else:
+# 			    var3=(xr.DataArray(nc.variables[varname3][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor3
 
-		    var1 = var1.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))==1.)
-		    var2 = var2.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))==1.)
-		    var3 = var3.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))==1.)
+# 		    var1 = var1.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))==1.)
+# 		    var2 = var2.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))==1.)
+# 		    var3 = var3.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))==1.)
 
 
-		    if i==runmin:
-			    timeseries1=[var1.mean()] 
-			    timeseries2=[var2.mean()]
-			    timeseries3=[var3.mean()]
-		    else:
-			    timeseries1.append(var1.mean())
-			    timeseries2.append(var2.mean())
-			    timeseries3.append(var3.mean())
+# 		    if i==runmin:
+# 			    timeseries1=[var1.mean()] 
+# 			    timeseries2=[var2.mean()]
+# 			    timeseries3=[var3.mean()]
+# 		    else:
+# 			    timeseries1.append(var1.mean())
+# 			    timeseries2.append(var2.mean())
+# 			    timeseries3.append(var3.mean())
 
-    timeseries1=np.asarray(timeseries1)
-    timeseries2=np.asarray(timeseries2)
-    timeseries3=np.asarray(timeseries3)
+#     timeseries1=np.asarray(timeseries1)
+#     timeseries2=np.asarray(timeseries2)
+#     timeseries3=np.asarray(timeseries3)
 
-    months=np.linspace(runmin,(runmax-1),timeseries1.size)
+#     months=np.linspace(runmin,(runmax-1),timeseries1.size)
     
 
-    fig, ax = plt.subplots()
-# Twin the x-axis twice to make independent y-axes.
-    axes = [ax, ax.twinx(), ax.twinx()] 
-# Make some space on the right side for the extra y-axis.
-    fig.subplots_adjust(right=0.75)
-## Move the last y-axis spine over to the right by 20% of the width of the axes
-    axes[-1].spines['right'].set_position(('axes', 1.2))
+#     fig, ax = plt.subplots()
+# # Twin the x-axis twice to make independent y-axes.
+#     axes = [ax, ax.twinx(), ax.twinx()] 
+# # Make some space on the right side for the extra y-axis.
+#     fig.subplots_adjust(right=0.75)
+# ## Move the last y-axis spine over to the right by 20% of the width of the axes
+#     axes[-1].spines['right'].set_position(('axes', 1.2))
 
-# To make the border of the right-most axis visible, we need to turn the frame
-# on. This hides the other plots, however, so we need to turn its fill off.
-    axes[-1].set_frame_on(True)
-    axes[-1].patch.set_visible(False)
+# # To make the border of the right-most axis visible, we need to turn the frame
+# # on. This hides the other plots, however, so we need to turn its fill off.
+#     axes[-1].set_frame_on(True)
+#     axes[-1].patch.set_visible(False)
 
-    colors = (color1, color2, color3)
-    field = (timeseries1,timeseries2,timeseries3)
-    names = (varname1,varname2,varname3)
-    i=0
-    for ax, color in zip(axes, colors):
-        data = field[i]
-	if (i==2 and height3 !=0):
-		ax.plot(months,data,color=color,label=names[i]+' at pfull = '+str(int(nc.variables['pfull'][height3]))+' hPa')
-	else:	
-		ax.plot(months,data,color=color,label=names[i])
-        ax.set_ylabel(names[i])
-	if (i<=1):
-		ax.set_ylim(0,timeseries1.max()+1.)
-        ax.tick_params(axis='y',colors=color)
-        i+=1
-    axes[0].set_xlabel('month #')
-    plt.legend()
-    plt.title('Tropical Land Only')
-    plt.show()
+#     colors = (color1, color2, color3)
+#     field = (timeseries1,timeseries2,timeseries3)
+#     names = (varname1,varname2,varname3)
+#     i=0
+#     for ax, color in zip(axes, colors):
+#         data = field[i]
+# 	if (i==2 and height3 !=0):
+# 		ax.plot(months,data,color=color,label=names[i]+' at pfull = '+str(int(nc.variables['pfull'][height3]))+' hPa')
+# 	else:	
+# 		ax.plot(months,data,color=color,label=names[i])
+#         ax.set_ylabel(names[i])
+# 	if (i<=1):
+# 		ax.set_ylim(0,timeseries1.max()+1.)
+#         ax.tick_params(axis='y',colors=color)
+#         i+=1
+#     axes[0].set_xlabel('month #')
+#     plt.legend()
+#     plt.title('Tropical Land Only')
+#     plt.show()
 
-def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,varname2,factor2,color2,varname3,factor3,color3,height3,runmin,runmax,landmaskxr):
 
-	# """ Plots timeseries of three variables over tropical ocean.
-	# Using three different axes.  
-	# The colors are chosen at input for each variable
-	# Variable 3 can be at a specified height. If var3 is 3D, set height3 to 0 """
+#NOT YET USING AREA WEIGHTED AVG
+# def tropics_severalvars_timeseries_oceanonly(testdir,varname1,factor1,color1,varname2,factor2,color2,varname3,factor3,color3,height3,runmin,runmax,landmaskxr):
 
-# lat slice hard coded to -30. - 30. 
-# factor is needed to convert eg precip from kg/s to mm/day 
+# 	# """ Plots timeseries of three variables over tropical ocean.
+# 	# Using three different axes.  
+# 	# The colors are chosen at input for each variable
+# 	# Variable 3 can be at a specified height. If var3 is 3D, set height3 to 0 """
 
-    for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-	    runnr="{0:03}".format(i)
-	    filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
-	    nc = Dataset(filename,mode='r')
-	    lats = nc.variables['lat'][:]
-	    lons = nc.variables['lon'][:]
+# # lat slice hard coded to -30. - 30. 
+# # factor is needed to convert eg precip from kg/s to mm/day 
+
+#     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
+# 	    runnr="{0:03}".format(i)
+# 	    filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
+# 	    nc = Dataset(filename,mode='r')
+# 	    lats = nc.variables['lat'][:]
+# 	    lons = nc.variables['lon'][:]
 		    
-	    var1=(xr.DataArray(nc.variables[varname1][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor1
-	    var2=(xr.DataArray(nc.variables[varname2][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor2
-	    if height3 != 0:
-		    var3=(xr.DataArray(nc.variables[varname3][0,height3,:,:],coords=[lats,lons],dims=['lat','lon']))*factor3
-	    else:
-		    var3=(xr.DataArray(nc.variables[varname3][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor3
-	    var1 = var1.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))!=1.)
-	    var2 = var2.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))!=1.)
-	    var3 = var3.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))!=1.)
+# 	    var1=(xr.DataArray(nc.variables[varname1][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor1
+# 	    var2=(xr.DataArray(nc.variables[varname2][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor2
+# 	    if height3 != 0:
+# 		    var3=(xr.DataArray(nc.variables[varname3][0,height3,:,:],coords=[lats,lons],dims=['lat','lon']))*factor3
+# 	    else:
+# 		    var3=(xr.DataArray(nc.variables[varname3][0,:,:],coords=[lats,lons],dims=['lat','lon']))*factor3
+# 	    var1 = var1.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))!=1.)
+# 	    var2 = var2.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))!=1.)
+# 	    var3 = var3.sel(lat=slice(-30.,30.)).where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))!=1.)
 
 
-	    if i==runmin:
-		    timeseries1=[var1.mean()]
-		    timeseries2=[var2.mean()]
-		    timeseries3=[var3.mean()]
-	    else:
-		    timeseries1.append(var1.mean())
-		    timeseries2.append(var2.mean())
-		    timeseries3.append(var3.mean())
+# 	    if i==runmin:
+# 		    timeseries1=[var1.mean()]
+# 		    timeseries2=[var2.mean()]
+# 		    timeseries3=[var3.mean()]
+# 	    else:
+# 		    timeseries1.append(var1.mean())
+# 		    timeseries2.append(var2.mean())
+# 		    timeseries3.append(var3.mean())
 
-    timeseries1=np.asarray(timeseries1)
-    timeseries2=np.asarray(timeseries2)
-    timeseries3=np.asarray(timeseries3)
+#     timeseries1=np.asarray(timeseries1)
+#     timeseries2=np.asarray(timeseries2)
+#     timeseries3=np.asarray(timeseries3)
 
-    months=np.linspace(runmin,(runmax-1),timeseries1.size)
+#     months=np.linspace(runmin,(runmax-1),timeseries1.size)
     
 
-    fig, ax = plt.subplots()
+#     fig, ax = plt.subplots()
 
-# Twin the x-axis twice to make independent y-axes.
-    axes = [ax, ax.twinx(), ax.twinx()] 
+# # Twin the x-axis twice to make independent y-axes.
+#     axes = [ax, ax.twinx(), ax.twinx()] 
 
-# Make some space on the right side for the extra y-axis.
-    fig.subplots_adjust(right=0.75)
+# # Make some space on the right side for the extra y-axis.
+#     fig.subplots_adjust(right=0.75)
 
-## Move the last y-axis spine over to the right by 20% of the width of the axes
-    axes[-1].spines['right'].set_position(('axes', 1.2))
+# ## Move the last y-axis spine over to the right by 20% of the width of the axes
+#     axes[-1].spines['right'].set_position(('axes', 1.2))
 
-# To make the border of the right-most axis visible, we need to turn the frame
-# on. This hides the other plots, however, so we need to turn its fill off.
-    axes[-1].set_frame_on(True)
-    axes[-1].patch.set_visible(False)
+# # To make the border of the right-most axis visible, we need to turn the frame
+# # on. This hides the other plots, however, so we need to turn its fill off.
+#     axes[-1].set_frame_on(True)
+#     axes[-1].patch.set_visible(False)
 
-# And finally we get to plot things...
-    colors = (color1, color2, color3)
-    field = (timeseries1,timeseries2,timeseries3)
-    names = (varname1,varname2,varname3)
-    i=0
-    for ax, color in zip(axes, colors):
-        data = field[i]
-	if (i==2 and height3 !=0):
-		ax.plot(months,data,color=color,label=names[i]+' at pfull = '+str(int(nc.variables['pfull'][height3]))+' hPa')
-	else:	
-		ax.plot(months,data,color=color,label=names[i])
-        ax.set_ylabel(names[i])
-	if (i<=1):
-		ax.set_ylim(0,timeseries1.max()+1.)
-        ax.tick_params(axis='y',colors=color)
-        i+=1
-    axes[0].set_xlabel('month #')
-    plt.legend()
-    plt.title('Tropical Ocean Only')
-    plt.show()
+# # And finally we get to plot things...
+#     colors = (color1, color2, color3)
+#     field = (timeseries1,timeseries2,timeseries3)
+#     names = (varname1,varname2,varname3)
+#     i=0
+#     for ax, color in zip(axes, colors):
+#         data = field[i]
+# 	if (i==2 and height3 !=0):
+# 		ax.plot(months,data,color=color,label=names[i]+' at pfull = '+str(int(nc.variables['pfull'][height3]))+' hPa')
+# 	else:	
+# 		ax.plot(months,data,color=color,label=names[i])
+#         ax.set_ylabel(names[i])
+# 	if (i<=1):
+# 		ax.set_ylim(0,timeseries1.max()+1.)
+#         ax.tick_params(axis='y',colors=color)
+#         i+=1
+#     axes[0].set_xlabel('month #')
+#     plt.legend()
+#     plt.title('Tropical Ocean Only')
+#     plt.show()
 
-def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,landmask):
+def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,landmask,minlat=-90.,maxlat=90.):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
@@ -231,20 +235,20 @@ def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,l
         filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
         
-        var=nc.variables[varname][:]*factor
-	var_land = (xr.DataArray(var)).where(landmask==1.)
-	var_ocean = (xr.DataArray(var)).where(landmask!=1.)
+	lats = nc.variables['lat'][:]
+	lons = nc.variables['lon'][:]
+        var=nc.variables[varname][0,:,:]*factor
+	var = xr.DataArray(var,coords=[lats,lons],dims=['lat','lon'])
+
         if i==runmin:
-            timeseries=[var.mean()]
-	    timeseries_land=[var_land.mean()]
-	    timeseries_ocean=[var_ocean.mean()]
-          
+		timeseries = [area_weighted_avg(var,landmask,'all_sfcs',minlat,maxlat)]
+		timeseries_land = [area_weighted_avg(var,landmask,'land',minlat,maxlat)]
+		timeseries_ocean = [area_weighted_avg(var,landmask,'ocean',minlat,maxlat)]
         else:
-            timeseries.append(var.mean())
-	    timeseries_land.append(var_land.mean())
-	    timeseries_ocean.append(var_ocean.mean())
-
-
+		timeseries.append(area_weighted_avg(var,landmask,'all_sfcs',minlat,maxlat))
+		timeseries_land.append(area_weighted_avg(var,landmask,'land',minlat,maxlat))
+		timeseries_ocean.append(area_weighted_avg(var,landmask,'ocean',minlat,maxlat))
+	
     timeseries=np.asarray(timeseries)
     timeseries_land=np.asarray(timeseries_land)
     timeseries_ocean=np.asarray(timeseries_ocean)
@@ -252,9 +256,9 @@ def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,l
     plt.plot(months,timeseries,'r',label='total')
     plt.plot(months,timeseries_land,'g',label='land only')
     plt.plot(months,timeseries_ocean,'b',label='ocean only')
-    plt.title('globavg '+varname+' total and land/ocean only')
+    plt.title('avg '+varname+' total and land/ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
     plt.xlabel('Month #')
-    plt.ylabel('Global average')
+    plt.ylabel('Area weighted average')
     plt.legend()
     plt.grid(b=True)
     plt.show()    
@@ -272,19 +276,22 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runma
         filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
         
-        var=nc.variables[varname][:]*factor
-	var_land = (xr.DataArray(var)).where(landmask==1.)
-	var_ocean = (xr.DataArray(var)).where(landmask!=1.)
-        if i==runmin:
-            timeseries=[var.mean()]
-	    timeseries_land=[var_land.mean()]
-	    timeseries_ocean=[var_ocean.mean()]
-          
-        else:
-            timeseries.append(var.mean())
-	    timeseries_land.append(var_land.mean())
-	    timeseries_ocean.append(var_ocean.mean())
+	lats = nc.variables['lat'][:]
+	lons = nc.variables['lon'][:]
+        var=nc.variables[varname][0,:,:]*factor
+	# var_land = (xr.DataArray(var)).where(landmask==1.)
+	# var_ocean = (xr.DataArray(var)).where(landmask!=1.)
+	var = xr.DataArray(var,coords=[lats,lons],dims=['lat','lon'])
 
+        if i==runmin:
+		timeseries = [area_weighted_avg(var,landmask,'global')]
+		timeseries_land = [area_weighted_avg(var,landmask,'land')]
+		timeseries_ocean = [area_weighted_avg(var,landmask,'ocean')]
+        else:
+		timeseries.append(area_weighted_avg(var,landmask,'global'))
+		timeseries_land.append(area_weighted_avg(var,landmask,'land'))
+		timeseries_ocean.append(area_weighted_avg(var,landmask,'ocean'))
+	
 #same for spin up 
     for i in range (spinup_runmin,spinup_runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
         runnr="{0:03}".format(i)
@@ -292,19 +299,17 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runma
         nc = Dataset(filename,mode='r')
         
         var=nc.variables[varname][:]*factor
-	var_land = (xr.DataArray(var)).where(landmask==1.)
-	var_ocean = (xr.DataArray(var)).where(landmask!=1.)
-        if i==spinup_runmin:
-            ts_spinup=[var.mean()]
-	    ts_spinup_land=[var_land.mean()]
-	    ts_spinup_ocean=[var_ocean.mean()]
-          
+
+	var = xr.DataArray(var,coords=[lats,lons],dims=['lat','lon'])
+
+        if i==runmin:
+		ts_spinup = [area_weighted_avg(var,landmask,'global')]
+		ts_spinup_land = [area_weighted_avg(var,landmask,'land')]
+		ts_spinup_ocean = [area_weighted_avg(var,landmask,'ocean')]
         else:
-            ts_spinup.append(var.mean())
-	    ts_spinup_land.append(var_land.mean())
-	    ts_spinup_ocean.append(var_ocean.mean())
-
-
+		ts_spinup.append(area_weighted_avg(var,landmask,'global'))
+		ts_spinup_land.append(area_weighted_avg(var,landmask,'land'))
+		ts_spinup_ocean.append(area_weighted_avg(var,landmask,'ocean'))
 
     timeseries=xr.DataArray(timeseries)
     timeseries_land=xr.DataArray(timeseries_land)
@@ -336,7 +341,10 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runma
 
 
 def seasonal_surface_variable(testdir,runmin,runmax,varname,units,factor=1.): # only works for surface variables (dims time, lat, lon) at the moment
-    
+
+    print(varname+' '+str(factor))
+
+
     plt.close()
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
         runnr="{0:03}".format(i)
@@ -386,37 +394,37 @@ def seasonal_4D_variable(testdir,runmin,runmax,varname,units):
 
     return(var,var_avg,var_seasonal_avg,var_month_avg,time)
 
-def zonavg_plot(field,title,varname,units): #field needs to have dimensions lat|lon
+# def zonavg_plot(field,title,varname,units): #field needs to have dimensions lat|lon
 
-    field=xr.DataArray(field)
-    field_zonavg=field.mean(dim='lon',keep_attrs=True)
+#     field=xr.DataArray(field)
+#     field_zonavg=field.mean(dim='lon',keep_attrs=True)
     
-    plt.close()
-    plt.plot(field['lat'],field_zonavg)
-    plt.title(title)
-    plt.ylabel(varname+' ('+units+')')
-    plt.xlabel('Latitude')
-    plt.show()
+#     plt.close()
+#     plt.plot(field['lat'],field_zonavg)
+#     plt.title(title)
+#     plt.ylabel(varname+' ('+units+')')
+#     plt.xlabel('Latitude')
+#     plt.show()
 
-def several_vars_zonalavg(field1,varname1,field2,varname2,field3,varname3): 
+# def several_vars_zonalavg(field1,varname1,field2,varname2,field3,varname3): 
 
-# fields needs to have dimensions lat|lon
-# same y axis for all vars
+# # fields needs to have dimensions lat|lon
+# # same y axis for all vars
 
-    field1=xr.DataArray(field1)
-    field1_zonavg=field1.mean(dim='lon',keep_attrs=True)
-    field2=xr.DataArray(field2)
-    field2_zonavg=field2.mean(dim='lon',keep_attrs=True)   
-    field3=xr.DataArray(field3)
-    field3_zonavg=field3.mean(dim='lon',keep_attrs=True)
+#     field1=xr.DataArray(field1)
+#     field1_zonavg=field1.mean(dim='lon',keep_attrs=True)
+#     field2=xr.DataArray(field2)
+#     field2_zonavg=field2.mean(dim='lon',keep_attrs=True)   
+#     field3=xr.DataArray(field3)
+#     field3_zonavg=field3.mean(dim='lon',keep_attrs=True)
     
-    plt.close()
-    plt.plot(field1['lat'],field1_zonavg,label=varname1)
-    plt.plot(field1['lat'],field2_zonavg,label=varname2)
-    plt.plot(field1['lat'],field3_zonavg,label=varname3)
-    plt.legend()
-    plt.xlabel('latitude')
-    plt.show()
+#     plt.close()
+#     plt.plot(field1['lat'],field1_zonavg,label=varname1)
+#     plt.plot(field1['lat'],field2_zonavg,label=varname2)
+#     plt.plot(field1['lat'],field3_zonavg,label=varname3)
+#     plt.legend()
+#     plt.xlabel('latitude')
+#     plt.show()
 
 def several_vars_zonalavg2(field1,varname1,color1,field2,varname2,color2,field3,varname3,color3,title):
 # with 3 different y axes
@@ -1700,7 +1708,7 @@ def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
 
     plt.show()
 
-def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmask,landlats,landlons,contourson=False,):
+def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmask,landlats,landlons,contourson=False,minval=None,maxval=None):
 # plotting only the zonal average next to the map 
 # currently hard coded -30.,30. slice instead of squarelats_min, squarelats_max
     plt.close()
@@ -1734,9 +1742,14 @@ def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmask,land
     dlons = lons[100] - lons[99]
     dlats = lats[60] - lats[59]
 
-    minval = np.absolute(array.min())
-    maxval = np.absolute(array.max())
+
+    if minval==None and maxval==None:
+	    minval = array.min()
+	    maxval = array.max()
     
+    minval = np.absolute(minval)
+    maxval = np.absolute(maxval)
+
     if maxval >= minval:
 	    minval = - maxval
     else: 
@@ -2092,22 +2105,30 @@ def plot_a_climatology(clim_field):
 # 	return globavg, weighted_array #, globint 
 
 
-def area_weighted_avg(array,landmask,option):
+def area_weighted_avg(array,landmaskxr,option,minlat=-90.,maxlat=90.,axis=None):
 	
 	lats = array.lat
 	lons = array.lon
 	latr = np.deg2rad(lats)
 	cos_1d = np.cos(latr)
 	cos_2d = np.expand_dims(cos_1d, axis = 1) # for lons
-	cos_2d = xr.DataArray(np.repeat(cos_2d, len(lons), axis = 1))	
+	cos_2d = np.repeat(cos_2d, len(lons), axis = 1)	
+	cos_2d = xr.DataArray(cos_2d, coords=[lats,lons], dims = ['lat','lon'])
+	
+	landmask = np.asarray(landmaskxr)
 
-	if option=='global':
-		w_avg = np.average(array, weights=cos_2d)
+	if (minlat!=-90. and maxlat!=90.):
+		array = array.sel(lat=slice(minlat,maxlat))
+		landmask = np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))
+		cos_2d = cos_2d.sel(lat=slice(minlat,maxlat))
+
+	if option=='all_sfcs': # meaning both land and ocean NOT entier globe 
+		ma =  np.ma.MaskedArray(array, mask=np.isnan(array.where(landmask!=1.)))
+		w_avg = np.average(ma, axis=axis,weights=cos_2d)
 	elif option=='ocean':
 		ma =  np.ma.MaskedArray(array, mask=np.isnan(array.where(landmask!=1.)))
-		w_avg = np.ma.average(ma,weights=cos_2d)
+		w_avg = np.ma.average(ma,axis=axis,weights=cos_2d)
 	elif option=='land': 
 		ma = np.ma.MaskedArray(array, mask=np.isnan(array.where(landmask==1.)))
-		w_avg = np.ma.average(ma,weights=cos_2d)
-
+		w_avg = np.ma.average(ma,axis=axis,weights=cos_2d)
 	return w_avg
