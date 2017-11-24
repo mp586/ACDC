@@ -12,6 +12,9 @@ import plotting_routines
 import plotting_routines_kav7
 import stats as st
 
+sys.path.insert(0, '/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/src/extra/python/scripts') 
+import cell_area as ca
+
 control_dir= input('Enter control directory name as string ')
 ctl_runmin=input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
 ctl_runmax=input('Enter runmax number ')
@@ -30,38 +33,48 @@ runmax=input('Enter runmax number ')
 landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
 
 
+
+
 landmask=landfile.variables['land_mask'][:]
 landlats=landfile.variables['lat'][:]
 landlons=landfile.variables['lon'][:]
-
-
 # for specified lats
 landmaskxr=xr.DataArray(landmask,coords=[landlats,landlons],dims=['lat','lon']) # need this in order to use .sel(... slice) on it
 
-#plotting_routines_kav7.globavg_var_timeseries(testdir,'t_surf',109,122)
+area_array = ca.cell_area(t_res=42,base_dir='/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/')
+area_array = xr.DataArray(area_array)
+total_sfc_area = np.sum(area_array)
+print ('total sfc area (*10^14) = '+str(np.sum(area_array/(10**14)))) # -- test: correct, equals sfc area of earth (5.1*10**14 m^2)
+land_sfc_area = np.sum(area_array.where(landmask==1.))
+print ('land sfc area (*10^14) = '+str(land_sfc_area/(10**14)))
+ocean_sfc_area = np.sum(area_array.where(landmask!=1.))
+print ('ocean sfc area (*10^14) = '+str(ocean_sfc_area/(10**14)))
 
-
-#not yet the weighted avg
 # for plotting a spin up run ('control') timeseries followed by the timeseries from the perturbed experiment
-# plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,'t_surf',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
-# plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,'bucket_depth',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
+plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,'t_surf',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
+#plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,'bucket_depth',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
 
 
 # plotting_routines_kav7.globavg_var_timeseries(testdir,'co2',1,runmax)
 
 
 [tsurf,tsurf_avg,tsurf_seasonal_avg,tsurf_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'t_surf','K')
-[net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'flux_lhe','W/m^2') # latent heat flux at surface (UP)
-[precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'precipitation','kg/m2s')
-[convection_rain,convection_rain_avg,convection_rain_seasonal_avg,convection_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'convection_rain','kg/m2s')
-[condensation_rain,condensation_rain_avg,condensation_rain_seasonal_avg,condensation_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'condensation_rain','kg/m2s')
-[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'bucket_depth','m')
+[net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'flux_lhe','W/m^2',factor = 1/28.) # latent heat flux at surface (UP)
+[precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'precipitation','kg/m2s', factor=86400)
+#[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'bucket_depth','m')
+# [flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'flux_oceanq','W/m^2')
+#[convection_rain,convection_rain_avg,convection_rain_seasonal_avg,convection_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'convection_rain','kg/m2s')
+#[condensation_rain,condensation_rain_avg,condensation_rain_seasonal_avg,condensation_rain_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'condensation_rain','kg/m2s')
 
-[tsurf_ctl,tsurf_avg_ctl,tsurf_seasonal_avg_ctl,tsurf_month_avg_ctl,time_ctl]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'t_surf','K')
-[net_lhe_ctl,net_lhe_avg_ctl,net_lhe_seasonal_avg_ctl,net_lhe_month_avg_ctl,time_ctl]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'flux_lhe','W/m^2') # latent heat flux at surface (UP)
-[precipitation_ctl,precipitation_avg_ctl,precipitation_seasonal_avg_ctl,precipitation_month_avg_ctl,time_ctl]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'precipitation','kg/m2s')
-[bucket_depth_ctl,bucket_depth_avg_ctl,bucket_depth_seasonal_avg_ctl,bucket_depth_month_avg_ctl,time_ctl]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'bucket_depth','m')
 
+
+[tsurf_ctl,tsurf_avg_ctl,tsurf_seasonal_avg_ctl,tsurf_month_avg_ctl,time]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'t_surf','K')
+[net_lhe_ctl,net_lhe_avg_ctl,net_lhe_seasonal_avg_ctl,net_lhe_month_avg_ctl,time]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'flux_lhe','W/m^2',factor = 1/28.) # latent heat flux at surface (UP)
+[precipitation_ctl,precipitation_avg_ctl,precipitation_seasonal_avg_ctl,precipitation_month_avg_ctl,time]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'precipitation','kg/m2s', factor=86400)
+#[bucket_depth_ctl,bucket_depth_avg_ctl,bucket_depth_seasonal_avg_ctl,bucket_depth_month_avg_ctl,time]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'bucket_depth','m')
+# [flux_oceanq_ctl,flux_oceanq_avg_ctl,flux_oceanq_seasonal_avg_ctl,flux_oceanq_month_avg_ctl,time]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'flux_oceanq','W/m^2')
+#[convection_rain_ctl,convection_rain_avg_ctl,convection_rain_seasonal_avg_ctl,convection_rain_month_avg_ctl,time]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'convection_rain','kg/m2s')
+#[condensation_rain_ctl,condensation_rain_avg_ctl,condensation_rain_seasonal_avg_ctl,condensation_rain_month_avg_ctl,time]=plotting_routines_kav7.seasonal_surface_variable(control_dir,ctl_runmin,ctl_runmax,'condensation_rain','kg/m2s')
 
 
 # [ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'ucomp','m/s')
@@ -115,27 +128,35 @@ landmaskxr=xr.DataArray(landmask,coords=[landlats,landlons],dims=['lat','lon']) 
 #plotting_routines_kav7.animated_map(testdir,bucket_depth.where(landmask==1.),'m','bucket depth','bucket_depth','fromwhite',0,140) # need runmin = 1!
 
 
-PE_avg=precipitation_avg*86400-net_lhe_avg/28. # 28.=conversion from W/m^# 2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
+PE_avg=precipitation_avg-net_lhe_avg # 28.=conversion from W/m^# 2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg
 # # # see www.ce.utexas.edu/prof/maidment/CE374KSpr12/.../Latent%20heat%20flux.pptx @30DegC
 
-plotting_routines_kav7.any_configuration_plot(-90.,90.,(bucket_depth_avg - bucket_depth_avg_ctl),'mm/day','bucket depth avg minus ctrl','rainnorm',landmask,landlats,landlons,contourson = False)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,(bucket_depth_avg - bucket_depth_avg_ctl).where(landmask==1.),'mm/day','bucket depth avg minus ctrl','rainnorm',landmask,landlats,landlons,contourson = False)
+PE_avg_sum = plotting_routines_kav7.area_integral(PE_avg,area_array,landmaskxr,'all_sfcs',factor = 10**(-3)) # factor to 
+#convert from mm/d to m/d
+print('P avg - E avg global integral / total sfc area'+str(PE_avg_sum/total_sfc_area))
+
+
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,(bucket_depth_avg - bucket_depth_avg_ctl),area_array,'mm/day','bucket depth avg minus ctrl','rainnorm',landmaskxr,landlats,landlons,contourson = False)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,(bucket_depth_avg - bucket_depth_avg_ctl).where(landmask==1.),area_array,'mm/day','bucket depth avg minus ctrl','rainnorm',landmaskxr,landlats,landlons,contourson = False)
+
 # # # plotting_routines_kav7.any_configuration_plot(-90.,90.,convection_rain_avg*86400,'mm/day','convection_rain avg','fromwhite')
 # # # plotting_routines_kav7.any_configuration_plot(-90.,90.,condensation_rain_avg*86400,'mm/day','condensation_rain avg','fromwhite')
 # #plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg.where(landmask==1.)*86400,'mm/day','P avg','fromwhite')
 # # # #plotting_routines_kav7.any_configuration_plot(-90.,90.,bucket_depth_avg.where(landmask==1.),'m','bucket_depth','fromwhite')
 # # # plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg.where(landmask==1.)/28.,'mm/day','E avg','fromwhite')
-# plotting_routines_kav7.any_configuration_plot(-100.,100.,PE_avg,'mm/day','P-E avg','rainnorm',landmask,landlats,landlons)
+# plotting_routines_kav7.any_configuration_plot(-100.,100.,PE_avg,'mm/day','P-E avg','rainnorm',landmaskxr,landlats,landlons)
 # # # #plotting_routines_kav7.any_configuration_plot_minuszonavg(-90.,90.,PE_avg,'mm/day','P-E avg minus zonavg','rainnorm','P-E avg')
-# plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_avg,'K','$T_S$ avg','temp',landmask,landlats,landlons) # degrees C symbol : ...,u"\u00b0"+'C',...
-plotting_routines_kav7.any_configuration_plot(-90.,90.,(tsurf_avg-tsurf_avg_ctl),'K','$T_S$ avg minus ctrl','tempdiff',landmask,landlats,landlons,contourson = True)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_avg,'K','$T_S$ avg','temp',landmaskxr,landlats,landlons) # degrees C symbol : ...,u"\u00b0"+'C',...
+plotting_routines_kav7.any_configuration_plot(-90.,90.,(tsurf_avg-tsurf_avg_ctl),area_array,'K','$T_S$ avg minus ctrl','tempdiff',landmaskxr,landlats,landlons,contourson = True)
 # # #plotting_routines_kav7.any_configuration_plot_minuszonavg(-90.,90.,tsurf_avg,'K','tsurf avg minus zonavg','temp','T avg')
-plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg*86400,'mm/day','P avg','fromwhite',landmask,landlats,landlons,contourson = True)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,(precipitation_avg - precipitation_avg_ctl)*86400,'mm/day','P avg minus ctrl','rainnorm',landmask,landlats,landlons,contourson = False)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,(net_lhe_avg - net_lhe_avg_ctl)/28.,'mm/day','E avg minus ctrl','rainnorm',landmask,landlats,landlons,contourson = False)
-# # plotting_routines_kav7.any_configuration_plot(-90.,90.,(omega_avg[39,:,:] - omega_avg_ctl[39,:,:]),'Pa/s','Omega avg minus ctrl','rainnorm',landmask,landlats,landlons,contourson = False)
-# # # #plotting_routines_kav7.any_configuration_plot_minuszonavg(-90.,90.,precipitation_avg*86400,'mm/day','P avg minus zonavg','rainnorm','P avg')
-# # plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg/28.,'mm/day','E avg','fromwhite')
+plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg,area_array,'mm/day','P avg','fromwhite',landmaskxr,landlats,landlons,contourson = True)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg.where(landmask==1.),area_array,'mm/day','P avg','fromwhite',landmaskxr,landlats,landlons,contourson = True)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,(precipitation_avg - precipitation_avg_ctl),area_array,'mm/day','P avg minus ctrl','rainnorm',landmaskxr,landlats,landlons,contourson = False)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,(precipitation_avg - precipitation_avg_ctl).where(landmask==1.),area_array,'mm/day','P avg minus ctrl','rainnorm',landmaskxr,landlats,landlons,contourson = False)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,(net_lhe_avg - net_lhe_avg_ctl).where(landmask==1.),area_array,'mm/day','E avg minus ctrl','rainnorm',landmaskxr,landlats,landlons,contourson = False)
+
+
+# # plotting_routines_kav7.any_configuration_plot(-90.,90.,(omega_avg[39,:,:] - omega_avg_ctl[39,:,:]),'Pa/s','Omega avg minus ctrl','rainnorm',landmaskxr,landlats,landlons,contourson = False)
 
 
 

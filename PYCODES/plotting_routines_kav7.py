@@ -225,7 +225,7 @@ class MidpointNormalize(colors.Normalize):
 #     plt.title('Tropical Ocean Only')
 #     plt.show()
 
-def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,landmask,minlat=-90.,maxlat=90.):
+def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runmax,factor,landmask,minlat=-90.,maxlat=90.):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
@@ -241,13 +241,14 @@ def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,l
 	var = xr.DataArray(var,coords=[lats,lons],dims=['lat','lon'])
 
         if i==runmin:
-		timeseries = [area_weighted_avg(var,landmask,'all_sfcs',minlat,maxlat)]
-		timeseries_land = [area_weighted_avg(var,landmask,'land',minlat,maxlat)]
-		timeseries_ocean = [area_weighted_avg(var,landmask,'ocean',minlat,maxlat)]
+		timeseries = [area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat)]
+		timeseries_land = [area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat)]
+		timeseries_ocean = [area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat)]
+
         else:
-		timeseries.append(area_weighted_avg(var,landmask,'all_sfcs',minlat,maxlat))
-		timeseries_land.append(area_weighted_avg(var,landmask,'land',minlat,maxlat))
-		timeseries_ocean.append(area_weighted_avg(var,landmask,'ocean',minlat,maxlat))
+		timeseries.append(area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat))
+		timeseries_land.append(area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat))
+		timeseries_ocean.append(area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat))
 	
     timeseries=np.asarray(timeseries)
     timeseries_land=np.asarray(timeseries_land)
@@ -265,7 +266,7 @@ def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,l
     return(timeseries)
 
 
-def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runmax,factor,landmask,spinup_dir,spinup_runmin, spinup_runmax):
+def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,runmin,runmax,factor,landmask,spinup_dir,spinup_runmin, spinup_runmax,minlat=-90.,maxlat=90.):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
@@ -284,32 +285,36 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runma
 	var = xr.DataArray(var,coords=[lats,lons],dims=['lat','lon'])
 
         if i==runmin:
-		timeseries = [area_weighted_avg(var,landmask,'global')]
-		timeseries_land = [area_weighted_avg(var,landmask,'land')]
-		timeseries_ocean = [area_weighted_avg(var,landmask,'ocean')]
+		timeseries = [area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat)]
+		timeseries_land = [area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat)]
+		timeseries_ocean = [area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat)]
+
         else:
-		timeseries.append(area_weighted_avg(var,landmask,'global'))
-		timeseries_land.append(area_weighted_avg(var,landmask,'land'))
-		timeseries_ocean.append(area_weighted_avg(var,landmask,'ocean'))
-	
+		timeseries.append(area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat))
+		timeseries_land.append(area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat))
+		timeseries_ocean.append(area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat))
+
+
 #same for spin up 
     for i in range (spinup_runmin,spinup_runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
         runnr="{0:03}".format(i)
         filename = '/scratch/mp586/GFDL_DATA/'+spinup_dir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
         
-        var=nc.variables[varname][:]*factor
+        var=nc.variables[varname][0,:,:]*factor
 
 	var = xr.DataArray(var,coords=[lats,lons],dims=['lat','lon'])
 
+
         if i==runmin:
-		ts_spinup = [area_weighted_avg(var,landmask,'global')]
-		ts_spinup_land = [area_weighted_avg(var,landmask,'land')]
-		ts_spinup_ocean = [area_weighted_avg(var,landmask,'ocean')]
+		ts_spinup = [area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat)]
+		ts_spinup_land = [area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat)]
+		ts_spinup_ocean = [area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat)]
+
         else:
-		ts_spinup.append(area_weighted_avg(var,landmask,'global'))
-		ts_spinup_land.append(area_weighted_avg(var,landmask,'land'))
-		ts_spinup_ocean.append(area_weighted_avg(var,landmask,'ocean'))
+		ts_spinup.append(area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat))
+		ts_spinup_land.append(area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat))
+		ts_spinup_ocean.append(area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat))
 
     timeseries=xr.DataArray(timeseries)
     timeseries_land=xr.DataArray(timeseries_land)
@@ -340,7 +345,7 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runma
 
 
 
-def seasonal_surface_variable(testdir,runmin,runmax,varname,units,factor=1.): # only works for surface variables (dims time, lat, lon) at the moment
+def seasonal_surface_variable(testdir,runmin,runmax,varname,units,factor=1.): 
 
     print(varname+' '+str(factor))
 
@@ -985,10 +990,9 @@ def squareland_plot_minuszonavg(minlat,maxlat,array,units,title,palette,zonavgti
 #     plt.show()
 
 def aquaplanet_plot(minlat,maxlat,array,units,title,palette,contourson = False):
-    
 
-    lats = array.lats
-    lons = array.lons
+    lats = array.lat
+    lons = array.lon
 
     minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
     maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0] 
@@ -1708,18 +1712,23 @@ def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
 
     plt.show()
 
-def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmask,landlats,landlons,contourson=False,minval=None,maxval=None):
+def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,landmaskxr,landlats,landlons,contourson=False,minval=None,maxval=None):
 # plotting only the zonal average next to the map 
 # currently hard coded -30.,30. slice instead of squarelats_min, squarelats_max
     plt.close()
 
     lats=array.lat
     lons=array.lon
-
     
+    # why is this not working anymore when land areas are selected ? worked in commit d110990e
     minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
     maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0] 
     selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
+
+
+
+    landmask = np.asarray(landmaskxr)
+
 
     fig = plt.figure()
     ax1 = plt.subplot2grid((5,8), (0,1), colspan = 5, rowspan = 3)
@@ -1728,13 +1737,15 @@ def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmask,land
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 
     array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+    array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
+
+    zonavg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-90.,maxlat=90.,axis=1)
+    meravg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-30.,maxlat=30.,axis=0)
 
     m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
     m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
     array, lons_cyclic = addcyclic(array, lons)
     array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
-    zonavg_thin = array.mean(dim='lon')
-    meravg_thin = array.mean(dim='lat')
 
     lon, lat = np.meshgrid(lons_cyclic, selected_lats)
     xi, yi = m(lon, lat)
@@ -1791,7 +1802,6 @@ def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmask,land
 # Read landmask
 
 # Add rectangles
-#    xl, yl = m(landlons, landlats)
     landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
     landmask, lons_cyclic = addcyclic(landmask, landlons)
 
@@ -1802,20 +1812,17 @@ def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmask,land
    
     ax2 = plt.subplot2grid((5,8), (0,6), rowspan = 3)
     
-    plt.plot(zonavg_thin,array['lat'])
+    plt.plot(zonavg_thin,lats)
     plt.ylabel('Latitude')
     plt.xlabel(title+' ('+units+')')
     ax2.yaxis.tick_right()
     ax2.yaxis.set_label_position('right')
     ax2.invert_xaxis()
     
-    meravg_thin_land = (array.sel(lat=slice(-30.,30.))).mean(dim='lat')
-
-
     ax3 = plt.subplot2grid((5,8), (4,1), colspan = 4)
-    plt.plot(array['lon'],meravg_thin)
+    plt.plot(lons,meravg_thin)
     plt.xlabel('Longitude')
-    plt.ylabel(title+' ('+units+') only 30S-30N')
+    plt.ylabel(title+' ('+units+') 30S-30N')
     
     plt.show()
 
@@ -2105,30 +2112,100 @@ def plot_a_climatology(clim_field):
 # 	return globavg, weighted_array #, globint 
 
 
-def area_weighted_avg(array,landmaskxr,option,minlat=-90.,maxlat=90.,axis=None):
-	
+def area_weighted_avg(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90.,axis=None):
+
 	lats = array.lat
 	lons = array.lon
-	latr = np.deg2rad(lats)
-	cos_1d = np.cos(latr)
-	cos_2d = np.expand_dims(cos_1d, axis = 1) # for lons
-	cos_2d = np.repeat(cos_2d, len(lons), axis = 1)	
-	cos_2d = xr.DataArray(cos_2d, coords=[lats,lons], dims = ['lat','lon'])
-	
 	landmask = np.asarray(landmaskxr)
+	array = xr.DataArray(array, coords=[lats,lons], dims = ['lat','lon'])
+	area_array = xr.DataArray(area_array, coords=[lats,lons], dims = ['lat','lon'])
 
 	if (minlat!=-90. and maxlat!=90.):
 		array = array.sel(lat=slice(minlat,maxlat))
 		landmask = np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))
-		cos_2d = cos_2d.sel(lat=slice(minlat,maxlat))
+		area_array = area_array.sel(lat=slice(minlat,maxlat))
 
-	if option=='all_sfcs': # meaning both land and ocean NOT entier globe 
-		ma =  np.ma.MaskedArray(array, mask=np.isnan(array.where(landmask!=1.)))
-		w_avg = np.average(ma, axis=axis,weights=cos_2d)
+	if option=='all_sfcs': # meaning both land and ocean
+		w_avg = np.average(array, axis=axis, weights=area_array)
+
+#		aquaplanet_plot(-90.,90.,array,'1','all_sfc',0)
+
 	elif option=='ocean':
-		ma =  np.ma.MaskedArray(array, mask=np.isnan(array.where(landmask!=1.)))
-		w_avg = np.ma.average(ma,axis=axis,weights=cos_2d)
+		ma = np.ma.array(array, mask=np.isnan(array.where(landmask!=1.)))
+		w_avg = np.ma.average(ma,axis=axis,weights=area_array)
+
+
+		# ma = xr.DataArray(ma, coords=[lats,lons], dims = ['lat','lon'])
+		# aquaplanet_plot(-90.,90.,ma,'1','ocean masked array',0)
+
+		# xr.DataArray(mo).plot()
+		# plt.show()	
+		# plt.close()
 	elif option=='land': 
-		ma = np.ma.MaskedArray(array, mask=np.isnan(array.where(landmask==1.)))
-		w_avg = np.ma.average(ma,axis=axis,weights=cos_2d)
+		ma = np.ma.array(array, mask=np.isnan(array.where(landmask==1.)))
+		w_avg = np.ma.average(ma,axis=axis,weights=area_array)
+
+		# ma = xr.DataArray(ma, coords=[lats,lons], dims = ['lat','lon'])
+
+		# aquaplanet_plot(-90.,90.,ma,'1','land masked array',0)
+
+		# why can't I plot land mask and then ocean mask or vice  
+		# versa if calling ocean option first... ?
+		# is it a plotting issue or is the mask then wrong for the 2nd option?
+		# xr.DataArray(ml).plot() 
+		# plt.show()
+		# plt.close()
 	return w_avg
+
+def area_integral(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90.,factor=1.):
+
+ 	lats = array.lat
+	lons = array.lon
+	landmask = np.asarray(landmaskxr)
+	area_array = xr.DataArray(area_array, coords=[lats,lons], dims = ['lat','lon'])
+
+
+	array = area_array*array*factor
+	
+
+	if (minlat!=-90. and maxlat!=90.):
+		array = array.sel(lat=slice(minlat,maxlat))
+		landmask = np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))
+		area_array = area_array.sel(lat=slice(minlat,maxlat))
+
+	if option=='all_sfcs': # meaning both land and ocean 
+		integ = array.sum()
+	elif option=='ocean':
+		integ = (array.where(landmask!=1.)).sum()
+	elif option=='land': 
+		integ = (array.where(landmask==1.)).sum()
+	return integ
+
+
+
+
+
+
+	# latr = np.deg2rad(lats)
+	# cos_1d = np.cos(latr)
+	# cos_2d = np.expand_dims(cos_1d, axis = 1) # for lons
+	# cos_2d = np.repeat(cos_2d, len(lons), axis = 1)	
+	# cos_2d = xr.DataArray(cos_2d, coords=[lats,lons], dims = ['lat','lon'])
+	
+	# landmask = np.asarray(landmaskxr)
+
+	# if (minlat!=-90. and maxlat!=90.):
+	# 	array = array.sel(lat=slice(minlat,maxlat))
+	# 	landmask = np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))
+	# 	cos_2d = cos_2d.sel(lat=slice(minlat,maxlat))
+
+	# if option=='all_sfcs': # meaning both land and ocean NOT entier globe 
+	# 	ma =  np.ma.MaskedArray(array, mask=np.isnan(array.where(landmask!=1.)))
+	# 	w_avg = np.average(ma, axis=axis,weights=cos_2d)
+	# elif option=='ocean':
+	# 	ma =  np.ma.MaskedArray(array, mask=np.isnan(array.where(landmask!=1.)))
+	# 	w_avg = np.ma.average(ma,axis=axis,weights=cos_2d)
+	# elif option=='land': 
+	# 	ma = np.ma.MaskedArray(array, mask=np.isnan(array.where(landmask==1.)))
+	# 	w_avg = np.ma.average(ma,axis=axis,weights=cos_2d)
+	# return w_avg
