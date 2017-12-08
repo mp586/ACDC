@@ -9,7 +9,7 @@ import os
 import sys
 sys.path.insert(0, '/scratch/mp586/Code/PYCODES')
 import plotting_routines
-import plotting_routines_kav7
+import plotting_routines_kav7_isca as plotting_routines_kav7
 import stats as st
 
 sys.path.insert(0, '/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/src/extra/python/scripts') 

@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, '/scratch/mp586/Code/PYCODES') # personal module
 import stats as st
 from scipy import signal
-
+GFDL_BASE = os.environ['GFDL_BASE']
 
 class MidpointNormalize(colors.Normalize):
 	"""
@@ -36,6 +36,7 @@ class MidpointNormalize(colors.Normalize):
 # # runmin = first month for timeseries
 # # runmax = last month for timeseries
 # # testdir = experiment directorz name in GFDL_DATA
+
 # # varname = variable name, e.g. 't_surf'
 
 #     for i in range (runmin,runmax): # excludes last one!
@@ -231,8 +232,8 @@ def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runm
 # factor is needed to convert eg precip from kg/s to mm/day 
 
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-        runnr="{0:03}".format(i)
-        filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
+        runnr="{0:04}".format(i)
+        filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
         
 	lats = nc.variables['lat'][:]
@@ -274,7 +275,8 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,r
 
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
         runnr="{0:03}".format(i)
-        filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
+        filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
+	print(filename)
         nc = Dataset(filename,mode='r')
         
 	lats = nc.variables['lat'][:]
@@ -298,7 +300,7 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,r
 #same for spin up 
     for i in range (spinup_runmin,spinup_runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
         runnr="{0:03}".format(i)
-        filename = '/scratch/mp586/GFDL_DATA/'+spinup_dir+'/run'+runnr+'/atmos_monthly.nc'
+        filename = '/scratch/mp586/'+spinup_dir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
         
         var=nc.variables[varname][0,:,:]*factor
@@ -345,15 +347,14 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,r
 
 
 
-def seasonal_surface_variable(testdir,runmin,runmax,varname,units,factor=1.): 
+def seasonal_surface_variable(testdir,runmin,runmax,varname,units,factor=1.,level=None): 
 
     print(varname+' '+str(factor))
-
 
     plt.close()
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
         runnr="{0:03}".format(i)
-        filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
+        filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
               
         if i==runmin:
@@ -361,7 +362,11 @@ def seasonal_surface_variable(testdir,runmin,runmax,varname,units,factor=1.):
         else:
             var_i=xr.DataArray(nc.variables[varname][:])
             var=xr.concat([var,var_i],'dim_0')
-    
+
+    if level == 'all':
+	    var = var.sum('dim_1') # height integral
+    elif level>=0.:
+	    var = var[:,level,:,:]
     
     lons= nc.variables['lon'][:]
     lats= nc.variables['lat'][:]
@@ -378,7 +383,7 @@ def seasonal_4D_variable(testdir,runmin,runmax,varname,units):
 
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
         runnr="{0:03}".format(i)
-        filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
+        filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
               
         if i==runmin:
@@ -636,7 +641,7 @@ def squareland_plot(minlat,maxlat,array,units,title,palette,contourson = False):
     cbar = m.colorbar(cs, location='right', pad="10%")
     cbar.set_label(units)
 
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+    landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land_square.nc'),mode='r')
     landmask=landfile.variables['land_mask'][:]
     landlats=landfile.variables['lat'][:]
     landlons=landfile.variables['lon'][:]
@@ -775,7 +780,7 @@ def squareland_plot_forpaper(minlat,maxlat,array,units,title,palette,contourson=
     cbar = m.colorbar(cs, location='right', pad="10%")
     cbar.set_label(units)
 
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+    landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land_square.nc'),mode='r')
     landmask=landfile.variables['land_mask'][:]
     landlats=landfile.variables['lat'][:]
     landlons=landfile.variables['lon'][:]
@@ -869,7 +874,7 @@ def squareland_plot_minuszonavg(minlat,maxlat,array,units,title,palette,zonavgti
     cbar = m.colorbar(cs, location='right', pad="10%")
     cbar.set_label(units)
 
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+    landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land_square.nc'),mode='r')
     landmask=landfile.variables['land_mask'][:]
     landlats=landfile.variables['lat'][:]
     landlons=landfile.variables['lon'][:]
@@ -1147,7 +1152,7 @@ def aquaplanet_plot_minuszonavg(minlat,maxlat,array,units,title,palette):
 #     lon, lat = np.meshgrid(lons, selected_lats)
 #     xi, yi = m(lon, lat)
 
-#     landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+#     landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land_square.nc'),mode='r')
 #     landmask=landfile.variables['land_mask'][:]
 #     landlats=landfile.variables['lat'][:]
 #     landlons=landfile.variables['lon'][:]
@@ -1195,7 +1200,7 @@ def aquaplanet_plot_minuszonavg(minlat,maxlat,array,units,title,palette):
 #     lon, lat = np.meshgrid(lons, selected_lats)
 #     xi, yi = m(lon, lat)
 
-#     landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+#     landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land_square.nc'),mode='r')
 #     landmask=landfile.variables['land_mask'][:]
 #     landlats=landfile.variables['lat'][:]
 #     landlons=landfile.variables['lon'][:]
@@ -1288,22 +1293,22 @@ def worldmap_inputfile(filename,varname): # assuming that the input file has the
 
 
 
-def worldmap_variable(field,units,title,palette,minval,maxval):
+def worldmap_variable(field,units,title,palette,minval,maxval,contourson=False):
     plt.close()
     
-    lats=np.linspace(-90.,90.,len(field.dim_0))
-    lons=np.linspace(0.,360.,len(field.dim_1))
+    lats=field.lat
+    lons=field.lon
     lon_0 = lons.mean() 
     lat_0 = lats.mean() 
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 
-    field,lons = shiftgrid(np.max(lons)-180.,field,lons,start=False,cyclic=np.max(lons))
-    field, lons_cyclic = addcyclic(field, lons)
-    field = xr.DataArray(field,coords=[lats,lons_cyclic],dims=['lat','lon'])
+    # field,lons = shiftgrid(np.max(lons)-180.,field,lons,start=False,cyclic=np.max(lons))
+    # field, lons_cyclic = addcyclic(field, lons)
+    # field = xr.DataArray(field,coords=[lats,lons_cyclic],dims=['lat','lon'])
 
 
-    lon, lat = np.meshgrid(lons_cyclic, lats)
+    lon, lat = np.meshgrid(lons, lats)
     xi, yi = m(lon, lat)
 
     m.drawcoastlines()
@@ -1329,8 +1334,12 @@ def worldmap_variable(field,units,title,palette,minval,maxval):
 		    cs = m.pcolor(xi,yi,field,norm=MidpointNormalize(midpoint=0.),cmap='BrBG', vmin=minval, vmax=maxval)
 	    elif palette == 'raindefault':
 		    cs = m.pcolor(xi,yi,field, cmap=plt.cm.BrBG, vmin=minval, vmax=maxval)
-	    elif palette=='temp': 
-		    cs = m.pcolor(xi,yi,field, cmap=plt.cm.seismic, vmin=minval, vmax=maxval)
+	    elif palette=='temp':
+		    cs = m.pcolor(xi,yi,field,norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),vmax=maxval)
+
+
+
+
 	    elif palette=='fromwhite':
 		    pal = plt.cm.Blues
 		    pal.set_under('w',None)
@@ -1338,6 +1347,10 @@ def worldmap_variable(field,units,title,palette,minval,maxval):
 
 	    else:
 		    cs = m.pcolor(xi,yi,field, vmin=minval, vmax=maxval)
+
+    if contourson == True:  # add contours 
+	    cont = m.contour(xi,yi,field,4,cmap='PuBu_r', linewidth=5)
+	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=12)
 
     cbar = m.colorbar(cs, location='right', pad="10%")
     cbar.set_label(units)
@@ -1382,7 +1395,7 @@ def squareland_inputfile_4dvar(filename,varname):
 	cbar = m.colorbar(cs, location='right', pad="10%")
 
 # Show landmask
-	landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+	landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land_square.nc'),mode='r')
 	landmask=landfile.variables['land_mask'][:]
 	landlats=landfile.variables['lat'][:]
 	landlons=landfile.variables['lon'][:]
@@ -1447,7 +1460,7 @@ def squareland_inputfile_3dvar(filename,varname):
 	cbar = m.colorbar(cs, location='right', pad="10%")
 
 # Show landmask
-	landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+	landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land_square.nc'),mode='r')
 	landmask=landfile.variables['land_mask'][:]
 	landlats=landfile.variables['lat'][:]
 	landlons=landfile.variables['lon'][:]
@@ -1520,7 +1533,7 @@ def squareland_inputfile_2dvar(filename,varname):
 	cbar = m.colorbar(cs, location='right', pad="10%")
 
 # Show landmask
-	landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+	landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land_square.nc'),mode='r')
 	landmask=landfile.variables['land_mask'][:]
 	landlats=landfile.variables['lat'][:]
 	landlons=landfile.variables['lon'][:]
@@ -1563,9 +1576,11 @@ def squareland_inputfile_2dvar(filename,varname):
 
 
 
-def aquaplanet_inputfile(filename,varname,month):
+def aquaplanet_inputfile(filename,varname,month,palette=None):
 	
 	nc=Dataset(filename,mode='r')
+
+	
 
  	if (month == 12): # want annual mean
 		array=xr.DataArray(nc.variables[varname][:])
@@ -1609,34 +1624,31 @@ def aquaplanet_inputfile(filename,varname,month):
 
 	dlons = lons[100] - lons[99]
 	dlats = lats[60] - lats[59]
-	cs = m.pcolor(xi,yi,array,norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r',
-		      vmin = minval, vmax = maxval)
+
+	if palette=='rainnorm':
+		cs = m.pcolor(xi,yi,array,norm=MidpointNormalize(midpoint=0.),cmap='BrBG',vmin=minval, vmax=maxval)
+	elif palette == 'raindefault':
+		cs = m.pcolor(xi,yi,array, cmap=plt.cm.BrBG)
+	elif palette=='temp':
+		cs = m.pcolor(xi,yi,array,norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin = 270.,vmax=maxval)
+
+	elif palette=='fromwhite': 
+		pal = plt.cm.Blues
+		pal.set_under('w',None)
+		cs = m.pcolormesh(xi,yi,array,cmap=pal,vmin=0,vmax=maxval)
+	elif palette=='tempdiff': 
+		cs = m.pcolor(xi,yi,array, 
+			      norm=MidpointNormalize(midpoint=0), cmap=plt.cm.RdBu_r, 
+			      vmin = -maxval,
+			      vmax = maxval)
+	else:
+		cs = m.pcolor(xi,yi,array)
+
 	cbar = m.colorbar(cs, location='right', pad="10%")
 
-	plt.title(varname)	
+	plt.title(varname)     
 
-	ax2 = plt.subplot2grid((5,7), (0,6), rowspan = 3)
-	# zonal average plot
-	plt.plot(zonavg_thin,array['lat'])
-	plt.ylabel('Latitude')
-	plt.xlabel(varname)
-	ax2.yaxis.tick_right()
-	ax2.yaxis.set_label_position('right')
-	ax2.invert_xaxis()
-
-	ax3 = plt.subplot2grid((5,7), (4,0), colspan = 4)
-	# meridional average plot
-	plt.plot(meravg_thin,array['lon'])
-	plt.ylabel('Longitude')
-	plt.xlabel(varname)
-	ax3.yaxis.tick_right()
-	ax3.yaxis.set_label_position('right')
-	ax3.invert_xaxis()
 	plt.show()
-
-
-	print array.max()
-	return array
 
 def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
 
@@ -1689,7 +1701,7 @@ def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
     # sns.palplot(sns.color_palette("BrBG", 7))
 
 # Show landmask
-    landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land_square.nc',mode='r')
+    landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land_square.nc'),mode='r')
     landmask=landfile.variables['land_mask'][:]
     landlats=landfile.variables['lat'][:]
     landlons=landfile.variables['lon'][:]
@@ -1712,7 +1724,7 @@ def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
 
     plt.show()
 
-def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,landmaskxr,landlats,landlons,contourson=False,minval=None,maxval=None):
+def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,landmaskxr,landlats,landlons,contourson=False,minval=None,maxval=None,month_annotate=None):
 # plotting only the zonal average next to the map 
 # currently hard coded -30.,30. slice instead of squarelats_min, squarelats_max
     plt.close()
@@ -1802,6 +1814,9 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 # Read landmask
 
 # Add rectangles
+
+
+
     landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
     landmask, lons_cyclic = addcyclic(landmask, landlons)
 
@@ -1809,25 +1824,31 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 	    m.contour(xi,yi,landmask, 1)
 
     plt.title(title)
+    
+    if month_annotate >= 1:
+	    plt.annotate('Month #'+str(month_annotate), xy=(0.15,0.8), xycoords='figure fraction')
+	    return fig
+
+    else:
    
-    ax2 = plt.subplot2grid((5,8), (0,6), rowspan = 3)
+	    ax2 = plt.subplot2grid((5,8), (0,6), rowspan = 3)
     
-    plt.plot(zonavg_thin,lats)
-    plt.ylabel('Latitude')
-    plt.xlabel(title+' ('+units+')')
-    ax2.yaxis.tick_right()
-    ax2.yaxis.set_label_position('right')
-    ax2.invert_xaxis()
+	    plt.plot(zonavg_thin,lats)
+	    plt.ylabel('Latitude')
+	    plt.xlabel(title+' ('+units+')')
+	    ax2.yaxis.tick_right()
+	    ax2.yaxis.set_label_position('right')
+	    ax2.invert_xaxis()
     
-    ax3 = plt.subplot2grid((5,8), (4,1), colspan = 4)
-    plt.plot(lons,meravg_thin)
-    plt.xlabel('Longitude')
-    plt.ylabel(title+' ('+units+') 30S-30N')
-    
-    plt.show()
+	    ax3 = plt.subplot2grid((5,8), (4,1), colspan = 4)
+	    plt.plot(lons,meravg_thin)
+	    plt.xlabel('Longitude')
+	    plt.ylabel(title+' ('+units+') 30S-30N')
+
+	    plt.show()
 
 
-def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval,maxval):
+def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval,maxval,landlats = None, landlons = None, landmask = 0.):
 
 # Can be used for a surface variable, e.g. to animate the climatology of evaporation
 
@@ -1838,12 +1859,15 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval,m
     fig = plt.figure()
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
     array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+    array = xr.DataArray(array)
+
 # draw parallels and meridians.
 
     #m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
     #m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
     array, lons_cyclic = addcyclic(array, lons)
-   # array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+    array = xr.DataArray(array)
+
 
 # Because our lon and lat variables are 1D, 
 # use meshgrid to create 2D arrays 
@@ -1851,6 +1875,8 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval,m
 
     lon, lat = np.meshgrid(lons_cyclic, lats)
     xi, yi = m(lon, lat)
+
+
     
     # minval = np.min(array)
     # maxval = np.max(array)
@@ -1882,6 +1908,20 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval,m
 		    cs = m.pcolormesh(xi,yi,array[idx,:,:],cmap=pal,vmin=0,vmax=maxval)	    
 	    cbar = m.colorbar(cs, location='bottom', pad="10%")
 	    cbar.set_label(units)
+
+
+
+
+
+# plot continent contours, not working 
+	    # if np.any(landmask != 0.):
+
+	    # 	    landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
+	    # 	    landmask, lons_cyclic = addcyclic(landmask, landlons)
+	    # 	    m.contour(xi,yi,landmask, 1)
+
+
+
 	    plt.title(title)
 	    plt.annotate('Month #'+str(idx+1), xy=(0.15,0.8), xycoords='figure fraction')
 	    plt.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month'+str(1000+idx)+'.png',bbox_inches='tight')
