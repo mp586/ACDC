@@ -40,7 +40,7 @@ class MidpointNormalize(colors.Normalize):
 # # varname = variable name, e.g. 't_surf'
 
 #     for i in range (runmin,runmax): # excludes last one!
-#         runnr="{0:03}".format(i)
+#         runnr="{0:04}".format(i)
 #         filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
 #         nc = Dataset(filename,mode='r')
 #         var=nc.variables[varname][:]
@@ -75,7 +75,7 @@ class MidpointNormalize(colors.Normalize):
 
 
 #     for i in range (runmin,runmax):
-# 		    runnr="{0:03}".format(i)
+# 		    runnr="{0:04}".format(i)
 # 		    filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
 # 		    nc = Dataset(filename,mode='r')
 
@@ -156,7 +156,7 @@ class MidpointNormalize(colors.Normalize):
 # # factor is needed to convert eg precip from kg/s to mm/day 
 
 #     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-# 	    runnr="{0:03}".format(i)
+# 	    runnr="{0:04}".format(i)
 # 	    filename = '/scratch/mp586/GFDL_DATA/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
 # 	    nc = Dataset(filename,mode='r')
 # 	    lats = nc.variables['lat'][:]
@@ -232,7 +232,7 @@ def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runm
 # factor is needed to convert eg precip from kg/s to mm/day 
 
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-        runnr="{0:03}".format(i)
+        runnr="{0:04}".format(i)
         filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
         
@@ -274,9 +274,8 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,r
 
 
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-        runnr="{0:03}".format(i)
+        runnr="{0:04}".format(i)
         filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
-
         nc = Dataset(filename,mode='r')
         
 	lats = nc.variables['lat'][:]
@@ -299,7 +298,7 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,r
 
 #same for spin up 
     for i in range (spinup_runmin,spinup_runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-        runnr="{0:03}".format(i)
+        runnr="{0:04}".format(i)
         filename = '/scratch/mp586/'+spinup_dir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
         
@@ -353,9 +352,8 @@ def seasonal_surface_variable(testdir,runmin,runmax,varname,units,factor=1.,leve
 
     plt.close()
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-        runnr="{0:03}".format(i)
+        runnr="{0:04}".format(i)
         filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
-	print(filename)
         nc = Dataset(filename,mode='r')
               
         if i==runmin:
@@ -383,7 +381,7 @@ def seasonal_surface_variable(testdir,runmin,runmax,varname,units,factor=1.,leve
 def seasonal_4D_variable(testdir,runmin,runmax,varname,units): 
 
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-        runnr="{0:03}".format(i)
+        runnr="{0:04}".format(i)
         filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
               
