@@ -25,13 +25,12 @@ testdir=input('Enter data directory name as string ')
 runmin=input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
 runmax=input('Enter runmax number ')
 
-# landfile=Dataset(os.path.join(GFDL_BASE,'input/two_continents/land_two_continents.nc'),mode='r')
-landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land_square.nc'),mode='r')
-# landfile=Dataset(os.path.join(GFDL_BASE,'input/sqland_plus_antarctica/land_sqland_plus_antarctica.nc'),mode='r')
-# landfile=Dataset(os.path.join(GFDL_BASE,'input/sqland_plus_antarctica/land_sqland_plus_antarctica_to35S.nc'),mode='r')
-# landfile=Dataset(os.path.join(GFDL_BASE,'input/aquaplanet/land_aquaplanet.nc'),mode='r')
-# landfile=Dataset(os.path.join(GFDL_BASE,'input/square_South_America/land_square_South_America.nc'))
-# landfile=Dataset(os.path.join(GFDL_BASE,'input/all_continents/land.nc'))
+# landfile=Dataset(os.path.join(GFDL_BASE,'input/two_continents/land.nc'),mode='r')
+# landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land.nc'),mode='r')
+# landfile=Dataset(os.path.join(GFDL_BASE,'input/sqland_plus_antarctica/land.nc'),mode='r')
+# landfile=Dataset(os.path.join(GFDL_BASE,'input/aquaplanet/land.nc'),mode='r')
+# landfile=Dataset(os.path.join(GFDL_BASE,'input/square_South_America/land.nc'))
+landfile=Dataset(os.path.join(GFDL_BASE,'input/all_continents/land.nc'))
 
 
 landmask=landfile.variables['land_mask'][:]
@@ -65,8 +64,8 @@ print ('ocean sfc area (*10^14) = '+str(ocean_sfc_area/(10**14)))
 #[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'bucket_depth','m')
 # [flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'flux_oceanq','W/m^2')
 
-plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg.where(landmask==1.),area_array,'mm/day','E avg','fromwhite',landmaskxr,landlats,landlons,contourson=True,minval = 0., maxval = 8.)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg,area_array,'mm/day','E avg','fromwhite',landmaskxr,landlats,landlons,contourson=True,minval = 0., maxval = 8.)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg.where(landmask==1.),'mm/day','E avg','fromwhite',landmaskxr,landlats,landlons,contourson=True,minval = 0., maxval = 8.)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg,'mm/day','E avg','fromwhite',landmaskxr,landlats,landlons,contourson=True,minval = 0., maxval = 8.)
 
 #plotting_routines_kav7.any_configuration_plot(-90.,90.,flux_oceanq_avg,area_array,'mm/d','annual mean qflux','tempdiff',landmaskxr,landlats,landlons,contourson=False)
 
@@ -112,6 +111,7 @@ plotting_routines_kav7.worldmap_variable(gpcp_P_avg,'mm/day','GPCP precip annual
 
 gpcp_avg = plotting_routines_kav7.area_weighted_avg(gpcp_P_avg,area_array_1deg,landmaskxr,'all_sfcs',minlat=-90., maxlat=90.,axis=None)
 
+plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg,area_array,'mm/day','P avg','fromwhite',landmaskxr,landlats,landlons,contourson=True,minval=0.,maxval=8.)
 
 [rh,rh_avg,rh_seasonal_avg,rh_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'rh','%',level=39)
 [sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'sphum','kg/kg',level='all')

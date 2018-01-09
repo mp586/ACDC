@@ -11,6 +11,11 @@ sys.path.insert(0, '/scratch/mp586/Code/PYCODES') # personal module
 import stats as st
 from scipy import signal
 GFDL_BASE = os.environ['GFDL_BASE']
+sys.path.insert(0, os.path.join(GFDL_BASE,'src/extra/python/scripts')) 
+import cell_area as ca
+
+area_array = ca.cell_area(t_res=42,base_dir='/scratch/mp586/Isca/')
+area_array = xr.DataArray(area_array)
 
 class MidpointNormalize(colors.Normalize):
 	"""
@@ -1725,7 +1730,7 @@ def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
 
     plt.show()
 
-def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,landmaskxr,landlats,landlons,contourson=False,minval=None,maxval=None,month_annotate=None):
+def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmaskxr,landlats,landlons,contourson=False,minval=None,maxval=None,month_annotate=None):
 # plotting only the zonal average next to the map 
 # currently hard coded -30.,30. slice instead of squarelats_min, squarelats_max
     plt.close()
@@ -2110,7 +2115,7 @@ def plot_a_climatology(clim_field):
 		  'Brown','Black','Green','Cyan','Teal','Navy']
 	lats = np.linspace(-90.,90.,np.shape(zonavg.dim_1)[0])
 	
-	for i in range (0,12):
+	for i in range (0,5):
 		plt.plot(lats,zonavg[i,:],colors[i],label='Month '+str(i+1))
 	plt.legend()
 	plt.show()
