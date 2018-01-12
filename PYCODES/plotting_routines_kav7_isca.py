@@ -11,11 +11,6 @@ sys.path.insert(0, '/scratch/mp586/Code/PYCODES') # personal module
 import stats as st
 from scipy import signal
 GFDL_BASE = os.environ['GFDL_BASE']
-sys.path.insert(0, os.path.join(GFDL_BASE,'src/extra/python/scripts')) 
-import cell_area as ca
-
-area_array = ca.cell_area(t_res=42,base_dir='/scratch/mp586/Isca/')
-area_array = xr.DataArray(area_array)
 
 class MidpointNormalize(colors.Normalize):
 	"""
@@ -231,7 +226,7 @@ class MidpointNormalize(colors.Normalize):
 #     plt.title('Tropical Ocean Only')
 #     plt.show()
 
-def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,landmask,minlat=-90.,maxlat=90.):
+def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runmax,factor,landmask,minlat=-90.,maxlat=90.):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
@@ -247,14 +242,14 @@ def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,l
 	var = xr.DataArray(var,coords=[lats,lons],dims=['lat','lon'])
 
         if i==runmin:
-		timeseries = [area_weighted_avg(var,landmask,'all_sfcs',minlat,maxlat)]
-		timeseries_land = [area_weighted_avg(var,landmask,'land',minlat,maxlat)]
-		timeseries_ocean = [area_weighted_avg(var,landmask,'ocean',minlat,maxlat)]
+		timeseries = [area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat)]
+		timeseries_land = [area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat)]
+		timeseries_ocean = [area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat)]
 
         else:
-		timeseries.append(area_weighted_avg(var,landmask,'all_sfcs',minlat,maxlat))
-		timeseries_land.append(area_weighted_avg(var,landmask,'land',minlat,maxlat))
-		timeseries_ocean.append(area_weighted_avg(var,landmask,'ocean',minlat,maxlat))
+		timeseries.append(area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat))
+		timeseries_land.append(area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat))
+		timeseries_ocean.append(area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat))
 	
     timeseries=np.asarray(timeseries)
     timeseries_land=np.asarray(timeseries_land)
@@ -272,7 +267,7 @@ def globavg_var_timeseries_total_and_land(testdir,varname,runmin,runmax,factor,l
     return(timeseries)
 
 
-def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runmax,factor,landmask,spinup_dir,spinup_runmin, spinup_runmax,minlat=-90.,maxlat=90.):
+def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,runmin,runmax,factor,landmask,spinup_dir,spinup_runmin, spinup_runmax,minlat=-90.,maxlat=90.):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
@@ -291,14 +286,14 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runma
 	var = xr.DataArray(var,coords=[lats,lons],dims=['lat','lon'])
 
         if i==runmin:
-		timeseries = [area_weighted_avg(var,landmask,'all_sfcs',minlat,maxlat)]
-		timeseries_land = [area_weighted_avg(var,landmask,'land',minlat,maxlat)]
-		timeseries_ocean = [area_weighted_avg(var,landmask,'ocean',minlat,maxlat)]
+		timeseries = [area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat)]
+		timeseries_land = [area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat)]
+		timeseries_ocean = [area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat)]
 
         else:
-		timeseries.append(area_weighted_avg(var,landmask,'all_sfcs',minlat,maxlat))
-		timeseries_land.append(area_weighted_avg(var,landmask,'land',minlat,maxlat))
-		timeseries_ocean.append(area_weighted_avg(var,landmask,'ocean',minlat,maxlat))
+		timeseries.append(area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat))
+		timeseries_land.append(area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat))
+		timeseries_ocean.append(area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat))
 
 
 #same for spin up 
@@ -313,14 +308,14 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,varname,runmin,runma
 
 
         if i==runmin:
-		ts_spinup = [area_weighted_avg(var,landmask,'all_sfcs',minlat,maxlat)]
-		ts_spinup_land = [area_weighted_avg(var,landmask,'land',minlat,maxlat)]
-		ts_spinup_ocean = [area_weighted_avg(var,landmask,'ocean',minlat,maxlat)]
+		ts_spinup = [area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat)]
+		ts_spinup_land = [area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat)]
+		ts_spinup_ocean = [area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat)]
 
         else:
-		ts_spinup.append(area_weighted_avg(var,landmask,'all_sfcs',minlat,maxlat))
-		ts_spinup_land.append(area_weighted_avg(var,landmask,'land',minlat,maxlat))
-		ts_spinup_ocean.append(area_weighted_avg(var,landmask,'ocean',minlat,maxlat))
+		ts_spinup.append(area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat))
+		ts_spinup_land.append(area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat))
+		ts_spinup_ocean.append(area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat))
 
     timeseries=xr.DataArray(timeseries)
     timeseries_land=xr.DataArray(timeseries_land)
@@ -1728,7 +1723,7 @@ def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
 
     plt.show()
 
-def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmaskxr,landlats,landlons,contourson=False,minval=None,maxval=None,month_annotate=None):
+def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,landmaskxr,landlats,landlons,nmb_contours=0,minval=None,maxval=None,month_annotate=None):
 # plotting only the zonal average next to the map 
 # currently hard coded -30.,30. slice instead of squarelats_min, squarelats_max
     plt.close()
@@ -1755,8 +1750,8 @@ def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmaskxr,la
     array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
     array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
 
-    zonavg_thin = area_weighted_avg(array,landmaskxr,option = 'all_sfcs',minlat=-90.,maxlat=90.,axis=1)
-    meravg_thin = area_weighted_avg(array,landmaskxr,option = 'all_sfcs',minlat=-30.,maxlat=30.,axis=0)
+    zonavg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-90.,maxlat=90.,axis=1)
+    meravg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-30.,maxlat=30.,axis=0)
 
     m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
     m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
@@ -1796,16 +1791,23 @@ def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmaskxr,la
 	    pal.set_under('w',None)
 	    cs = m.pcolormesh(xi,yi,array.sel(lat=selected_lats),cmap=pal,vmin=0,vmax=maxval)
     elif palette=='tempdiff': 
-        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), 
+	    cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), 
 		      norm=MidpointNormalize(midpoint=0), cmap=plt.cm.RdBu_r, 
 		      vmin = -maxval,
 		      vmax = maxval)
+    elif palette=='slp':
+	    minval = np.min(array)
+	    maxval = np.max(array)
+	    cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.coolwarm,vmin=minval,vmax=maxval)
+
+
+
     else:
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats))
 
 
-    if contourson == True:  # add contours 
-	    cont = m.contour(xi,yi,array,4,cmap='PuBu_r', linewidth=5)
+    if nmb_contours != 0:  # add contours 
+	    cont = m.contour(xi,yi,array,nmb_contours,cmap='PuBu_r', linewidth=5)
 	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=12)
 
 
@@ -1852,7 +1854,7 @@ def any_configuration_plot(minlat,maxlat,array,units,title,palette,landmaskxr,la
 	    plt.show()
 
 
-def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval,maxval,landlats = None, landlons = None, landmask = 0.):
+def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0,maxval=1000,landlats = None, landlons = None, landmask = 0.):
 
 # Can be used for a surface variable, e.g. to animate the climatology of evaporation
 
@@ -1881,9 +1883,7 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval,m
     xi, yi = m(lon, lat)
 
 
-    
-    # minval = np.min(array)
-    # maxval = np.max(array)
+
     # print minval, maxval
 
     for idx in range (imin,imax): # exclues last value
@@ -1909,7 +1909,12 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval,m
 	    elif palette=='fromwhite': 
 		    pal = plt.cm.Blues
 		    pal.set_under('w',None)
-		    cs = m.pcolormesh(xi,yi,array[idx,:,:],cmap=pal,vmin=0,vmax=maxval)	    
+		    cs = m.pcolormesh(xi,yi,array[idx,:,:],cmap=pal,vmin=0,vmax=maxval)
+	    elif palette=='slp':
+		    minval = np.min(array)
+		    maxval = np.max(array)
+		    cs = m.pcolor(xi,yi,array[idx,:,:], cmap=plt.cm.coolwarm,vmin=minval,vmax=maxval)
+
 	    cbar = m.colorbar(cs, location='bottom', pad="10%")
 	    cbar.set_label(units)
 
@@ -1928,12 +1933,12 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval,m
 
 	    plt.title(title)
 	    plt.annotate('Month #'+str(idx+1), xy=(0.15,0.8), xycoords='figure fraction')
-	    plt.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month'+str(1000+idx)+'.png',bbox_inches='tight')
+	    plt.savefig('/scratch/mp586/Code/Graphics/'+plot_title+'_month'+str(1000+idx)+'.png',bbox_inches='tight')
 	    fig.clf()
    
 
-
-    os.system('convert -delay 15 /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
+#+testdir+'/'
+    os.system('convert -delay 50 /scratch/mp586/Code/Graphics/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
     # Use ffmeg to convert animated gif to mp4
     # os.system('ffmpeg -f gif -i /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.mp4')
 
@@ -2156,7 +2161,7 @@ def plot_a_climatology(clim_field):
 # 	return globavg, weighted_array #, globint 
 
 
-def area_weighted_avg(array,landmaskxr,option,minlat=-90.,maxlat=90.,axis=None):
+def area_weighted_avg(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90.,axis=None):
 
 	lats = array.lat
 	lons = array.lon
@@ -2201,7 +2206,7 @@ def area_weighted_avg(array,landmaskxr,option,minlat=-90.,maxlat=90.,axis=None):
 		# plt.close()
 	return w_avg
 
-def area_integral(array,landmaskxr,option,minlat=-90.,maxlat=90.,factor=1.):
+def area_integral(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90.,factor=1.):
 
  	lats = array.lat
 	lons = array.lon
