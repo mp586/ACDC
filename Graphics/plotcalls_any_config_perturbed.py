@@ -9,7 +9,7 @@ import os
 import sys
 sys.path.insert(0, '/scratch/mp586/Code/PYCODES')
 import plotting_routines
-import plotting_routines_kav7_test as plotting_routines_kav7
+import plotting_routines_kav7_isca as plotting_routines_kav7
 import stats as st
 
 sys.path.insert(0, '/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/src/extra/python/scripts') 
@@ -25,12 +25,12 @@ runmax=input('Enter runmax number ')
 
 
 # landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/two_continents/land_two_continents.nc',mode='r')
-landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land.nc',mode='r')
+# landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land.nc',mode='r')
 # landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/sqland_plus_antarctica/land_sqland_plus_antarctica.nc',mode='r')
 # landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/sqland_plus_antarctica/land_sqland_plus_antarctica_to35S.nc',mode='r')
 # landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/aquaplanet/land_aquaplanet.nc',mode='r')
 # landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/square_South_America/land_square_South_America.nc')
-# landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
+landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
 
 
 
@@ -52,7 +52,7 @@ print ('ocean sfc area (*10^14) = '+str(ocean_sfc_area/(10**14)))
 
 # for plotting a spin up run ('control') timeseries followed by the timeseries from the perturbed experiment
 plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,'t_surf',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
-#plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,'bucket_depth',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
+plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,'bucket_depth',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
 
 
 # plotting_routines_kav7.globavg_var_timeseries(testdir,'co2',1,runmax)
@@ -147,13 +147,13 @@ print('P avg - E avg global integral / total sfc area'+str(PE_avg_sum/total_sfc_
 # plotting_routines_kav7.any_configuration_plot(-100.,100.,PE_avg,'mm/day','P-E avg','rainnorm',landmaskxr,landlats,landlons)
 # # # #plotting_routines_kav7.any_configuration_plot_minuszonavg(-90.,90.,PE_avg,'mm/day','P-E avg minus zonavg','rainnorm','P-E avg')
 # plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_avg,'K','$T_S$ avg','temp',landmaskxr,landlats,landlons) # degrees C symbol : ...,u"\u00b0"+'C',...
-plotting_routines_kav7.any_configuration_plot(-90.,90.,(tsurf_avg-tsurf_avg_ctl),area_array,'K','$T_S$ avg minus ctrl','tempdiff',landmaskxr,landlats,landlons,contourson = True)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,(tsurf_avg-tsurf_avg_ctl),area_array,'K','$T_S$ avg minus ctrl','tempdiff',landmaskxr,landlats,landlons,nmb_contours=4)
 # # #plotting_routines_kav7.any_configuration_plot_minuszonavg(-90.,90.,tsurf_avg,'K','tsurf avg minus zonavg','temp','T avg')
-plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg,area_array,'mm/day','P avg','fromwhite',landmaskxr,landlats,landlons,contourson = True)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg.where(landmask==1.),area_array,'mm/day','P avg','fromwhite',landmaskxr,landlats,landlons,contourson = True)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,(precipitation_avg - precipitation_avg_ctl),area_array,'mm/day','P avg minus ctrl','rainnorm',landmaskxr,landlats,landlons,contourson = False)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,(precipitation_avg - precipitation_avg_ctl).where(landmask==1.),area_array,'mm/day','P avg minus ctrl','rainnorm',landmaskxr,landlats,landlons,contourson = False)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,(net_lhe_avg - net_lhe_avg_ctl).where(landmask==1.),area_array,'mm/day','E avg minus ctrl','rainnorm',landmaskxr,landlats,landlons,contourson = False)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg,area_array,'mm/day','P avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg.where(landmask==1.),area_array,'mm/day','P avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,(precipitation_avg - precipitation_avg_ctl),area_array,'mm/day','P avg minus ctrl','rainnorm',landmaskxr,landlats,landlons)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,(precipitation_avg - precipitation_avg_ctl).where(landmask==1.),area_array,'mm/day','P avg minus ctrl','rainnorm',landmaskxr,landlats,landlons)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,(net_lhe_avg - net_lhe_avg_ctl).where(landmask==1.),area_array,'mm/day','E avg minus ctrl','rainnorm',landmaskxr,landlats,landlons)
 
 
 # # plotting_routines_kav7.any_configuration_plot(-90.,90.,(omega_avg[39,:,:] - omega_avg_ctl[39,:,:]),'Pa/s','Omega avg minus ctrl','rainnorm',landmaskxr,landlats,landlons,contourson = False)

@@ -1728,6 +1728,11 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 # currently hard coded -30.,30. slice instead of squarelats_min, squarelats_max
     plt.close()
 
+
+    small = 10 #largefonts 14 # smallfonts 12 # medfonts = 14
+    med = 12 #largefonts 18 # smallfonts 14 # medfonts = 16
+    lge = 14 #largefonts 22 # smallfonts 18 # medfonts = 20
+
     lats=array.lat
     lons=array.lon
     
@@ -1742,6 +1747,7 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 
 
     fig = plt.figure()
+
     ax1 = plt.subplot2grid((5,8), (0,1), colspan = 5, rowspan = 3)
 
 
@@ -1753,8 +1759,8 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
     zonavg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-90.,maxlat=90.,axis=1)
     meravg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-30.,maxlat=30.,axis=0)
 
-    m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
-    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+    m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0], fontsize=small)
+    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1], fontsize=small)
     array, lons_cyclic = addcyclic(array, lons)
     array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
 
@@ -1784,7 +1790,8 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
     elif palette == 'raindefault':
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
     elif palette=='temp':
-	    cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),vmax=maxval)
+	   # cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),vmax=maxval)
+	    cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin = 273.15-30.,vmax=273.15+30.) # forpaper
 
     elif palette=='fromwhite': 
 	    pal = plt.cm.Blues
@@ -1808,13 +1815,15 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 
     if nmb_contours != 0:  # add contours 
 	    cont = m.contour(xi,yi,array,nmb_contours,cmap='PuBu_r', linewidth=5)
-	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=12)
+	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=med)
 
 
 
 # Add Colorbar
     cbar = m.colorbar(cs, location='right', pad="10%")
-    cbar.set_label(units)
+    cbar.set_label(units, size=med)
+    cbar.ax.tick_params(labelsize=small) 
+
     # sns.palplot(sns.color_palette("BrBG", 7))
 
 # Read landmask
@@ -1829,7 +1838,8 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
     if np.any(landmask != 0.):
 	    m.contour(xi,yi,landmask, 1)
 
-    plt.title(title)
+    plt.title(title, size=lge)
+
     
     if month_annotate >= 1:
 	    plt.annotate('Month #'+str(month_annotate), xy=(0.15,0.8), xycoords='figure fraction')
@@ -1840,18 +1850,21 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 	    ax2 = plt.subplot2grid((5,8), (0,6), rowspan = 3)
     
 	    plt.plot(zonavg_thin,lats)
-	    plt.ylabel('Latitude')
-	    plt.xlabel(title+' ('+units+')')
+	    plt.ylabel('Latitude', size=med)
+	    plt.xlabel(title+' ('+units+')', size=med)
 	    ax2.yaxis.tick_right()
 	    ax2.yaxis.set_label_position('right')
+	    ax2.tick_params(axis='both', which='major', labelsize=small)
 	    ax2.invert_xaxis()
-    
+
 	    ax3 = plt.subplot2grid((5,8), (4,1), colspan = 4)
 	    plt.plot(lons,meravg_thin)
 	    plt.xlabel('Longitude')
 	    plt.ylabel(title+' ('+units+') 30S-30N')
 
 	    plt.show()
+
+    return fig
 
 
 def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0,maxval=1000,landlats = None, landlons = None, landmask = 0.):
