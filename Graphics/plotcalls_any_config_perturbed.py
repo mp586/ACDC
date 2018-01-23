@@ -52,7 +52,7 @@ print ('ocean sfc area (*10^14) = '+str(ocean_sfc_area/(10**14)))
 
 # for plotting a spin up run ('control') timeseries followed by the timeseries from the perturbed experiment
 plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,'t_surf',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
-plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,'bucket_depth',1,runmax,1.,landmask,control_dir,1,ctl_runmax)
+plotting_routines_kav7.globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,'bucket_depth',1,runmax,1.,landmask,control_dir,1,ctl_runmax,select='land')
 
 
 # plotting_routines_kav7.globavg_var_timeseries(testdir,'co2',1,runmax)

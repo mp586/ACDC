@@ -226,7 +226,7 @@ class MidpointNormalize(colors.Normalize):
 #     plt.title('Tropical Ocean Only')
 #     plt.show()
 
-def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runmax,factor,landmask,minlat=-90.,maxlat=90.):
+def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runmax,factor,landmask,minlat=-90.,maxlat=90.,select='all'):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
@@ -255,10 +255,23 @@ def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runm
     timeseries_land=np.asarray(timeseries_land)
     timeseries_ocean=np.asarray(timeseries_ocean)
     months=np.linspace(runmin,(runmax-1),timeseries.size)
-    plt.plot(months,timeseries,'r',label='total')
-    plt.plot(months,timeseries_land,'g',label='land only')
-    plt.plot(months,timeseries_ocean,'b',label='ocean only')
-    plt.title('avg '+varname+' total and land/ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+    if select == 'all':
+	    plt.plot(months,timeseries,'r',label='total')
+	    plt.plot(months,timeseries_land,'g',label='land only')
+	    plt.plot(months,timeseries_ocean,'b',label='ocean only')
+	    plt.title('avg '+varname+' total and land/ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+    
+    if select == 'land':
+	    plt.plot(months,timeseries_land,'g',label='land only')
+	    plt.title('avg '+varname+' land only between '+str(minlat)+' - '+str(maxlat)+' N')
+    elif select == 'ocean': 
+	    plt.plot(months,timeseries_ocean,'b',label='ocean only')
+	    plt.title('avg '+varname+' ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+    elif select =='total':
+	    plt.plot(months,timeseries,'r',label='total')
+	    plt.title('avg '+varname+' total (land and ocean) between '+str(minlat)+' - '+str(maxlat)+' N')
+
+
     plt.xlabel('Month #')
     plt.ylabel('Area weighted average')
     plt.legend()
@@ -267,7 +280,7 @@ def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runm
     return(timeseries)
 
 
-def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,runmin,runmax,factor,landmask,spinup_dir,spinup_runmin, spinup_runmax,minlat=-90.,maxlat=90.):
+def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,runmin,runmax,factor,landmask,spinup_dir,spinup_runmin, spinup_runmax,minlat=-90.,maxlat=90.,select='all'):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
@@ -332,10 +345,22 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,r
 
     figure = plt.plot()
     months=np.linspace(runmin,((spinup_runmax+runmax)-1),timeseries.size)
-    plt.plot(months,timeseries,'r',label='total')
-    plt.plot(months,timeseries_land,'g',label='land only')
-    plt.plot(months,timeseries_ocean,'b',label='ocean only')
-    plt.title('globavg '+varname+' total and land/ocean only')
+    if select == 'all':
+	    plt.plot(months,timeseries,'r',label='total')
+	    plt.plot(months,timeseries_land,'g',label='land only')
+	    plt.plot(months,timeseries_ocean,'b',label='ocean only')
+	    plt.title('avg '+varname+' total and land/ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+    
+    if select == 'land':
+	    plt.plot(months,timeseries_land,'g',label='land only')
+	    plt.title('avg '+varname+' land only between '+str(minlat)+' - '+str(maxlat)+' N')
+    elif select == 'ocean': 
+	    plt.plot(months,timeseries_ocean,'b',label='ocean only')
+	    plt.title('avg '+varname+' ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+    elif select =='total':
+	    plt.plot(months,timeseries,'r',label='total')
+	    plt.title('avg '+varname+' total (land and ocean) between '+str(minlat)+' - '+str(maxlat)+' N')
+
     plt.xlabel('Month #')
     plt.ylabel('Global average')
     plt.legend()
@@ -1956,7 +1981,7 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0
     # os.system('ffmpeg -f gif -i /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.mp4')
 
 	
-def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval):
+def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,landmaskxr,landlats,landlons):
 
 # Plots every third wind vector at specified height level
 # onto a world map of the 'array' which could be e.g. precip
@@ -1966,6 +1991,7 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval):
 # array is the underlying plot (e.g. Tsurf, precip, ...)
 # palette is for the underlying plot
 # units are for the underlying plot
+	landmask = np.asarray(landmaskxr)
 
 	fig = plt.figure()
 	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -1991,6 +2017,12 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval):
 				     start=False,cyclic=np.max(lons))
 	array, lons_cyclic = addcyclic(array, lons)
 	array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+
+	landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
+	landmask, lons_cyclic = addcyclic(landmask, landlons)
+
+	if np.any(landmask != 0.):
+		m.contour(xi,yi,landmask, 1)
 
 	if palette=='rainnorm':
 
