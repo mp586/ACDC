@@ -12,7 +12,8 @@ import plotting_routines
 import plotting_routines_kav7_isca as plotting_routines_kav7
 import stats as st
 
-sys.path.insert(0, '/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/src/extra/python/scripts') 
+GFDL_BASE = os.environ['GFDL_BASE']
+sys.path.insert(0, os.path.join(GFDL_BASE,'src/extra/python/scripts'))
 import cell_area as ca
 
 control_dir= input('Enter control directory name as string ')
@@ -23,16 +24,12 @@ testdir= input('Enter data directory name as string ')
 runmin=input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
 runmax=input('Enter runmax number ')
 
-
-# landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/two_continents/land_two_continents.nc',mode='r')
-# landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/squareland/land.nc',mode='r')
-# landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/sqland_plus_antarctica/land_sqland_plus_antarctica.nc',mode='r')
-# landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/sqland_plus_antarctica/land_sqland_plus_antarctica_to35S.nc',mode='r')
-# landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/aquaplanet/land_aquaplanet.nc',mode='r')
-# landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/square_South_America/land_square_South_America.nc')
-landfile=Dataset('/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/input/all_continents/land.nc',mode='r')
-
-
+# landfile=Dataset(os.path.join(GFDL_BASE,'input/two_continents/land.nc'),mode='r')
+landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land.nc'),mode='r')
+# landfile=Dataset(os.path.join(GFDL_BASE,'input/sqland_plus_antarctica/land.nc'),mode='r')
+# landfile=Dataset(os.path.join(GFDL_BASE,'input/aquaplanet/land.nc'),mode='r')
+# landfile=Dataset(os.path.join(GFDL_BASE,'input/square_South_America/land.nc'))
+# landfile=Dataset(os.path.join(GFDL_BASE,'input/all_continents/land.nc'))
 
 
 landmask=landfile.variables['land_mask'][:]

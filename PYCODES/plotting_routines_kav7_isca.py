@@ -1484,7 +1484,7 @@ def squareland_inputfile_3dvar(filename,varname):
 	cbar = m.colorbar(cs, location='right', pad="10%")
 
 # Show landmask
-	landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land_square.nc'),mode='r')
+	landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land.nc'),mode='r')
 	landmask=landfile.variables['land_mask'][:]
 	landlats=landfile.variables['lat'][:]
 	landlons=landfile.variables['lon'][:]
@@ -2153,6 +2153,75 @@ def animated_winds(testdir,uwind,vwind,level,array,palette,units,imin,imax,plot_
 		fig.clf()
    
 	os.system('convert -delay 30 /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
+
+
+
+def winds_anomaly(uwind,vwind,landmaskxr,landlats,landlons,level=39):
+
+	landmask = np.asarray(landmaskxr)
+
+	fig = plt.figure()
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+	lons = uwind.lon
+	lats = uwind.lat
+	pres = uwind.pres_lev[level]	
+	uwind = uwind[level,:,:]
+	vwind = vwind[level,:,:]
+	uwind,lons_shift = shiftgrid(np.max(lons)-180.,uwind,lons,start=False,
+			       cyclic=np.max(lons))
+	vwind,lons_shift = shiftgrid(np.max(lons)-180.,vwind,lons,start=False,
+			       cyclic=np.max(lons))	
+	uwind, lons_cyclic = addcyclic(uwind, lons_shift)
+	vwind, lons_cyclic = addcyclic(vwind, lons_shift)
+
+	lon, lat = np.meshgrid(lons_cyclic, lats)
+	xi, yi = m(lon, lat)
+
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+
+	plt.title('Wind at '+str(pres)+' hPa')
+	uwind = xr.DataArray(uwind)
+	zonavg = uwind.mean(dim='dim_1')
+	zonavg = np.expand_dims(zonavg,axis=1)
+	zonavg = np.repeat(zonavg,lons_cyclic.shape[0],axis=1)
+	array = uwind - zonavg
+
+	# array, array_lons = shiftgrid(np.max(lons)-180.,array,array.lon,
+	# 			     start=False,cyclic=np.max(lons))
+	# array, lons_cyclic = addcyclic(array, lons)
+	# array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+
+	landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
+	landmask, lons_cyclic = addcyclic(landmask, landlons)
+
+	if np.any(landmask != 0.):
+		m.contour(xi,yi,landmask, 1)
+	
+	minval = np.min(array)
+	maxval = np.max(array)
+	cs = m.pcolor(xi,yi,array, 
+		      norm=MidpointNormalize(midpoint=0), cmap=plt.cm.RdBu_r, 
+		      vmin = -maxval,
+		      vmax = maxval)
+
+	cbar = m.colorbar(cs, location='right', pad="10%")
+	cbar.set_label('m/s anomaly')
+
+	Q = plt.quiver(xi[::5,::5], yi[::5,::5], uwind[::5,::5], vwind[::5,::5], units='width')
+	qk = plt.quiverkey(Q, 0.9, 0.9, 10, r'$10 \frac{m}{s}$', 
+			   labelpos='E', coordinates='figure')
+
+	plt.show()
+	return fig
+
+
+
+
+
+
+
+
 
 def plot_a_climatology(clim_field):
 # Plots each month of the climatology as separate curve

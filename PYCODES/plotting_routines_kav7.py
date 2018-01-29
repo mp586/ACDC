@@ -226,7 +226,7 @@ class MidpointNormalize(colors.Normalize):
 #     plt.title('Tropical Ocean Only')
 #     plt.show()
 
-def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runmax,factor,landmask,minlat=-90.,maxlat=90.):
+def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runmax,factor,landmask,minlat=-90.,maxlat=90.,select='all'):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
@@ -234,7 +234,6 @@ def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runm
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
         runnr="{0:03}".format(i)
         filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
-	print(filename)
         nc = Dataset(filename,mode='r')
         
 	lats = nc.variables['lat'][:]
@@ -256,10 +255,23 @@ def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runm
     timeseries_land=np.asarray(timeseries_land)
     timeseries_ocean=np.asarray(timeseries_ocean)
     months=np.linspace(runmin,(runmax-1),timeseries.size)
-    plt.plot(months,timeseries,'r',label='total')
-    plt.plot(months,timeseries_land,'g',label='land only')
-    plt.plot(months,timeseries_ocean,'b',label='ocean only')
-    plt.title('avg '+varname+' total and land/ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+    if select == 'all':
+	    plt.plot(months,timeseries,'r',label='total')
+	    plt.plot(months,timeseries_land,'g',label='land only')
+	    plt.plot(months,timeseries_ocean,'b',label='ocean only')
+	    plt.title('avg '+varname+' total and land/ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+    
+    if select == 'land':
+	    plt.plot(months,timeseries_land,'g',label='land only')
+	    plt.title('avg '+varname+' land only between '+str(minlat)+' - '+str(maxlat)+' N')
+    elif select == 'ocean': 
+	    plt.plot(months,timeseries_ocean,'b',label='ocean only')
+	    plt.title('avg '+varname+' ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+    elif select =='total':
+	    plt.plot(months,timeseries,'r',label='total')
+	    plt.title('avg '+varname+' total (land and ocean) between '+str(minlat)+' - '+str(maxlat)+' N')
+
+
     plt.xlabel('Month #')
     plt.ylabel('Area weighted average')
     plt.legend()
@@ -268,7 +280,7 @@ def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runm
     return(timeseries)
 
 
-def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,runmin,runmax,factor,landmask,spinup_dir,spinup_runmin, spinup_runmax,minlat=-90.,maxlat=90.):
+def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,runmin,runmax,factor,landmask,spinup_dir,spinup_runmin, spinup_runmax,minlat=-90.,maxlat=90.,select='all'):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
@@ -333,10 +345,22 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,r
 
     figure = plt.plot()
     months=np.linspace(runmin,((spinup_runmax+runmax)-1),timeseries.size)
-    plt.plot(months,timeseries,'r',label='total')
-    plt.plot(months,timeseries_land,'g',label='land only')
-    plt.plot(months,timeseries_ocean,'b',label='ocean only')
-    plt.title('globavg '+varname+' total and land/ocean only')
+    if select == 'all':
+	    plt.plot(months,timeseries,'r',label='total')
+	    plt.plot(months,timeseries_land,'g',label='land only')
+	    plt.plot(months,timeseries_ocean,'b',label='ocean only')
+	    plt.title('avg '+varname+' total and land/ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+    
+    if select == 'land':
+	    plt.plot(months,timeseries_land,'g',label='land only')
+	    plt.title('avg '+varname+' land only between '+str(minlat)+' - '+str(maxlat)+' N')
+    elif select == 'ocean': 
+	    plt.plot(months,timeseries_ocean,'b',label='ocean only')
+	    plt.title('avg '+varname+' ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+    elif select =='total':
+	    plt.plot(months,timeseries,'r',label='total')
+	    plt.title('avg '+varname+' total (land and ocean) between '+str(minlat)+' - '+str(maxlat)+' N')
+
     plt.xlabel('Month #')
     plt.ylabel('Global average')
     plt.legend()
@@ -1460,7 +1484,7 @@ def squareland_inputfile_3dvar(filename,varname):
 	cbar = m.colorbar(cs, location='right', pad="10%")
 
 # Show landmask
-	landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land_square.nc'),mode='r')
+	landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land.nc'),mode='r')
 	landmask=landfile.variables['land_mask'][:]
 	landlats=landfile.variables['lat'][:]
 	landlons=landfile.variables['lon'][:]
@@ -1729,6 +1753,11 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 # currently hard coded -30.,30. slice instead of squarelats_min, squarelats_max
     plt.close()
 
+
+    small = 10 #largefonts 14 # smallfonts 12 # medfonts = 14
+    med = 12 #largefonts 18 # smallfonts 14 # medfonts = 16
+    lge = 14 #largefonts 22 # smallfonts 18 # medfonts = 20
+
     lats=array.lat
     lons=array.lon
     
@@ -1743,6 +1772,7 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 
 
     fig = plt.figure()
+
     ax1 = plt.subplot2grid((5,8), (0,1), colspan = 5, rowspan = 3)
 
 
@@ -1754,8 +1784,8 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
     zonavg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-90.,maxlat=90.,axis=1)
     meravg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-30.,maxlat=30.,axis=0)
 
-    m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
-    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+    m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0], fontsize=small)
+    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1], fontsize=small)
     array, lons_cyclic = addcyclic(array, lons)
     array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
 
@@ -1785,7 +1815,8 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
     elif palette == 'raindefault':
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
     elif palette=='temp':
-	    cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),vmax=maxval)
+	   # cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),vmax=maxval)
+	    cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin = 273.15-30.,vmax=273.15+30.) # forpaper
 
     elif palette=='fromwhite': 
 	    pal = plt.cm.Blues
@@ -1809,13 +1840,15 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 
     if nmb_contours != 0:  # add contours 
 	    cont = m.contour(xi,yi,array,nmb_contours,cmap='PuBu_r', linewidth=5)
-	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=12)
+	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=med)
 
 
 
 # Add Colorbar
     cbar = m.colorbar(cs, location='right', pad="10%")
-    cbar.set_label(units)
+    cbar.set_label(units, size=med)
+    cbar.ax.tick_params(labelsize=small) 
+
     # sns.palplot(sns.color_palette("BrBG", 7))
 
 # Read landmask
@@ -1830,7 +1863,8 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
     if np.any(landmask != 0.):
 	    m.contour(xi,yi,landmask, 1)
 
-    plt.title(title)
+    plt.title(title, size=lge)
+
     
     if month_annotate >= 1:
 	    plt.annotate('Month #'+str(month_annotate), xy=(0.15,0.8), xycoords='figure fraction')
@@ -1841,18 +1875,21 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 	    ax2 = plt.subplot2grid((5,8), (0,6), rowspan = 3)
     
 	    plt.plot(zonavg_thin,lats)
-	    plt.ylabel('Latitude')
-	    plt.xlabel(title+' ('+units+')')
+	    plt.ylabel('Latitude', size=med)
+	    plt.xlabel(title+' ('+units+')', size=med)
 	    ax2.yaxis.tick_right()
 	    ax2.yaxis.set_label_position('right')
+	    ax2.tick_params(axis='both', which='major', labelsize=small)
 	    ax2.invert_xaxis()
-    
+
 	    ax3 = plt.subplot2grid((5,8), (4,1), colspan = 4)
 	    plt.plot(lons,meravg_thin)
 	    plt.xlabel('Longitude')
 	    plt.ylabel(title+' ('+units+') 30S-30N')
 
 	    plt.show()
+
+    return fig
 
 
 def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0,maxval=1000,landlats = None, landlons = None, landmask = 0.):
@@ -1944,7 +1981,7 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0
     # os.system('ffmpeg -f gif -i /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.mp4')
 
 	
-def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval):
+def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,landmaskxr,landlats,landlons):
 
 # Plots every third wind vector at specified height level
 # onto a world map of the 'array' which could be e.g. precip
@@ -1954,6 +1991,7 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval):
 # array is the underlying plot (e.g. Tsurf, precip, ...)
 # palette is for the underlying plot
 # units are for the underlying plot
+	landmask = np.asarray(landmaskxr)
 
 	fig = plt.figure()
 	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
@@ -1979,6 +2017,12 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval):
 				     start=False,cyclic=np.max(lons))
 	array, lons_cyclic = addcyclic(array, lons)
 	array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+
+	landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
+	landmask, lons_cyclic = addcyclic(landmask, landlons)
+
+	if np.any(landmask != 0.):
+		m.contour(xi,yi,landmask, 1)
 
 	if palette=='rainnorm':
 
@@ -2109,6 +2153,75 @@ def animated_winds(testdir,uwind,vwind,level,array,palette,units,imin,imax,plot_
 		fig.clf()
    
 	os.system('convert -delay 30 /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
+
+
+
+def winds_anomaly(uwind,vwind,landmaskxr,landlats,landlons,level=39):
+
+	landmask = np.asarray(landmaskxr)
+
+	fig = plt.figure()
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+	lons = uwind.lon
+	lats = uwind.lat
+	pres = uwind.pres_lev[level]	
+	uwind = uwind[level,:,:]
+	vwind = vwind[level,:,:]
+	uwind,lons_shift = shiftgrid(np.max(lons)-180.,uwind,lons,start=False,
+			       cyclic=np.max(lons))
+	vwind,lons_shift = shiftgrid(np.max(lons)-180.,vwind,lons,start=False,
+			       cyclic=np.max(lons))	
+	uwind, lons_cyclic = addcyclic(uwind, lons_shift)
+	vwind, lons_cyclic = addcyclic(vwind, lons_shift)
+
+	lon, lat = np.meshgrid(lons_cyclic, lats)
+	xi, yi = m(lon, lat)
+
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+
+	plt.title('Wind at '+str(pres)+' hPa')
+	uwind = xr.DataArray(uwind)
+	zonavg = uwind.mean(dim='dim_1')
+	zonavg = np.expand_dims(zonavg,axis=1)
+	zonavg = np.repeat(zonavg,lons_cyclic.shape[0],axis=1)
+	array = uwind - zonavg
+
+	# array, array_lons = shiftgrid(np.max(lons)-180.,array,array.lon,
+	# 			     start=False,cyclic=np.max(lons))
+	# array, lons_cyclic = addcyclic(array, lons)
+	# array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+
+	landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
+	landmask, lons_cyclic = addcyclic(landmask, landlons)
+
+	if np.any(landmask != 0.):
+		m.contour(xi,yi,landmask, 1)
+	
+	minval = np.min(array)
+	maxval = np.max(array)
+	cs = m.pcolor(xi,yi,array, 
+		      norm=MidpointNormalize(midpoint=0), cmap=plt.cm.RdBu_r, 
+		      vmin = -maxval,
+		      vmax = maxval)
+
+	cbar = m.colorbar(cs, location='right', pad="10%")
+	cbar.set_label('m/s anomaly')
+
+	Q = plt.quiver(xi[::5,::5], yi[::5,::5], uwind[::5,::5], vwind[::5,::5], units='width')
+	qk = plt.quiverkey(Q, 0.9, 0.9, 10, r'$10 \frac{m}{s}$', 
+			   labelpos='E', coordinates='figure')
+
+	plt.show()
+	return fig
+
+
+
+
+
+
+
+
 
 def plot_a_climatology(clim_field):
 # Plots each month of the climatology as separate curve
