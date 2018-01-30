@@ -1,5 +1,6 @@
 from netCDF4 import Dataset
 import numpy as np
+import matplotlib
 from matplotlib import pyplot as plt
 from mpl_toolkits.basemap import Basemap, cm, shiftgrid, addcyclic
 import xarray as xr
@@ -2372,3 +2373,81 @@ def area_integral(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90.,fact
 	# 	ma = np.ma.MaskedArray(array, mask=np.isnan(array.where(landmask==1.)))
 	# 	w_avg = np.ma.average(ma,axis=axis,weights=cos_2d)
 	# return w_avg
+
+
+def mass_streamfunction(testdir,runmin,runmax,v='vcomp', a=6376.0e3, g=9.8):
+    """Calculate the mass streamfunction for the atmosphere.
+    Based on a vertical integral of the meridional wind.
+    Ref: Physics of Climate, Peixoto & Oort, 1992.  p158.
+    Parameters
+    ----------
+    data :  xarray.DataSet
+        GCM output data
+    v : str, optional
+        The name of the meridional flow field in `data`.  Default: 'vcomp'
+    a : float, optional
+        The radius of the planet. Default: Earth 6317km
+    g : float, optional
+        Surface gravity. Default: Earth 9.8m/s^2
+    Returns
+    -------
+    streamfunction : xarray.DataArray
+        The meridional mass streamfunction.
+
+    Author = James Penn
+    """
+
+    for i in range(runmin,runmax):
+	    runnr="{0:03}".format(i)
+	    data = xr.open_dataset('/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc')
+	    vbar = data[v].mean('lon')
+	    if i == runmin:
+		    msf = np.empty_like(vbar)
+		    msf = msf.repeat((runmax-runmin),axis=0) 
+	    c = 2*np.pi*a*np.cos(vbar.lat*np.pi/180) / g
+# take a diff of half levels, and assign to pfull coordinates
+	    dp = xr.DataArray(data.phalf.diff('phalf').values*100, coords=[('pfull', data.pfull)])
+	    msf[i-runmin] = (np.cumsum(vbar*dp, axis='pfull')*c)[0]
+    time=[np.array(np.linspace(0,(runmax-runmin-1),(runmax-runmin),dtype='datetime64[M]'))]
+    msf=xr.DataArray(msf*1e-10,coords=[time[0],data.pfull,data.lat],dims=['time','pfull','lat'])
+    msf_avg=msf.mean(dim='time')
+    msf_seasonal_avg=msf.groupby('time.season').mean('time') 
+    msf_month_avg=msf.groupby('time.month').mean('time')
+    return (msf,msf_avg,msf_seasonal_avg,msf_month_avg)
+
+
+# In [57]: for i in range(runmin,runmax):
+#     ...:         runnr="{0:03}".format(i)
+#     ...:         data = xr.open_dataset('/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc')
+#     ...:         if i == runmin:
+#     ...:             msf = np.empty_like(data[v].mean('lon'))
+#     ...:         vbar = data[v].mean('lon')
+#     ...:         msf = msf.repeat((runmax-runmin),axis=0)
+#     ...:         c = 2*np.pi*a*np.cos(vbar.lat*np.pi/180) / g
+#     ...: # take a diff of half levels, and assign to pfull coordinates
+#     ...:         dp = xr.DataArray(data.phalf.diff('phalf').values*100, coords=[('pfull', data.pfull)])
+#     ...:         print(i-runmin)
+#     ...:         msf[i-runmin] = (np.cumsum(vbar*dp, axis='pfull')*c)[0]
+#     ...:      
+
+def plot_streamfunction(msf_array,title,units='10^10 kg/s'):
+
+	matplotlib.rcParams['contour.negative_linestyle']= 'dashed'
+
+	lats = msf_array.lat
+	pfull = msf_array.pfull
+	
+	y, p = np.meshgrid(lats, pfull)
+
+	cset1 = plt.contourf(y, p, msf_array, norm=MidpointNormalize(midpoint=0.),
+                     cmap='RdBu_r', vmin=-20, vmax=20)
+
+	cont = plt.contour(y,p,msf_array, 20, colors = 'k', linewidth=5)
+	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	cbar = plt.colorbar(cset1)
+	cbar.set_label(units)
+	plt.title(title)
+	plt.xlabel('Latitude N')
+	plt.ylabel('Pressure (hPa)')
+	plt.gca().invert_yaxis()
+	plt.show()

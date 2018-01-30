@@ -57,6 +57,13 @@ plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,area_array,
 # plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,area_array,'t_surf',1,runmax,1.,landmaskxr,minlat=-30.,maxlat=30.)
 # plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,area_array,'bucket_depth',1,runmax,1.,landmaskxr, select='land')
 
+[msf,msf_avg,msf_seasonal_avg,msf_month_avg] = plotting_routines_kav7.mass_streamfunction(testdir,runmin,runmax) # 
+
+
+# plotting_routines_kav7.plot_streamfunction(msf_seasonal_avg.sel(season='JJA'),title = 'JJA meridional mass stream fct')
+# plotting_routines_kav7.plot_streamfunction(msf_seasonal_avg.sel(season='DJF'),title = 'DJF meridional mass stream fct')
+# plotting_routines_kav7.plot_streamfunction(msf_seasonal_avg.sel(season='SON'),title = 'SON meridional mass stream fct')
+# plotting_routines_kav7.plot_streamfunction(msf_seasonal_avg.sel(season='MAM'),title = 'MAM meridional mass stream fct')
 
 [tsurf,tsurf_avg,tsurf_seasonal_avg,tsurf_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'t_surf','K')
 [net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'flux_lhe','W/m^2',factor = 1/28.) # latent heat flux at surface (UP)
@@ -106,6 +113,17 @@ JJA = 'JJA'
 DJF = 'DJF'
 MAM = 'MAM'
 SON = 'SON'
+
+plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_seasonal_avg.sel(season=MAM),area_array,'mm/day','P_MAM (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_seasonal_avg.sel(season=SON),area_array,'mm/day','P_SON (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_seasonal_avg.sel(season=MAM),area_array,'mm/day','E_MAM (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_seasonal_avg.sel(season=SON),area_array,'mm/day','E_SON (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_seasonal_avg.sel(season=MAM),area_array,'K','tsurf_MAM (K)','temp',landmaskxr,landlats,landlons,nmb_contours=4)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_seasonal_avg.sel(season=SON),area_array,'K','tsurf_SON (K)','temp',landmaskxr,landlats,landlons,nmb_contours=4)
+
+
+
+
 plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_seasonal_avg.sel(season=JJA),area_array,'mm/day','P_JJA (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
 plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_seasonal_avg.sel(season=DJF),area_array,'mm/day','P_DJF (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
 plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_seasonal_avg.sel(season=JJA),area_array,'mm/day','E_JJA (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
