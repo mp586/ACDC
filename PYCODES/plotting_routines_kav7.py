@@ -2451,3 +2451,64 @@ def plot_streamfunction(msf_array,title,units='10^10 kg/s'):
 	plt.ylabel('Pressure (hPa)')
 	plt.gca().invert_yaxis()
 	plt.show()
+
+
+def plot_streamfunction_seasonal(msf_array,units='10^10 kg/s'):
+
+	matplotlib.rcParams['contour.negative_linestyle']= 'dashed'
+
+	lats = msf_array.lat
+	pfull = msf_array.pfull
+	
+	y, p = np.meshgrid(lats, pfull)
+
+	fig = plt.figure()
+	ax1 = plt.subplot2grid((8,8), (0,0), colspan=4, rowspan=4)
+	cset1 = plt.contourf(y, p, msf_array.sel(season='MAM'), norm=MidpointNormalize(midpoint=0.),
+                     cmap='RdBu_r')
+	cont = plt.contour(y,p,msf_array.sel(season='MAM'), 20, colors = 'k', linewidth=5)
+	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	cbar = plt.colorbar(cset1)
+	cbar.set_label(units)
+	plt.title('MAM')
+	plt.xlabel('Latitude N')
+	plt.ylabel('Pressure (hPa)')
+	plt.gca().invert_yaxis()
+
+	ax2 = plt.subplot2grid((8,8), (0,4), colspan=4, rowspan=4)
+	cset1 = plt.contourf(y, p, msf_array.sel(season='JJA'), norm=MidpointNormalize(midpoint=0.),
+                     cmap='RdBu_r')
+	cont = plt.contour(y,p,msf_array.sel(season='JJA'), 20, colors = 'k', linewidth=5)
+	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	cbar = plt.colorbar(cset1)
+	cbar.set_label(units)
+	plt.title('JJA')
+	plt.xlabel('Latitude N')
+	plt.ylabel('Pressure (hPa)')
+	plt.gca().invert_yaxis()
+
+	ax3 = plt.subplot2grid((8,8), (4,0), colspan=4, rowspan=4)
+	cset1 = plt.contourf(y, p, msf_array.sel(season='SON'), norm=MidpointNormalize(midpoint=0.),
+                     cmap='RdBu_r')
+	cont = plt.contour(y,p,msf_array.sel(season='SON'), 20, colors = 'k', linewidth=5)
+	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	cbar = plt.colorbar(cset1)
+	cbar.set_label(units)
+	plt.title('SON')
+	plt.xlabel('Latitude N')
+	plt.ylabel('Pressure (hPa)')
+	plt.gca().invert_yaxis()
+
+	ax4 = plt.subplot2grid((8,8), (4,4), colspan=4, rowspan=4)
+	cset1 = plt.contourf(y, p, msf_array.sel(season='DJF'), norm=MidpointNormalize(midpoint=0.),
+                     cmap='RdBu_r')
+	cont = plt.contour(y,p,msf_array.sel(season='DJF'), 20, colors = 'k', linewidth=5)
+	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	cbar = plt.colorbar(cset1)
+	cbar.set_label(units)
+	plt.title('DJF')
+	plt.xlabel('Latitude N')
+	plt.ylabel('Pressure (hPa)')
+	plt.gca().invert_yaxis()
+
+	plt.show()

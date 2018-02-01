@@ -25,8 +25,8 @@ testdir=input('Enter data directory name as string ')
 runmin=input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
 runmax=input('Enter runmax number ')
 
-landfile=Dataset(os.path.join(GFDL_BASE,'input/two_continents/land.nc'),mode='r')
-# landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land.nc'),mode='r')
+# landfile=Dataset(os.path.join(GFDL_BASE,'input/two_continents/land.nc'),mode='r')
+landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land.nc'),mode='r')
 # landfile=Dataset(os.path.join(GFDL_BASE,'input/sqland_plus_antarctica/land.nc'),mode='r')
 # landfile=Dataset(os.path.join(GFDL_BASE,'input/aquaplanet/land.nc'),mode='r')
 # landfile=Dataset(os.path.join(GFDL_BASE,'input/square_South_America/land.nc'))
@@ -38,6 +38,7 @@ landlats=landfile.variables['lat'][:]
 landlons=landfile.variables['lon'][:]
 
 # for specified lats
+
 landmaskxr=xr.DataArray(landmask,coords=[landlats,landlons],dims=['lat','lon']) # need this in order to use .sel(... slice) on it
 
 area_array = ca.cell_area(t_res=42,base_dir='/scratch/mp586/Isca/')
@@ -57,8 +58,19 @@ plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,area_array,
 # plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,area_array,'t_surf',1,runmax,1.,landmaskxr,minlat=-30.,maxlat=30.)
 # plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,area_array,'bucket_depth',1,runmax,1.,landmaskxr, select='land')
 
-[msf,msf_avg,msf_seasonal_avg,msf_month_avg] = plotting_routines_kav7.mass_streamfunction(testdir,runmin,runmax) # 
 
+
+[ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'ucomp','m/s')
+[vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'vcomp','m/s')
+[omega,omega_avg,omega_seasonal_avg,omega_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'omega','Pa/s',level=39)
+
+plotting_routines_kav7.winds_anomaly(ucomp_avg,vcomp_avg,landmaskxr,landlats,landlons)
+
+plotting_routines_kav7.winds_anomaly(ucomp_seasonal_avg.sel(season='JJA'),vcomp_seasonal_avg.sel(season='JJA'),landmaskxr,landlats,landlons)
+plotting_routines_kav7.winds_anomaly(ucomp_seasonal_avg.sel(season='DJF'),vcomp_seasonal_avg.sel(season='DJF'),landmaskxr,landlats,landlons)
+
+[msf,msf_avg,msf_seasonal_avg,msf_month_avg] = plotting_routines_kav7.mass_streamfunction(testdir,runmin,runmax) # 
+plotting_routines_kav7.plot_streamfunction_seasonal(msf_seasonal_avg)
 
 # plotting_routines_kav7.plot_streamfunction(msf_seasonal_avg.sel(season='JJA'),title = 'JJA meridional mass stream fct')
 # plotting_routines_kav7.plot_streamfunction(msf_seasonal_avg.sel(season='DJF'),title = 'DJF meridional mass stream fct')
@@ -114,36 +126,23 @@ DJF = 'DJF'
 MAM = 'MAM'
 SON = 'SON'
 
-plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_seasonal_avg.sel(season=MAM),area_array,'mm/day','P_MAM (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_seasonal_avg.sel(season=SON),area_array,'mm/day','P_SON (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_seasonal_avg.sel(season=MAM),area_array,'mm/day','E_MAM (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_seasonal_avg.sel(season=SON),area_array,'mm/day','E_SON (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_seasonal_avg.sel(season=MAM),area_array,'K','tsurf_MAM (K)','temp',landmaskxr,landlats,landlons,nmb_contours=4)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_seasonal_avg.sel(season=SON),area_array,'K','tsurf_SON (K)','temp',landmaskxr,landlats,landlons,nmb_contours=4)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_seasonal_avg.sel(season=MAM),area_array,'mm/day','P_MAM (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_seasonal_avg.sel(season=SON),area_array,'mm/day','P_SON (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_seasonal_avg.sel(season=MAM),area_array,'mm/day','E_MAM (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_seasonal_avg.sel(season=SON),area_array,'mm/day','E_SON (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_seasonal_avg.sel(season=MAM),area_array,'K','tsurf_MAM (K)','temp',landmaskxr,landlats,landlons,nmb_contours=4)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_seasonal_avg.sel(season=SON),area_array,'K','tsurf_SON (K)','temp',landmaskxr,landlats,landlons,nmb_contours=4)
 
 
 
 
-plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_seasonal_avg.sel(season=JJA),area_array,'mm/day','P_JJA (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_seasonal_avg.sel(season=DJF),area_array,'mm/day','P_DJF (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_seasonal_avg.sel(season=JJA),area_array,'mm/day','E_JJA (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_seasonal_avg.sel(season=DJF),area_array,'mm/day','E_DJF (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_seasonal_avg.sel(season=JJA),area_array,'K','tsurf_JJA (K)','temp',landmaskxr,landlats,landlons,nmb_contours=4)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_seasonal_avg.sel(season=DJF),area_array,'K','tsurf_DJF (K)','temp',landmaskxr,landlats,landlons,nmb_contours=4)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_seasonal_avg.sel(season=JJA),area_array,'mm/day','P_JJA (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_seasonal_avg.sel(season=DJF),area_array,'mm/day','P_DJF (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_seasonal_avg.sel(season=JJA),area_array,'mm/day','E_JJA (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_seasonal_avg.sel(season=DJF),area_array,'mm/day','E_DJF (mm/day)','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_seasonal_avg.sel(season=JJA),area_array,'K','tsurf_JJA (K)','temp',landmaskxr,landlats,landlons,nmb_contours=4)
+# plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_seasonal_avg.sel(season=DJF),area_array,'K','tsurf_DJF (K)','temp',landmaskxr,landlats,landlons,nmb_contours=4)
 
-
-[ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'ucomp','m/s')
-[vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'vcomp','m/s')
-[omega,omega_avg,omega_seasonal_avg,omega_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'omega','Pa/s',level=39)
-
-
-JJA = 'JJA'
-DJF = 'DJF'
-MAM = 'MAM'
-SON = 'SON'
-
-plotting_routines_kav7.winds_anomaly(ucomp_seasonal_avg.sel(season=JJA),vcomp_seasonal_avg.sel(season=JJA),landmaskxr,landlats,landlons)
-plotting_routines_kav7.winds_anomaly(ucomp_seasonal_avg.sel(season=DJF),vcomp_seasonal_avg.sel(season=DJF),landmaskxr,landlats,landlons)
 
 
 
@@ -161,11 +160,11 @@ plotting_routines_kav7.any_configuration_plot(-100.,100.,PE_avg,area_array,'mm/d
 # # function works --> gives same result as total area 
 
 
-input_qflux_file = Dataset(os.path.join(GFDL_BASE,'input/all_continents/ocean_qflux.nc'))
-input_qflux = xr.DataArray(input_qflux_file.variables['ocean_qflux'][:], coords = [input_qflux_file.variables['time'][:],input_qflux_file.variables['lat'][:],input_qflux_file.variables['lon'][:]], dims = ['time','lat','lon'])
-input_qflux_avg = input_qflux.mean(dim = 'time')
-input_qflux_int = plotting_routines_kav7.area_integral(input_qflux_avg,area_array,landmaskxr,'ocean')
-print('Global integrated q flux area weighted = '+str(input_qflux_int)) # should be almost identical
+# input_qflux_file = Dataset(os.path.join(GFDL_BASE,'input/all_continents/ocean_qflux.nc'))
+# input_qflux = xr.DataArray(input_qflux_file.variables['ocean_qflux'][:], coords = [input_qflux_file.variables['time'][:],input_qflux_file.variables['lat'][:],input_qflux_file.variables['lon'][:]], dims = ['time','lat','lon'])
+# input_qflux_avg = input_qflux.mean(dim = 'time')
+# input_qflux_int = plotting_routines_kav7.area_integral(input_qflux_avg,area_array,landmaskxr,'ocean')
+# print('Global integrated q flux area weighted = '+str(input_qflux_int)) # should be almost identical
 # integr_qflux = plotting_routines_kav7.area_integral(flux_oceanq_avg,area_array,landmaskxr,'ocean')
 # print('Global integrated q flux area weighted = '+str(integr_qflux))
 

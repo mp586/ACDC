@@ -24,8 +24,8 @@ testdir= input('Enter data directory name as string ')
 runmin=input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
 runmax=input('Enter runmax number ')
 
-# landfile=Dataset(os.path.join(GFDL_BASE,'input/two_continents/land.nc'),mode='r')
-landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land.nc'),mode='r')
+landfile=Dataset(os.path.join(GFDL_BASE,'input/two_continents/land.nc'),mode='r')
+# landfile=Dataset(os.path.join(GFDL_BASE,'input/squareland/land.nc'),mode='r')
 # landfile=Dataset(os.path.join(GFDL_BASE,'input/sqland_plus_antarctica/land.nc'),mode='r')
 # landfile=Dataset(os.path.join(GFDL_BASE,'input/aquaplanet/land.nc'),mode='r')
 # landfile=Dataset(os.path.join(GFDL_BASE,'input/square_South_America/land.nc'))

@@ -2157,7 +2157,7 @@ def animated_winds(testdir,uwind,vwind,level,array,palette,units,imin,imax,plot_
 
 
 
-def winds_anomaly(uwind,vwind,landmaskxr,landlats,landlons,level=39):
+def winds_anomaly(uwind,vwind,landmaskxr,landlats,landlons,level=39, minval = -8, maxval = 8):
 
 	landmask = np.asarray(landmaskxr)
 
@@ -2199,11 +2199,9 @@ def winds_anomaly(uwind,vwind,landmaskxr,landlats,landlons,level=39):
 	if np.any(landmask != 0.):
 		m.contour(xi,yi,landmask, 1)
 	
-	minval = np.min(array)
-	maxval = np.max(array)
 	cs = m.pcolor(xi,yi,array, 
 		      norm=MidpointNormalize(midpoint=0), cmap=plt.cm.RdBu_r, 
-		      vmin = -maxval,
+		      vmin = minval,
 		      vmax = maxval)
 
 	cbar = m.colorbar(cs, location='right', pad="10%")
@@ -2407,7 +2405,8 @@ def mass_streamfunction(testdir,runmin,runmax,v='vcomp', a=6376.0e3, g=9.8):
 	    c = 2*np.pi*a*np.cos(vbar.lat*np.pi/180) / g
 # take a diff of half levels, and assign to pfull coordinates
 	    dp = xr.DataArray(data.phalf.diff('phalf').values*100, coords=[('pfull', data.pfull)])
-	    msf[i-runmin] = (np.cumsum(vbar*dp, axis='pfull')*c)[0]
+	    msf[i-runmin] = (np.cumsum(vbar*dp, axis='pfull')*c)
+	    # why cumsum and not # (np.sum(vbar*dp, axis = vbar.dims.index('pfull')))*c
     time=[np.array(np.linspace(0,(runmax-runmin-1),(runmax-runmin),dtype='datetime64[M]'))]
     msf=xr.DataArray(msf*1e-10,coords=[time[0],data.pfull,data.lat],dims=['time','pfull','lat'])
     msf_avg=msf.mean(dim='time')
@@ -2450,4 +2449,65 @@ def plot_streamfunction(msf_array,title,units='10^10 kg/s'):
 	plt.xlabel('Latitude N')
 	plt.ylabel('Pressure (hPa)')
 	plt.gca().invert_yaxis()
+	plt.show()
+
+
+def plot_streamfunction_seasonal(msf_array,units='10^10 kg/s'):
+
+	matplotlib.rcParams['contour.negative_linestyle']= 'dashed'
+
+	lats = msf_array.lat
+	pfull = msf_array.pfull
+	
+	y, p = np.meshgrid(lats, pfull)
+
+	fig = plt.figure()
+	ax1 = plt.subplot2grid((8,8), (0,0), colspan=4, rowspan=4)
+	cset1 = plt.contourf(y, p, msf_array.sel(season='MAM'), norm=MidpointNormalize(midpoint=0.),
+                     cmap='RdBu_r')
+	cont = plt.contour(y,p,msf_array.sel(season='MAM'), 20, colors = 'k', linewidth=5)
+	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	cbar = plt.colorbar(cset1)
+	cbar.set_label(units)
+	plt.title('MAM')
+	plt.xlabel('Latitude N')
+	plt.ylabel('Pressure (hPa)')
+	plt.gca().invert_yaxis()
+
+	ax2 = plt.subplot2grid((8,8), (0,4), colspan=4, rowspan=4)
+	cset1 = plt.contourf(y, p, msf_array.sel(season='JJA'), norm=MidpointNormalize(midpoint=0.),
+                     cmap='RdBu_r')
+	cont = plt.contour(y,p,msf_array.sel(season='JJA'), 20, colors = 'k', linewidth=5)
+	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	cbar = plt.colorbar(cset1)
+	cbar.set_label(units)
+	plt.title('JJA')
+	plt.xlabel('Latitude N')
+	plt.ylabel('Pressure (hPa)')
+	plt.gca().invert_yaxis()
+
+	ax3 = plt.subplot2grid((8,8), (4,0), colspan=4, rowspan=4)
+	cset1 = plt.contourf(y, p, msf_array.sel(season='SON'), norm=MidpointNormalize(midpoint=0.),
+                     cmap='RdBu_r')
+	cont = plt.contour(y,p,msf_array.sel(season='SON'), 20, colors = 'k', linewidth=5)
+	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	cbar = plt.colorbar(cset1)
+	cbar.set_label(units)
+	plt.title('SON')
+	plt.xlabel('Latitude N')
+	plt.ylabel('Pressure (hPa)')
+	plt.gca().invert_yaxis()
+
+	ax4 = plt.subplot2grid((8,8), (4,4), colspan=4, rowspan=4)
+	cset1 = plt.contourf(y, p, msf_array.sel(season='DJF'), norm=MidpointNormalize(midpoint=0.),
+                     cmap='RdBu_r')
+	cont = plt.contour(y,p,msf_array.sel(season='DJF'), 20, colors = 'k', linewidth=5)
+	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	cbar = plt.colorbar(cset1)
+	cbar.set_label(units)
+	plt.title('DJF')
+	plt.xlabel('Latitude N')
+	plt.ylabel('Pressure (hPa)')
+	plt.gca().invert_yaxis()
+
 	plt.show()
