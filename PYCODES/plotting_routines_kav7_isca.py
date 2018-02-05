@@ -227,13 +227,16 @@ class MidpointNormalize(colors.Normalize):
 #     plt.title('Tropical Ocean Only')
 #     plt.show()
 
-def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runmax,factor,landmask,minlat=-90.,maxlat=90.,select='all'):
+def globavg_var_timeseries_total_and_land(outdir,testdir,model,area_array,varname,runmin,runmax,factor,landmask,minlat=-90.,maxlat=90.,select='all'):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
 
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-        runnr="{0:04}".format(i)
+        if model=='isca':
+		runnr="{0:04}".format(i)
+	elif model=='gfdl':
+		runnr="{0:03}".format(i)
         filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
         
@@ -277,108 +280,121 @@ def globavg_var_timeseries_total_and_land(testdir,area_array,varname,runmin,runm
     plt.ylabel('Area weighted average')
     plt.legend()
     plt.grid(b=True)
-    plt.show()    
+    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+varname+'_timeseries_'+str(runmin)+'-'+str(runmax), bbox_inches='tight')
+    plt.close()
+#    plt.show()    
     return(timeseries)
 
 
-def globavg_var_timeseries_total_and_land_perturbed(testdir,area_array,varname,runmin,runmax,factor,landmask,spinup_dir,spinup_runmin, spinup_runmax,minlat=-90.,maxlat=90.,select='all'):
+def globavg_var_timeseries_total_and_land_perturbed(testdir,model,area_array,varname,runmin,runmax,factor,landmask,spinup_dir,spinup_model,spinup_runmin, spinup_runmax,minlat=-90.,maxlat=90.,select='all'):
     
 #	""" Plots and returns timeseries of global average for specified variable """
 # factor is needed to convert eg precip from kg/s to mm/day 
 
 
-    for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-        runnr="{0:04}".format(i)
-        filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
-        nc = Dataset(filename,mode='r')
-        
-	lats = nc.variables['lat'][:]
-	lons = nc.variables['lon'][:]
-        var=nc.variables[varname][0,:,:]*factor
+	for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
+		if (model=='isca') or (model == 'Isca'):
+			runnr="{0:04}".format(i)
+		elif model=='gfdl':
+			runnr="{0:03}".format(i)
+		filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
+		print(filename)
+
+		nc = Dataset(filename,mode='r')   
+		lats = nc.variables['lat'][:]
+		lons = nc.variables['lon'][:]
+		var=nc.variables[varname][0,:,:]*factor
 	# var_land = (xr.DataArray(var)).where(landmask==1.)
 	# var_ocean = (xr.DataArray(var)).where(landmask!=1.)
-	var = xr.DataArray(var,coords=[lats,lons],dims=['lat','lon'])
+		var = xr.DataArray(var,coords=[lats,lons],dims=['lat','lon'])
 
-        if i==runmin:
-		timeseries = [area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat)]
-		timeseries_land = [area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat)]
-		timeseries_ocean = [area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat)]
+		if i==runmin:
+			timeseries = [area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat)]
+			timeseries_land = [area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat)]
+			timeseries_ocean = [area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat)]
 
-        else:
-		timeseries.append(area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat))
-		timeseries_land.append(area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat))
-		timeseries_ocean.append(area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat))
+		else:
+			timeseries.append(area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat))
+			timeseries_land.append(area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat))
+			timeseries_ocean.append(area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat))
 
 
 #same for spin up 
-    for i in range (spinup_runmin,spinup_runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-        runnr="{0:04}".format(i)
-        filename = '/scratch/mp586/'+spinup_dir+'/run'+runnr+'/atmos_monthly.nc'
-        nc = Dataset(filename,mode='r')
+	for i in range (spinup_runmin,spinup_runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
+		if (spinup_model=='isca') or (spinup_model=='Isca'):
+			runnr="{0:04}".format(i)
+		elif spinup_model=='gfdl':
+			runnr="{0:03}".format(i)
+		filename = '/scratch/mp586/'+spinup_dir+'/run'+runnr+'/atmos_monthly.nc'
+		print(filename)
+		nc = Dataset(filename,mode='r')
         
-        var=nc.variables[varname][0,:,:]*factor
-
-	var = xr.DataArray(var,coords=[lats,lons],dims=['lat','lon'])
-
-
-        if i==runmin:
-		ts_spinup = [area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat)]
-		ts_spinup_land = [area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat)]
-		ts_spinup_ocean = [area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat)]
-
-        else:
-		ts_spinup.append(area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat))
-		ts_spinup_land.append(area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat))
-		ts_spinup_ocean.append(area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat))
-
-    timeseries=xr.DataArray(timeseries)
-    timeseries_land=xr.DataArray(timeseries_land)
-    timeseries_ocean=xr.DataArray(timeseries_ocean)
-
-    ts_spinup=xr.DataArray(ts_spinup)
-    ts_spinup_land=xr.DataArray(ts_spinup_land)
-    ts_spinup_ocean=xr.DataArray(ts_spinup_ocean) 
-
-    timeseries = xr.concat([ts_spinup,timeseries],'dim_0')
-    timeseries_land = xr.concat([ts_spinup_land,timeseries_land],'dim_0')
-    timeseries_ocean = xr.concat([ts_spinup_ocean,timeseries_ocean],'dim_0')
+		var=nc.variables[varname][0,:,:]*factor
+		
+		var = xr.DataArray(var,coords=[lats,lons],dims=['lat','lon'])
 
 
-    figure = plt.plot()
-    months=np.linspace(runmin,((spinup_runmax+runmax)-1),timeseries.size)
-    if select == 'all':
-	    plt.plot(months,timeseries,'r',label='total')
-	    plt.plot(months,timeseries_land,'g',label='land only')
-	    plt.plot(months,timeseries_ocean,'b',label='ocean only')
-	    plt.title('avg '+varname+' total and land/ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+		if i==runmin:
+			ts_spinup = [area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat)]
+			ts_spinup_land = [area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat)]
+			ts_spinup_ocean = [area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat)]
+			
+		else:
+			ts_spinup.append(area_weighted_avg(var,area_array,landmask,'all_sfcs',minlat,maxlat))
+			ts_spinup_land.append(area_weighted_avg(var,area_array,landmask,'land',minlat,maxlat))
+			ts_spinup_ocean.append(area_weighted_avg(var,area_array,landmask,'ocean',minlat,maxlat))
+
+	timeseries=xr.DataArray(timeseries)
+	timeseries_land=xr.DataArray(timeseries_land)
+	timeseries_ocean=xr.DataArray(timeseries_ocean)
+
+	ts_spinup=xr.DataArray(ts_spinup)
+	ts_spinup_land=xr.DataArray(ts_spinup_land)
+	ts_spinup_ocean=xr.DataArray(ts_spinup_ocean) 
+
+	timeseries = xr.concat([ts_spinup,timeseries],'dim_0')
+	timeseries_land = xr.concat([ts_spinup_land,timeseries_land],'dim_0')
+	timeseries_ocean = xr.concat([ts_spinup_ocean,timeseries_ocean],'dim_0')
+
+
+	figure = plt.plot()
+	months=np.linspace(runmin,((spinup_runmax+runmax)-1),timeseries.size)
+	if select == 'all':
+		plt.plot(months,timeseries,'r',label='total')
+		plt.plot(months,timeseries_land,'g',label='land only')
+		plt.plot(months,timeseries_ocean,'b',label='ocean only')
+		plt.title('avg '+varname+' total and land/ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
     
-    if select == 'land':
-	    plt.plot(months,timeseries_land,'g',label='land only')
-	    plt.title('avg '+varname+' land only between '+str(minlat)+' - '+str(maxlat)+' N')
-    elif select == 'ocean': 
-	    plt.plot(months,timeseries_ocean,'b',label='ocean only')
-	    plt.title('avg '+varname+' ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
-    elif select =='total':
-	    plt.plot(months,timeseries,'r',label='total')
-	    plt.title('avg '+varname+' total (land and ocean) between '+str(minlat)+' - '+str(maxlat)+' N')
+	if select == 'land':
+		plt.plot(months,timeseries_land,'g',label='land only')
+		plt.title('avg '+varname+' land only between '+str(minlat)+' - '+str(maxlat)+' N')
+	elif select == 'ocean': 
+		plt.plot(months,timeseries_ocean,'b',label='ocean only')
+		plt.title('avg '+varname+' ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+	elif select =='total':
+		plt.plot(months,timeseries,'r',label='total')
+		plt.title('avg '+varname+' total (land and ocean) between '+str(minlat)+' - '+str(maxlat)+' N')
 
-    plt.xlabel('Month #')
-    plt.ylabel('Global average')
-    plt.legend()
-    plt.grid(b=True)
-    plt.show()    
-    return(timeseries)
-
-
+	plt.xlabel('Month #')
+	plt.ylabel('Global average')
+	plt.legend()
+	plt.grid(b=True)
+	plt.show()    
+	return(timeseries)
 
 
-def seasonal_surface_variable(testdir,runmin,runmax,varname,units,factor=1.,level=None): 
+
+
+def seasonal_surface_variable(testdir,model,runmin,runmax,varname,units,factor=1.,level=None): 
 
     print(varname+' '+str(factor))
 
     plt.close()
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-        runnr="{0:04}".format(i)
+        if model=='isca':
+		runnr="{0:04}".format(i)
+	elif model=='gfdl':
+		runnr="{0:03}".format(i)
         filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
               
@@ -404,10 +420,13 @@ def seasonal_surface_variable(testdir,runmin,runmax,varname,units,factor=1.,leve
 
     return(var,var_avg,var_seasonal_avg,var_month_avg,time)
 
-def seasonal_4D_variable(testdir,runmin,runmax,varname,units): 
+def seasonal_4D_variable(testdir,model,runmin,runmax,varname,units): 
 
     for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
-        runnr="{0:04}".format(i)
+        if model=='isca':
+		runnr="{0:04}".format(i)
+	elif model=='gfdl':
+		runnr="{0:03}".format(i)
         filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
         nc = Dataset(filename,mode='r')
               
@@ -1887,9 +1906,9 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 	    plt.plot(lons,meravg_thin)
 	    plt.xlabel('Longitude')
 	    plt.ylabel(title+' ('+units+') 30S-30N')
-
+#	    plt.tight_layout()
 	    plt.show()
-
+#	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax), bbox_inches='tight')
     return fig
 
 
@@ -2373,7 +2392,7 @@ def area_integral(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90.,fact
 	# return w_avg
 
 
-def mass_streamfunction(testdir,runmin,runmax,v='vcomp', a=6376.0e3, g=9.8):
+def mass_streamfunction(testdir,model,runmin,runmax,v='vcomp', a=6376.0e3, g=9.8):
     """Calculate the mass streamfunction for the atmosphere.
     Based on a vertical integral of the meridional wind.
     Ref: Physics of Climate, Peixoto & Oort, 1992.  p158.
@@ -2396,7 +2415,10 @@ def mass_streamfunction(testdir,runmin,runmax,v='vcomp', a=6376.0e3, g=9.8):
     """
 
     for i in range(runmin,runmax):
-	    runnr="{0:04}".format(i)
+	    if model=='isca':
+		    runnr="{0:04}".format(i)
+	    elif model=='gfdl':
+		    runnr="{0:03}".format(i)
 	    data = xr.open_dataset('/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc')
 	    vbar = data[v].mean('lon')
 	    if i == runmin:
