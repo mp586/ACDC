@@ -62,24 +62,24 @@ print ('land sfc area (*10^14) = '+str(land_sfc_area/(10**14)))
 ocean_sfc_area = np.sum(area_array.where(landmask!=1.))
 print ('ocean sfc area (*10^14) = '+str(ocean_sfc_area/(10**14)))
 
-plotting_routines_kav7.globavg_var_timeseries_total_and_land(outdir,testdir,area_array,'t_surf',1,runmax,1.,landmaskxr)
+plotting_routines_kav7.globavg_var_timeseries_total_and_land(outdir,testdir,model,area_array,'t_surf',1,runmax,1.,landmaskxr)
 # plotting_routines_kav7.globavg_var_timeseries_total_and_land(testdir,area_array,'t_surf',1,runmax,1.,landmaskxr,minlat=-30.,maxlat=30.)
-plotting_routines_kav7.globavg_var_timeseries_total_and_land(outdir,testdir,area_array,'bucket_depth',1,runmax,1.,landmaskxr, select='land')
+# plotting_routines_kav7.globavg_var_timeseries_total_and_land(outdir,testdir,model,area_array,'bucket_depth',1,runmax,1.,landmaskxr, select='land')
 
 
 
 
-[msf,msf_avg,msf_seasonal_avg,msf_month_avg] = plotting_routines_kav7.mass_streamfunction(testdir,runmin,runmax) # 
+[msf,msf_avg,msf_seasonal_avg,msf_month_avg] = plotting_routines_kav7.mass_streamfunction(testdir,model,runmin,runmax) # 
 plotting_routines_kav7.plot_streamfunction_seasonal(msf_seasonal_avg)
 
 
-[tsurf,tsurf_avg,tsurf_seasonal_avg,tsurf_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'t_surf','K')
-[net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'flux_lhe','W/m^2',factor = 1/28.) # latent heat flux at surface (UP)
+[tsurf,tsurf_avg,tsurf_seasonal_avg,tsurf_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'t_surf','K')
+[net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'flux_lhe','W/m^2',factor = 1/28.) # latent heat flux at surface (UP)
 # 1/28.=conversion from W/m^# 2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg, see www.ce.utexas.edu/prof/maidment/CE374KSpr12/.../Latent%20heat%20flux.pptx @30DegC
-[precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'precipitation','kg/m2s', factor=86400)
-[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'bucket_depth','m')
-[flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'flux_oceanq','W/m^2')
-[slp,slp_avg,slp_seasonal_avg,slp_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'slp','hPa', factor = 1/100.)
+[precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'precipitation','kg/m2s', factor=86400)
+#[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'bucket_depth','m')
+[flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'flux_oceanq','W/m^2')
+[slp,slp_avg,slp_seasonal_avg,slp_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'slp','hPa', factor = 1/100.)
 
 # plotting_routines_kav7.any_configuration_plot(outdir,runmin,runmax,-90.,90.,bucket_depth_avg.where(landmask==1.),area_array,'m','bucket_depth','fromwhite',landmaskxr,landlats,landlons,minval=0.,maxval=.5)
 # if runmin == 1:
@@ -142,9 +142,9 @@ plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_seasonal_avg.sel(se
 
 
 
-[ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'ucomp','m/s')
-[vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,runmin,runmax,'vcomp','m/s')
-[omega,omega_avg,omega_seasonal_avg,omega_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'omega','Pa/s',level=39)
+[ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,model,runmin,runmax,'ucomp','m/s')
+[vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,model,runmin,runmax,'vcomp','m/s')
+[omega,omega_avg,omega_seasonal_avg,omega_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'omega','Pa/s',level=39)
 
 plotting_routines_kav7.winds_anomaly(ucomp_avg,vcomp_avg,landmaskxr,landlats,landlons)
 
@@ -205,8 +205,8 @@ print('GPCP mean precip = '+str(gpcp_avg))
 
 
 
-[rh,rh_avg,rh_seasonal_avg,rh_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'rh','%',level=39)
-[sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,runmin,runmax,'sphum','kg/kg',level='all')
+[rh,rh_avg,rh_seasonal_avg,rh_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'rh','%',level=39)
+[sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level='all')
 
 
 if runmin == 1: 
