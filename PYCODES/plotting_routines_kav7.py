@@ -445,8 +445,9 @@ def seasonal_4D_variable(testdir,model,runmin,runmax,varname,units):
     var_avg=var.mean(dim='time')
     var_seasonal_avg=var.groupby('time.season').mean('time') 
     var_month_avg=var.groupby('time.month').mean('time')
+    var_annual_avg=var.groupby('time.year').mean('time')
 
-    return(var,var_avg,var_seasonal_avg,var_month_avg,time)
+    return(var,var_avg,var_seasonal_avg,var_month_avg,var_annual_avg,time)
 
 # def zonavg_plot(field,title,varname,units): #field needs to have dimensions lat|lon
 
@@ -2233,6 +2234,59 @@ def winds_anomaly(uwind,vwind,landmaskxr,landlats,landlons,level=39, minval = -8
 	plt.show()
 	return fig
 
+def winds_anomaly_uv_vectors(uwind,vwind,landmaskxr,landlats,landlons,level=39):
+
+	landmask = np.asarray(landmaskxr)
+
+	fig = plt.figure()
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+	lons = uwind.lon
+	lats = uwind.lat
+	pres = uwind.pres_lev[level]	
+	uwind = uwind[level,:,:]
+	vwind = vwind[level,:,:]
+	uwind,lons_shift = shiftgrid(np.max(lons)-180.,uwind,lons,start=False,
+			       cyclic=np.max(lons))
+	vwind,lons_shift = shiftgrid(np.max(lons)-180.,vwind,lons,start=False,
+			       cyclic=np.max(lons))	
+	uwind, lons_cyclic = addcyclic(uwind, lons_shift)
+	vwind, lons_cyclic = addcyclic(vwind, lons_shift)
+
+	lon, lat = np.meshgrid(lons_cyclic, lats)
+	xi, yi = m(lon, lat)
+
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+
+	plt.title('Wind at '+str(pres)+' hPa')
+	uwind = xr.DataArray(uwind)
+	zonavg_u = uwind.mean(dim='dim_1')
+	zonavg_u = np.expand_dims(zonavg_u,axis=1)
+	zonavg_u = np.repeat(zonavg_u,lons_cyclic.shape[0],axis=1)
+	array = uwind - zonavg_u
+
+	vwind = xr.DataArray(vwind)
+	zonavg_v = vwind.mean(dim='dim_1')
+	zonavg_v = np.expand_dims(zonavg_v,axis=1)
+	zonavg_v = np.repeat(zonavg_v,lons_cyclic.shape[0],axis=1)
+
+
+	landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
+	landmask, lons_cyclic = addcyclic(landmask, landlons)
+
+	if np.any(landmask != 0.):
+		m.contour(xi,yi,landmask, 1)
+# just to get white background
+	pal = plt.cm.Blues
+	pal.set_under('w',None)
+	cs = m.pcolor(xi,yi,array*0., cmap=pal,vmin=0.,vmax=0.)
+
+	Q = plt.quiver(xi[::5,::5], yi[::5,::5], (uwind-zonavg_u)[::5,::5], (vwind-zonavg_v)[::5,::5], units='width')
+	qk = plt.quiverkey(Q, 0.9, 0.9, 10, r'$10 \frac{m}{s}$', 
+			   labelpos='E', coordinates='figure')
+
+	plt.show()
+	return fig
 
 
 
