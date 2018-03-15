@@ -1797,8 +1797,10 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
-
+    # the following line is causing trouble
     array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+
+
     array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
 
     zonavg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-90.,maxlat=90.,axis=1)

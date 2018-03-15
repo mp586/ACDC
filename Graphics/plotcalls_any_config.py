@@ -10,7 +10,7 @@ import os
 import sys
 sys.path.insert(0, '/scratch/mp586/Code/PYCODES')
 import plotting_routines
-import plotting_routines_kav7 as plotting_routines_kav7 # isca and gfdl have 0:04 and 0:03 
+import plotting_routines_kav7_isca as plotting_routines_kav7 # isca and gfdl have 0:04 and 0:03 
 # filename format, respectively --> choose correct plotting routines kav7 or kav7_isca .py
 
 import stats as st
@@ -117,11 +117,11 @@ PE_avg=precipitation_avg-net_lhe_avg
 
 # # plotting_routines_kav7.any_configuration_plot(-90.,90.,flux_oceanq_month_avg.sel(month=7),area_array,'W/m^2','qflux output july','tempdiff',landmaskxr,landlats,landlons,nmb_contours=10,minval=-200,maxval=200)
 
-plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg,area_array,'mm/day','E avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4,minval = 0., maxval = 8.)
+###plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg,area_array,'mm/day','E avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4,minval = 0., maxval = 8.)
 
 # plotting_routines_kav7.any_configuration_plot(-90.,90.,slp_avg,area_array,'hPa','slp avg','slp',landmaskxr,landlats,landlons,nmb_contours=10)
 
-plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg,area_array,'mm/day','P avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=8,minval=0.,maxval=8.)
+###plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg,area_array,'mm/day','P avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=8,minval=0.,maxval=8.)
 plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_avg,area_array,'K','avg surface T','temp',landmaskxr,landlats,landlons,nmb_contours=5)
 
 plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_avg.where(landmask==1.),area_array,'K','avg surface T','temp',landmaskxr,landlats,landlons,nmb_contours=5)

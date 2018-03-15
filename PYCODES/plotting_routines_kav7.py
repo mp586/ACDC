@@ -1796,21 +1796,27 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 
     ax1 = plt.subplot2grid((5,8), (0,1), colspan = 5, rowspan = 3)
 
-
+    print lons
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
-
-    array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+    
+    #newline to replace shiftgrid line which is causing trouble
     array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
 
     zonavg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-90.,maxlat=90.,axis=1)
     meravg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-30.,maxlat=30.,axis=0)
 
+    lons_128 = lons # non-cyclic lons, i.e. lenght = 128
+    array, lons = addcyclic(array, lons)
+    lons, array = m.shiftdata(lons, datain = array, lon_0=0.)
+    array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
+
+    #the following line causes DataType error all of a sudden... 
+    #array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+
     m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0], fontsize=small)
     m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1], fontsize=small)
-    array, lons_cyclic = addcyclic(array, lons)
-    array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
 
-    lon, lat = np.meshgrid(lons_cyclic, selected_lats)
+    lon, lat = np.meshgrid(lons, lats)
     xi, yi = m(lon, lat)
 
     dlons = lons[100] - lons[99]
@@ -1904,7 +1910,7 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 	    ax2.invert_xaxis()
 
 	    ax3 = plt.subplot2grid((5,8), (4,1), colspan = 4)
-	    plt.plot(lons,meravg_thin)
+	    plt.plot(lons_128,meravg_thin)
 	    plt.xlabel('Longitude')
 	    plt.ylabel(title+' ('+units+') 30S-30N')
 #	    plt.tight_layout()
