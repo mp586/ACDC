@@ -69,8 +69,8 @@ plotting_routines_kav7.globavg_var_timeseries_total_and_land(outdir,testdir,mode
 
 
 
-[msf,msf_avg,msf_seasonal_avg,msf_month_avg] = plotting_routines_kav7.mass_streamfunction(testdir,model,runmin,runmax) # 
-plotting_routines_kav7.plot_streamfunction_seasonal(msf_seasonal_avg)
+# [msf,msf_avg,msf_seasonal_avg,msf_month_avg] = plotting_routines_kav7.mass_streamfunction(testdir,model,runmin,runmax) # 
+# plotting_routines_kav7.plot_streamfunction_seasonal(msf_seasonal_avg)
 
 
 [tsurf,tsurf_avg,tsurf_seasonal_avg,tsurf_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'t_surf','K')
