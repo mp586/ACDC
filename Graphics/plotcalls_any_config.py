@@ -122,7 +122,9 @@ plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg,area_array,'m
 # plotting_routines_kav7.any_configuration_plot(-90.,90.,slp_avg,area_array,'hPa','slp avg','slp',landmaskxr,landlats,landlons,nmb_contours=10)
 
 plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg,area_array,'mm/day','P avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=8,minval=0.,maxval=8.)
-plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_avg,area_array,'K','avg surface T','temp',landmaskxr,landlats,landlons)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_avg,area_array,'K','avg surface T','temp',landmaskxr,landlats,landlons,nmb_contours=5)
+
+plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_avg.where(landmask==1.),area_array,'K','avg surface T','temp',landmaskxr,landlats,landlons,nmb_contours=5)
 JJA = 'JJA'
 DJF = 'DJF'
 MAM = 'MAM'
@@ -150,12 +152,12 @@ SON = 'SON'
 
 [ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,ucomp_annual_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,model,runmin,runmax,'ucomp','m/s')
 [vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,vcomp_annual_avg,time]=plotting_routines_kav7.seasonal_4D_variable(testdir,model,runmin,runmax,'vcomp','m/s')
-[omega,omega_avg,omega_seasonal_avg,omega_month_avg,omega_annual_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'omega','Pa/s',level=39)
+# [omega,omega_avg,omega_seasonal_avg,omega_month_avg,omega_annual_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'omega','Pa/s',level=39)
 
-plotting_routines_kav7.winds_anomaly_uv_vectors(ucomp_avg,vcomp_annual_avg,landmaskxr,landlats,landlons)
+plotting_routines_kav7.winds_anomaly_uv_vectors(ucomp_avg,vcomp_avg,landmaskxr,landlats,landlons, level = 37)
 
-for i in range(0,10):
-     plotting_routines_kav7.winds_anomaly_uv_vectors(ucomp_annual_avg[i,:,:,:],vcomp_annual_avg[i,:,:,:],landmaskxr,landlats,landlons)
+# for i in range(0,10):
+#      plotting_routines_kav7.winds_anomaly_uv_vectors(ucomp_annual_avg[i,:,:,:],vcomp_annual_avg[i,:,:,:],landmaskxr,landlats,landlons)
 
 
 plotting_routines_kav7.winds_anomaly(ucomp_avg,vcomp_avg,landmaskxr,landlats,landlons)

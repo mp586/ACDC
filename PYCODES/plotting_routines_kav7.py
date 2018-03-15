@@ -2281,7 +2281,7 @@ def winds_anomaly_uv_vectors(uwind,vwind,landmaskxr,landlats,landlons,level=39):
 	pal.set_under('w',None)
 	cs = m.pcolor(xi,yi,array*0., cmap=pal,vmin=0.,vmax=0.)
 
-	Q = plt.quiver(xi[::5,::5], yi[::5,::5], (uwind-zonavg_u)[::5,::5], (vwind-zonavg_v)[::5,::5], units='width')
+	Q = plt.quiver(xi[::3,::3], yi[::3,::3], (uwind-zonavg_u)[::3,::3], (vwind-zonavg_v)[::3,::3], units='width')
 	qk = plt.quiverkey(Q, 0.9, 0.9, 10, r'$10 \frac{m}{s}$', 
 			   labelpos='E', coordinates='figure')
 
