@@ -10,7 +10,7 @@ import os
 import sys
 sys.path.insert(0, '/scratch/mp586/Code/PYCODES')
 import plotting_routines
-import plotting_routines_kav7_isca as plotting_routines_kav7 # isca and gfdl have 0:04 and 0:03 
+import plotting_routines_kav7 as plotting_routines_kav7 # isca and gfdl have 0:04 and 0:03 
 # filename format, respectively --> choose correct plotting routines kav7 or kav7_isca .py
 
 import stats as st

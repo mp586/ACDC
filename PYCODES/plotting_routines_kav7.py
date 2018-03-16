@@ -1799,7 +1799,6 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
     print lons
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
     
-    #newline to replace shiftgrid line which is causing trouble
     array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
 
     zonavg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-90.,maxlat=90.,axis=1)
@@ -1807,11 +1806,14 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 
     lons_128 = lons # non-cyclic lons, i.e. lenght = 128
     array, lons = addcyclic(array, lons)
-    lons, array = m.shiftdata(lons, datain = array, lon_0=0.)
-    array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
+    # #newline to replace shiftgrid line which is causing trouble - Doesn't work perfectly
+    # lons, array = m.shiftdata(lons, datain = array, lon_0=0.)
+    # array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
 
-    #the following line causes DataType error all of a sudden... 
-    #array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+    array = np.asarray(array) #- This line fixes the problem!
+    #the following line caused DataType error all of a sudden... Doesnt' accept xarray as input array for shiftgrid anymore.
+    array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+    array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
 
     m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0], fontsize=small)
     m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1], fontsize=small)
@@ -1881,9 +1883,6 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 # Read landmask
 
 # Add rectangles
-
-
-
     landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
     landmask, lons_cyclic = addcyclic(landmask, landlons)
 
