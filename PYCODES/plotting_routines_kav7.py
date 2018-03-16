@@ -1796,7 +1796,7 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 
     ax1 = plt.subplot2grid((5,8), (0,1), colspan = 5, rowspan = 3)
 
-    print lons
+
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
     
     array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
@@ -1899,7 +1899,7 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
     else:
    
 	    ax2 = plt.subplot2grid((5,8), (0,6), rowspan = 3)
-    
+
 	    plt.plot(zonavg_thin,lats)
 	    plt.ylabel('Latitude', size=med)
 	    plt.xlabel(title+' ('+units+')', size=med)
@@ -1908,13 +1908,13 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 	    ax2.tick_params(axis='both', which='major', labelsize=small)
 	    ax2.invert_xaxis()
 
-	    ax3 = plt.subplot2grid((5,8), (4,1), colspan = 4)
-	    plt.plot(lons_128,meravg_thin)
-	    plt.xlabel('Longitude')
-	    plt.ylabel(title+' ('+units+') 30S-30N')
-#	    plt.tight_layout()
-	    plt.show()
-#	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax), bbox_inches='tight')
+# 	    ax3 = plt.subplot2grid((5,8), (4,1), colspan = 4)
+# 	    plt.plot(lons_128,meravg_thin)
+# 	    plt.xlabel('Longitude')
+# 	    plt.ylabel(title+' ('+units+') 30S-30N')
+# #	    plt.tight_layout()
+ 	    plt.show()
+# #	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax), bbox_inches='tight')
     return fig
 
 

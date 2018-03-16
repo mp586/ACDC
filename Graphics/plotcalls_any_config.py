@@ -67,11 +67,16 @@ plotting_routines_kav7.globavg_var_timeseries_total_and_land(outdir,testdir,mode
 # plotting_routines_kav7.globavg_var_timeseries_total_and_land(outdir,testdir,model,area_array,'bucket_depth',1,runmax,1.,landmaskxr, select='land')
 
 
-
+########### Mass Stream function plots 
+# not working atm: File "Graphics/plotcalls_any_config.py", line 72, in <module>
+  #   [msf,msf_avg,msf_seasonal_avg,msf_month_avg] = plotting_routines_kav7.mass_streamfunction(testdir,model,runmin,runmax) # 
+  # File "/scratch/mp586/Code/PYCODES/plotting_routines_kav7.py", line 2490, in mass_streamfunction
+  #   msf[i-runmin] = (np.cumsum(vbar*dp, axis='pfull')*c)
+# TypeError: 'str' object cannot be interpreted as an index
 
 # [msf,msf_avg,msf_seasonal_avg,msf_month_avg] = plotting_routines_kav7.mass_streamfunction(testdir,model,runmin,runmax) # 
 # plotting_routines_kav7.plot_streamfunction_seasonal(msf_seasonal_avg)
-
+###########
 
 [tsurf,tsurf_avg,tsurf_seasonal_avg,tsurf_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'t_surf','K')
 [net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=plotting_routines_kav7.seasonal_surface_variable(testdir,model,runmin,runmax,'flux_lhe','W/m^2',factor = 1/28.) # latent heat flux at surface (UP)
@@ -111,17 +116,17 @@ PE_avg=precipitation_avg-net_lhe_avg
 
 # plotting_routines_kav7.any_configuration_plot(-100.,100.,(PE_avg).where(landmask==1.),area_array,'mm/day','P-E avg','rainnorm',landmaskxr,landlats,landlons,minval=-2.,maxval=2.)
 
-# plotting_routines_kav7.any_configuration_plot(-100.,100.,(PE_avg),area_array,'mm/day','P-E avg','rainnorm',landmaskxr,landlats,landlons,minval=-2.,maxval=2.)
+plotting_routines_kav7.any_configuration_plot(-100.,100.,(PE_avg),area_array,'mm/day','P-E avg','rainnorm',landmaskxr,landlats,landlons,minval=-2.,maxval=2.)
 
 # # plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg.where(landmask==1.),area_array,'mm/day','E avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4, minval = 0., maxval = 8.)
 
 # # plotting_routines_kav7.any_configuration_plot(-90.,90.,flux_oceanq_month_avg.sel(month=7),area_array,'W/m^2','qflux output july','tempdiff',landmaskxr,landlats,landlons,nmb_contours=10,minval=-200,maxval=200)
 
-###plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg,area_array,'mm/day','E avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4,minval = 0., maxval = 8.)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,net_lhe_avg,area_array,'mm/day','E avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=4,minval = 0., maxval = 8.)
 
 # plotting_routines_kav7.any_configuration_plot(-90.,90.,slp_avg,area_array,'hPa','slp avg','slp',landmaskxr,landlats,landlons,nmb_contours=10)
 
-###plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg,area_array,'mm/day','P avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=8,minval=0.,maxval=8.)
+plotting_routines_kav7.any_configuration_plot(-90.,90.,precipitation_avg,area_array,'mm/day','P avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=8,minval=0.,maxval=8.)
 plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_avg,area_array,'K','avg surface T','temp',landmaskxr,landlats,landlons,nmb_contours=5)
 
 plotting_routines_kav7.any_configuration_plot(-90.,90.,tsurf_avg.where(landmask==1.),area_array,'K','avg surface T','temp',landmaskxr,landlats,landlons,nmb_contours=5)
