@@ -12,6 +12,8 @@ sys.path.insert(0, '/scratch/mp586/Code/PYCODES') # personal module
 import stats as st
 from scipy import signal
 GFDL_BASE = os.environ['GFDL_BASE']
+from scipy import stats
+
 
 class MidpointNormalize(colors.Normalize):
 	"""
@@ -1769,7 +1771,7 @@ def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
 
     plt.show()
 
-def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,landmaskxr,landlats,landlons,nmb_contours=0,minval=None,maxval=None,month_annotate=None):
+def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,units,title,palette,landmaskxr,landlats,landlons,nmb_contours=0,minval=None,maxval=None,month_annotate=None):
 # plotting only the zonal average next to the map 
 # currently hard coded -30.,30. slice instead of squarelats_min, squarelats_max
     plt.close()
@@ -1792,7 +1794,7 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
     landmask = np.asarray(landmaskxr)
 
 
-    fig = plt.figure()
+    fig = plt.figure(figsize = (25,10))
 
     ax1 = plt.subplot2grid((5,8), (0,1), colspan = 5, rowspan = 3)
 
@@ -1869,7 +1871,10 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 
     if nmb_contours != 0:  # add contours 
 	    cont = m.contour(xi,yi,array,nmb_contours,cmap='PuBu_r', linewidth=5)
-	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=med)
+	    if cont>=1.:
+		    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=med)
+	    else:
+		    plt.clabel(cont, inline=2, fmt='%1.3f', fontsize=med)
 
 
 
@@ -1913,8 +1918,12 @@ def any_configuration_plot(minlat,maxlat,array,area_array,units,title,palette,la
 # 	    plt.xlabel('Longitude')
 # 	    plt.ylabel(title+' ('+units+') 30S-30N')
 # #	    plt.tight_layout()
- 	    plt.show()
-# #	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax), bbox_inches='tight')
+
+	    manager = plt.get_current_fig_manager()
+	    manager.window.showMaximized()
+	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax)+'_highres.png', format = 'png', dpi = 400, bbox_inches='tight')
+	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax)+'.png', format = 'png', bbox_inches='tight')
+	    plt.show()
     return fig
 
 
@@ -2486,7 +2495,8 @@ def mass_streamfunction(testdir,model,runmin,runmax,v='vcomp', a=6376.0e3, g=9.8
 	    c = 2*np.pi*a*np.cos(vbar.lat*np.pi/180) / g
 # take a diff of half levels, and assign to pfull coordinates
 	    dp = xr.DataArray(data.phalf.diff('phalf').values*100, coords=[('pfull', data.pfull)])
-	    msf[i-runmin] = (np.cumsum(vbar*dp, axis='pfull')*c)
+	    msf[i-runmin] = (np.cumsum(vbar*dp, axis=vbar.dims.index('pfull')))*c
+	    # msf[i-runmin] = (np.cumsum(vbar*dp, axis='pfull')*c)
 	    # why cumsum and not # (np.sum(vbar*dp, axis = vbar.dims.index('pfull')))*c
     time=[np.array(np.linspace(0,(runmax-runmin-1),(runmax-runmin),dtype='datetime64[M]'))]
     msf=xr.DataArray(msf*1e-10,coords=[time[0],data.pfull,data.lat],dims=['time','pfull','lat'])
@@ -2591,4 +2601,80 @@ def plot_streamfunction_seasonal(msf_array,units='10^10 kg/s'):
 	plt.ylabel('Pressure (hPa)')
 	plt.gca().invert_yaxis()
 
+	plt.show()
+
+
+def rh_P_E(rh_avg,P_avg,E_avg,landmask):
+	rh_avg_tropical_land = rh_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
+	precip_avg_tropical_land = P_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
+	evap_avg_tropical_land = E_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
+
+	rh_1d = np.asarray(rh_avg_tropical_land).flatten()
+	P_1d = np.asarray(precip_avg_tropical_land).flatten()
+	E_1d = np.asarray(evap_avg_tropical_land).flatten()
+
+# 	rh_P_E = np.stack((rh_1d,P_1d,E_1d),axis=1)
+
+	mask = ~np.isnan(rh_1d)
+	[slope, intercept, r_value, p_value, std_err] = stats.linregress(rh_1d[mask],P_1d[mask])
+	line_P = slope*rh_1d + intercept
+	[slope, intercept, r_value, p_value, std_err] = stats.linregress(rh_1d[mask],E_1d[mask])
+	line_E = slope*rh_1d + intercept
+
+
+	plt.plot(rh_1d,P_1d,'b*',label = 'P')
+	plt.plot(rh_1d,E_1d,'g*',label = 'E')
+#	plt.plot(rh_1d, line_P, 'b', label = 'P_regr')
+#	plt.plot(rh_1d, line_E, 'g', label = 'E_regr')
+
+	plt.legend()
+	plt.xlabel('RH %')
+	plt.ylabel('P and E (mm/d)')
+	plt.title('P and E versus RH, annual mean')
+	manager = plt.get_current_fig_manager()
+	manager.window.showMaximized()	
+	plt.show()
+
+
+def rh_P_E_change(rh_avg,rh_avg_ctl,P_avg,P_avg_ctl,E_avg,E_avg_ctl,landmask):
+	rh_avg_tropical_land = rh_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
+	precip_avg_tropical_land = P_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
+	evap_avg_tropical_land = E_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
+
+	rh_1d = np.asarray(rh_avg_tropical_land).flatten()
+	P_1d = np.asarray(precip_avg_tropical_land).flatten()
+	E_1d = np.asarray(evap_avg_tropical_land).flatten()
+
+	rh_avg_ctl_tropical_land = rh_avg_ctl.where(landmask==1.).sel(lat=slice(-30.,30.))
+	precip_avg_ctl_tropical_land = P_avg_ctl.where(landmask==1.).sel(lat=slice(-30.,30.))
+	evap_avg_ctl_tropical_land = E_avg_ctl.where(landmask==1.).sel(lat=slice(-30.,30.))
+
+	rh_ctl_1d = np.asarray(rh_avg_ctl_tropical_land).flatten()
+	P_ctl_1d = np.asarray(precip_avg_ctl_tropical_land).flatten()
+	E_ctl_1d = np.asarray(evap_avg_ctl_tropical_land).flatten()
+
+
+# 	rh_P_E = np.stack((rh_1d,P_1d,E_1d),axis=1)
+
+	# mask = ~np.isnan(rh_1d)
+	# [slope, intercept, r_value, p_value, std_err] = stats.linregress(rh_1d[mask],P_1d[mask])
+	# line_P = slope*rh_1d + intercept
+	# [slope, intercept, r_value, p_value, std_err] = stats.linregress(rh_1d[mask],E_1d[mask])
+	# line_E = slope*rh_1d + intercept
+
+
+	plt.plot(rh_1d,P_1d,'b*',label = 'P')
+	plt.plot(rh_ctl_1d,P_ctl_1d,'c*',label = 'P_ctl')
+	plt.plot(rh_1d,E_1d,'g*',label = 'E')
+	plt.plot(rh_ctl_1d,E_ctl_1d,'y*',label = 'E_ctl')
+
+#	plt.plot(rh_1d, line_P, 'b', label = 'P_regr')
+#	plt.plot(rh_1d, line_E, 'g', label = 'E_regr')
+
+	plt.legend()
+	plt.xlabel('RH %')
+	plt.ylabel('P and E (mm/d)')
+	plt.title('P and E versus RH, annual mean')
+	manager = plt.get_current_fig_manager()
+	manager.window.showMaximized()	
 	plt.show()
