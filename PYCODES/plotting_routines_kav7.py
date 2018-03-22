@@ -1350,9 +1350,10 @@ def worldmap_variable(field,units,title,palette,minval,maxval,contourson=False):
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 
-    # field,lons = shiftgrid(np.max(lons)-180.,field,lons,start=False,cyclic=np.max(lons))
-    # field, lons_cyclic = addcyclic(field, lons)
-    # field = xr.DataArray(field,coords=[lats,lons_cyclic],dims=['lat','lon'])
+    field, lons = addcyclic(field, lons)
+    field = np.asarray(field) 
+    field,lons = shiftgrid(np.max(lons)-180.,field,lons,start=False,cyclic=np.max(lons))
+    field = xr.DataArray(field,coords=[lats,lons],dims=['lat','lon'])
 
 
     lon, lat = np.meshgrid(lons, lats)
@@ -2545,6 +2546,13 @@ def plot_streamfunction(msf_array,title,units='10^10 kg/s'):
 
 def plot_streamfunction_seasonal(msf_array,units='10^10 kg/s'):
 
+	# fix this with fig, axes = plt.subplots(2,2,sharex = True, sharey = True)
+	# cset1 = axes[0,0].contourf(y, p, msf_array.sel(season='MAM'), 
+	# 			   norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r')
+	# cont = axes[0,0].contourf(y, p, msf_array.sel(season='MAM'), 
+	# 			  norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r')
+	# axes[0,0].gca().invert_yaxis()
+
 	matplotlib.rcParams['contour.negative_linestyle']= 'dashed'
 
 	lats = msf_array.lat
@@ -2604,72 +2612,80 @@ def plot_streamfunction_seasonal(msf_array,units='10^10 kg/s'):
 	plt.show()
 
 
-def rh_P_E(rh_avg,P_avg,E_avg,landmask):
+def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 	rh_avg_tropical_land = rh_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
-	precip_avg_tropical_land = P_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
-	evap_avg_tropical_land = E_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
+	precip_avg_tropical_land = precipitation_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
+	evap_avg_tropical_land = net_lhe_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
 
-	rh_1d = np.asarray(rh_avg_tropical_land).flatten()
-	P_1d = np.asarray(precip_avg_tropical_land).flatten()
-	E_1d = np.asarray(evap_avg_tropical_land).flatten()
+	rh_land_1d = np.asarray(rh_avg_tropical_land).flatten()
+	P_land_1d = np.asarray(precip_avg_tropical_land).flatten()
+	E_land_1d = np.asarray(evap_avg_tropical_land).flatten()
 
 # 	rh_P_E = np.stack((rh_1d,P_1d,E_1d),axis=1)
 
-	mask = ~np.isnan(rh_1d)
-	[slope, intercept, r_value, p_value, std_err] = stats.linregress(rh_1d[mask],P_1d[mask])
-	line_P = slope*rh_1d + intercept
-	[slope, intercept, r_value, p_value, std_err] = stats.linregress(rh_1d[mask],E_1d[mask])
-	line_E = slope*rh_1d + intercept
+	mask = ~np.isnan(rh_land_1d)
+	[slope, intercept, r_value, p_value, std_err] = stats.linregress(rh_land_1d[mask],P_land_1d[mask])
+	line_P = slope*rh_land_1d + intercept
+	[slope, intercept, r_value, p_value, std_err] = stats.linregress(rh_land_1d[mask],E_land_1d[mask])
+	line_E = slope*rh_land_1d + intercept
 
 
-	plt.plot(rh_1d,P_1d,'b*',label = 'P')
-	plt.plot(rh_1d,E_1d,'g*',label = 'E')
+	plt.plot(rh_land_1d,P_land_1d,'b.',label = 'P land')
+	plt.plot(rh_land_1d,E_land_1d,'g.',label = 'E land')
 #	plt.plot(rh_1d, line_P, 'b', label = 'P_regr')
 #	plt.plot(rh_1d, line_E, 'g', label = 'E_regr')
 
 	plt.legend()
 	plt.xlabel('RH %')
 	plt.ylabel('P and E (mm/d)')
-	plt.title('P and E versus RH, annual mean')
+	plt.title('P and E versus RH, annual mean (land only)')
 	manager = plt.get_current_fig_manager()
 	manager.window.showMaximized()	
+	plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_land_'+str(runmin)+'-'+str(runmax), bbox_inches='tight', dpi=100)
 	plt.show()
 
+	
+	fig, ax = plt.subplots(3,1,sharex = True)
+	rh_oc_1d = np.asarray(rh_avg.where(landmask==0.).sel(lat=slice(-30.,30.))).flatten()
+	PE_avg = precipitation_avg - net_lhe_avg
+	PE_oc_1d = np.asarray(PE_avg.where(landmask==0.).sel(lat=slice(-30.,30.))).flatten()
+	PE_land_1d = np.asarray(PE_avg.where(landmask==1.).sel(lat=slice(-30.,30.))).flatten()
+	PE_all_1d = np.asarray(PE_avg.sel(lat=slice(-30.,30.))).flatten()
+	rh_all_1d = np.asarray(rh_avg.sel(lat=slice(-30.,30.))).flatten()
 
-def rh_P_E_change(rh_avg,rh_avg_ctl,P_avg,P_avg_ctl,E_avg,E_avg_ctl,landmask):
+	ax[0].plot(rh_land_1d,PE_land_1d,'g.', label='P-E land')
+	ax[1].plot(rh_oc_1d,PE_oc_1d,'b.', label='P-E ocean')
+	ax[2].plot(rh_all_1d,PE_all_1d,'k.', label='P-E allsfcs')
+	ax[0].legend()
+	ax[1].legend()
+	ax[2].legend()
+	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_PE_land_oc_all__'+str(runmin)+'-'+str(runmax), bbox_inches='tight', dpi=100)
+	fig.show()
+
+# NB if I need a (2,2) subplot, need to use ax[0, 1] -- there has to be a space between the comma and the 1 otherwise it doesn't work! i.e. .plot(...) doesn't work and also can't access the subplot that I want! OR fig, axes = plt.subplots(2,2....) and then can call axes[0,0]...
+
+def rh_P_E_change(outdir,runmin,runmax,rh_avg,rh_avg_ctl,precipitation_avg,precipitation_avg_ctl,net_lhe_avg,net_lhe_avg_ctl,landmask):
+	
 	rh_avg_tropical_land = rh_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
-	precip_avg_tropical_land = P_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
-	evap_avg_tropical_land = E_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
+	precip_avg_tropical_land = precipitation_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
+	evap_avg_tropical_land = net_lhe_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
 
-	rh_1d = np.asarray(rh_avg_tropical_land).flatten()
-	P_1d = np.asarray(precip_avg_tropical_land).flatten()
-	E_1d = np.asarray(evap_avg_tropical_land).flatten()
+	rh_land_1d = np.asarray(rh_avg_tropical_land).flatten()
+	P_land_1d = np.asarray(precip_avg_tropical_land).flatten()
+	E_land_1d = np.asarray(evap_avg_tropical_land).flatten()
 
 	rh_avg_ctl_tropical_land = rh_avg_ctl.where(landmask==1.).sel(lat=slice(-30.,30.))
-	precip_avg_ctl_tropical_land = P_avg_ctl.where(landmask==1.).sel(lat=slice(-30.,30.))
-	evap_avg_ctl_tropical_land = E_avg_ctl.where(landmask==1.).sel(lat=slice(-30.,30.))
+	precip_avg_ctl_tropical_land = precipitation_avg_ctl.where(landmask==1.).sel(lat=slice(-30.,30.))
+	evap_avg_ctl_tropical_land = net_lhe_avg_ctl.where(landmask==1.).sel(lat=slice(-30.,30.))
 
-	rh_ctl_1d = np.asarray(rh_avg_ctl_tropical_land).flatten()
-	P_ctl_1d = np.asarray(precip_avg_ctl_tropical_land).flatten()
-	E_ctl_1d = np.asarray(evap_avg_ctl_tropical_land).flatten()
+	rh_land_ctl_1d = np.asarray(rh_avg_ctl_tropical_land).flatten()
+	P_land_ctl_1d = np.asarray(precip_avg_ctl_tropical_land).flatten()
+	E_land_ctl_1d = np.asarray(evap_avg_ctl_tropical_land).flatten()
 
-
-# 	rh_P_E = np.stack((rh_1d,P_1d,E_1d),axis=1)
-
-	# mask = ~np.isnan(rh_1d)
-	# [slope, intercept, r_value, p_value, std_err] = stats.linregress(rh_1d[mask],P_1d[mask])
-	# line_P = slope*rh_1d + intercept
-	# [slope, intercept, r_value, p_value, std_err] = stats.linregress(rh_1d[mask],E_1d[mask])
-	# line_E = slope*rh_1d + intercept
-
-
-	plt.plot(rh_1d,P_1d,'b*',label = 'P')
-	plt.plot(rh_ctl_1d,P_ctl_1d,'c*',label = 'P_ctl')
-	plt.plot(rh_1d,E_1d,'g*',label = 'E')
-	plt.plot(rh_ctl_1d,E_ctl_1d,'y*',label = 'E_ctl')
-
-#	plt.plot(rh_1d, line_P, 'b', label = 'P_regr')
-#	plt.plot(rh_1d, line_E, 'g', label = 'E_regr')
+	plt.plot(rh_land_1d,P_land_1d,'b.',label = 'P land')
+	plt.plot(rh_land_ctl_1d,P_land_ctl_1d,'c.',label = 'P land ctl')
+	plt.plot(rh_land_1d,E_land_1d,'g.',label = 'E land')
+	plt.plot(rh_land_ctl_1d,E_land_ctl_1d,'y.',label = 'E land ctl')
 
 	plt.legend()
 	plt.xlabel('RH %')
@@ -2677,4 +2693,6 @@ def rh_P_E_change(rh_avg,rh_avg_ctl,P_avg,P_avg_ctl,E_avg,E_avg_ctl,landmask):
 	plt.title('P and E versus RH, annual mean')
 	manager = plt.get_current_fig_manager()
 	manager.window.showMaximized()	
+	plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_land_change_'+str(runmin)+'-'+str(runmax), bbox_inches='tight', dpi=100)	
 	plt.show()
+

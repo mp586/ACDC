@@ -89,7 +89,7 @@ plot_streamfunction_seasonal(msf_seasonal_avg)
 [rh,rh_avg,rh_seasonal_avg,rh_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'rh','%',level=39)
 [sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level='all')
 
-rh_P_E(rh_avg,precipitation_avg,net_lhe_avg,landmask)
+rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask)
 
 # any_configuration_plot(outdir,runmin,runmax,outdir,runmin,runmax,-90.,90.,bucket_depth_avg.where(landmask==1.),area_array,'m','bucket_depth','fromwhite',landmaskxr,landlats,landlons,minval=0.,maxval=.5)
 # if runmin == 1:
