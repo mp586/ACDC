@@ -1793,9 +1793,9 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
     plt.close()
 
 
-    small = 10 #largefonts 14 # smallfonts 12 # medfonts = 14
-    med = 12 #largefonts 18 # smallfonts 14 # medfonts = 16
-    lge = 14 #largefonts 22 # smallfonts 18 # medfonts = 20
+    small = 14 #largefonts 14 # smallfonts 10 # medfonts = 14
+    med = 18 #largefonts 18 # smallfonts 14 # medfonts = 16
+    lge = 22 #largefonts 22 # smallfonts 18 # medfonts = 20
 
     lats=array.lat
     lons=array.lon
@@ -2630,6 +2630,13 @@ def plot_streamfunction_seasonal(msf_array,units='10^10 kg/s'):
 
 
 def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
+
+
+
+	small = 14 #largefonts 14 # smallfonts 10 # medfonts = 14
+	med = 18 #largefonts 18 # smallfonts 14 # medfonts = 16
+	lge = 22 #largefonts 22 # smallfonts 18 # medfonts = 20
+
 	rh_avg_tropical_land = rh_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
 	precip_avg_tropical_land = precipitation_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
 	evap_avg_tropical_land = net_lhe_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
@@ -2660,7 +2667,7 @@ def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 # 	plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_land_'+str(runmin)+'-'+str(runmax), bbox_inches='tight', dpi=100)
 # 	plt.show()
 
-	fig, ax = plt.subplots(3,1,sharex = True,figsize = (25,10))
+	fig, ax = plt.subplots(2,1,sharex = True,figsize = (15,10))
 	rh_oc_1d = np.asarray(rh_avg.where(landmask==0.).sel(lat=slice(-30.,30.))).flatten()
 	PE_avg = precipitation_avg - net_lhe_avg
 	PE_oc_1d = np.asarray(PE_avg.where(landmask==0.).sel(lat=slice(-30.,30.))).flatten()
@@ -2670,14 +2677,21 @@ def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 
 	ax[0].plot(rh_land_1d,PE_land_1d,'g.', label='P-E land')
 	ax[1].plot(rh_oc_1d,PE_oc_1d,'b.', label='P-E ocean')
-	ax[2].plot(rh_all_1d,PE_all_1d,'k.', label='P-E allsfcs')
-	ax[0].legend()
-	ax[1].legend()
-	ax[2].legend()
-	ax[2].set_xlabel("RH %")
-	for ax in ax:
-		ax.set(ylabel = 'P-E (mm/day)')
-	fig.suptitle('P-E versus RH')
+#	ax[2].plot(rh_all_1d,PE_all_1d,'k.', label='P-E allsfcs')
+#	ax[0].legend()
+#	ax[1].legend()
+#	ax[2].legend()
+#	ax[2].set_xlabel("RH %")
+	ax[1].set_xlabel("RH (%)",fontsize = lge)
+	ax[0].tick_params(labelsize = med)
+	ax[1].tick_params(labelsize = med)
+	ax[0].legend(fontsize = lge)
+	ax[1].legend(fontsize = lge)
+	ax[0].set_ylabel('P-E (mm/day)',fontsize = lge)
+	ax[1].set_ylabel('P-E (mm/day)',fontsize = lge)
+
+#	fig.suptitle('P-E versus RH')
+	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_PE_land_oc_all_'+str(runmin)+'-'+str(runmax)+'_highres.pdf', bbox_inches='tight', dpi=400)
 	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_PE_land_oc_all_'+str(runmin)+'-'+str(runmax)+'_highres.png', bbox_inches='tight', dpi=400)
 #	fig.show()
 
