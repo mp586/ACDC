@@ -1340,13 +1340,26 @@ def worldmap_inputfile(filename,varname): # assuming that the input file has the
 
 
 
-def worldmap_variable(field,units,title,palette,minval,maxval,contourson=False):
+def worldmap_variable(outdir,field,units,title,palette,minval,maxval,nmb_contours=0.):
     plt.close()
     
+
+    small = 10 #largefonts 14 # smallfonts 12 # medfonts = 14
+    med = 12 #largefonts 18 # smallfonts 14 # medfonts = 16
+    lge = 14 #largefonts 22 # smallfonts 18 # medfonts = 20
+
+
     lats=field.lat
     lons=field.lon
     lon_0 = lons.mean() 
     lat_0 = lats.mean() 
+
+    fig = plt.figure(figsize = (25,10))
+
+    ax1 = plt.subplot2grid((2,2), (0,0))
+
+
+    m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 
@@ -1362,9 +1375,8 @@ def worldmap_variable(field,units,title,palette,minval,maxval,contourson=False):
     m.drawcoastlines()
     m.drawparallels(np.arange(-90.,91.,30.))
     m.drawmeridians(np.arange(0.,361.,60.))
-    m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
-    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
-
+    m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0], fontsize=small)
+    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1], fontsize=small)
 
     if (minval==0) & (maxval==0):
 
@@ -1396,17 +1408,20 @@ def worldmap_variable(field,units,title,palette,minval,maxval,contourson=False):
 	    else:
 		    cs = m.pcolor(xi,yi,field, vmin=minval, vmax=maxval)
 
-    if contourson == True:  # add contours 
-	    cont = m.contour(xi,yi,field,4,cmap='PuBu_r', linewidth=5)
-	    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=12)
+
+
+    if nmb_contours != 0:  # add contours 
+	    cont = m.contour(xi,yi,field,nmb_contours,cmap='PuBu_r', linewidth=5)
+	    if cont>=1.:
+		    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=med)
+	    else:
+		    plt.clabel(cont, inline=2, fmt='%1.3f', fontsize=med)
 
     cbar = m.colorbar(cs, location='right', pad="10%")
-    cbar.set_label(units)
-    plt.title(title)
-
-
-    plt.show()
-    return(cs)
+    cbar.set_label(units, size=med)
+    cbar.ax.tick_params(labelsize=small) 
+    plt.title(title, size=lge)
+    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_highres.png', bbox_inches='tight', dpi=400)
 
 
 def squareland_inputfile_4dvar(filename,varname):
@@ -1924,7 +1939,7 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
 	    manager.window.showMaximized()
 	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax)+'_highres.png', format = 'png', dpi = 400, bbox_inches='tight')
 	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax)+'.png', format = 'png', bbox_inches='tight')
-	    plt.show()
+#	    plt.show()
     return fig
 
 
@@ -2546,19 +2561,21 @@ def plot_streamfunction(msf_array,title,units='10^10 kg/s'):
 
 def plot_streamfunction_seasonal(msf_array,units='10^10 kg/s'):
 
-	# fix this with fig, axes = plt.subplots(2,2,sharex = True, sharey = True)
-	# cset1 = axes[0,0].contourf(y, p, msf_array.sel(season='MAM'), 
-	# 			   norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r')
-	# cont = axes[0,0].contourf(y, p, msf_array.sel(season='MAM'), 
-	# 			  norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r')
-	# axes[0,0].gca().invert_yaxis()
-
 	matplotlib.rcParams['contour.negative_linestyle']= 'dashed'
 
 	lats = msf_array.lat
 	pfull = msf_array.pfull
 	
 	y, p = np.meshgrid(lats, pfull)
+
+
+	# fig, axes = plt.subplots(2,2,sharex = True, sharey = True, figsize = (25, 10))
+	# fig.gca().invert_yaxis()
+
+	# cset1 = axes[0,0].contourf(y, p, msf_array.sel(season='MAM'), 
+	# 			   norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r',vmin = -10.,vmax = 10.)
+	# cont = axes[0,0].contour(y, p, msf_array.sel(season='MAM'), 20, colors = 'k', linewidth=5)
+	# axes[0,0].clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
 
 	fig = plt.figure()
 	ax1 = plt.subplot2grid((8,8), (0,0), colspan=4, rowspan=4)
@@ -2629,23 +2646,21 @@ def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 	[slope, intercept, r_value, p_value, std_err] = stats.linregress(rh_land_1d[mask],E_land_1d[mask])
 	line_E = slope*rh_land_1d + intercept
 
+# 	plt.plot(rh_land_1d,P_land_1d,'b.',label = 'P land')
+# 	plt.plot(rh_land_1d,E_land_1d,'g.',label = 'E land')
+# #	plt.plot(rh_1d, line_P, 'b', label = 'P_regr')
+# #	plt.plot(rh_1d, line_E, 'g', label = 'E_regr')
 
-	plt.plot(rh_land_1d,P_land_1d,'b.',label = 'P land')
-	plt.plot(rh_land_1d,E_land_1d,'g.',label = 'E land')
-#	plt.plot(rh_1d, line_P, 'b', label = 'P_regr')
-#	plt.plot(rh_1d, line_E, 'g', label = 'E_regr')
+# 	plt.legend()
+# 	plt.xlabel('RH %')
+# 	plt.ylabel('P and E (mm/d)')
+# 	plt.title('P and E versus RH, annual mean (land only)')
+# 	manager = plt.get_current_fig_manager()
+# 	manager.window.showMaximized()	
+# 	plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_land_'+str(runmin)+'-'+str(runmax), bbox_inches='tight', dpi=100)
+# 	plt.show()
 
-	plt.legend()
-	plt.xlabel('RH %')
-	plt.ylabel('P and E (mm/d)')
-	plt.title('P and E versus RH, annual mean (land only)')
-	manager = plt.get_current_fig_manager()
-	manager.window.showMaximized()	
-	plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_land_'+str(runmin)+'-'+str(runmax), bbox_inches='tight', dpi=100)
-	plt.show()
-
-	
-	fig, ax = plt.subplots(3,1,sharex = True)
+	fig, ax = plt.subplots(3,1,sharex = True,figsize = (25,10))
 	rh_oc_1d = np.asarray(rh_avg.where(landmask==0.).sel(lat=slice(-30.,30.))).flatten()
 	PE_avg = precipitation_avg - net_lhe_avg
 	PE_oc_1d = np.asarray(PE_avg.where(landmask==0.).sel(lat=slice(-30.,30.))).flatten()
@@ -2659,8 +2674,30 @@ def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 	ax[0].legend()
 	ax[1].legend()
 	ax[2].legend()
-	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_PE_land_oc_all__'+str(runmin)+'-'+str(runmax), bbox_inches='tight', dpi=100)
-	fig.show()
+	ax[2].set_xlabel("RH %")
+	for ax in ax:
+		ax.set(ylabel = 'P-E (mm/day)')
+	fig.suptitle('P-E versus RH')
+	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_PE_land_oc_all_'+str(runmin)+'-'+str(runmax)+'_highres.png', bbox_inches='tight', dpi=400)
+#	fig.show()
+
+	fig2, ax2 = plt.subplots(3,1,sharex = True,figsize = (25,10))
+	P_all_1d = np.asarray(precipitation_avg.sel(lat=slice(-30.,30.))).flatten()
+	E_all_1d = np.asarray(net_lhe_avg.sel(lat=slice(-30.,30.))).flatten()
+
+	ax2[0].plot(rh_all_1d,P_all_1d,'b.', label='P tropics')
+	ax2[1].plot(rh_all_1d,E_all_1d,'g.', label='E tropics')
+	ax2[2].plot(rh_all_1d,PE_all_1d,'k.', label='P-E tropics')
+	ax2[0].legend()
+	ax2[1].legend()
+	ax2[2].legend()
+	ax2[2].set_xlabel('RH %')
+	ax2[0].set_ylabel('P (mm/d)')
+	ax2[1].set_ylabel('E (mm/d)')
+	ax2[2].set_ylabel('P-E (mm/d)')
+	fig2.suptitle('P, E and P-E versus RH (tropics)')
+	fig2.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_all_'+str(runmin)+'-'+str(runmax)+'_highres.png', bbox_inches='tight', dpi=400)
+#	fig2.show()
 
 # NB if I need a (2,2) subplot, need to use ax[0, 1] -- there has to be a space between the comma and the 1 otherwise it doesn't work! i.e. .plot(...) doesn't work and also can't access the subplot that I want! OR fig, axes = plt.subplots(2,2....) and then can call axes[0,0]...
 

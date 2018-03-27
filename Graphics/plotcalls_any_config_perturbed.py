@@ -169,7 +169,7 @@ PE_avg_ctl=precipitation_avg_ctl-net_lhe_avg_ctl # 28.=conversion from W/m^# 2 t
 #any_configuration_plot(outdir,runmin,runmax,-90.,90.,(bucket_depth_avg - bucket_depth_avg_ctl).where(landmask==1.),area_array,'mm/day','bucket depth avg minus ctrl','rainnorm',landmaskxr,landlats,landlons,minval = -0.1, maxval = 0.1)
 any_configuration_plot(outdir,runmin,runmax,-90.,90.,rh_avg - rh_avg_ctl,area_array,'%','surface_rh_avg_minus_ctl','rainnorm',landmaskxr,landlats,landlons,nmb_contours=5, minval=-7., maxval = 7.)
 
-any_configuration_plot(outdir,runmin,runmax,-90.,90.,sphum_avg - sphum_avg_ctl,area_array,'kg/kg','column_IWV_minus_ctl','rainnorm',landmaskxr,landlats,landlons,nmb_contours=5, minval = -0.05, maxval = 0.05)
+# any_configuration_plot(outdir,runmin,runmax,-90.,90.,sphum_avg - sphum_avg_ctl,area_array,'kg/kg','column_IWV_minus_ctl','rainnorm',landmaskxr,landlats,landlons,nmb_contours=5, minval = -0.05, maxval = 0.05)
 
 # # degrees C symbol : ...,u"\u00b0"+'C',...
 any_configuration_plot(outdir,runmin,runmax,-90.,90.,(tsurf_avg-tsurf_avg_ctl),area_array,'K','$T_S$_avg_minus_ctrl','tempdiff',landmaskxr,landlats,landlons, minval = -6., maxval = 6.)
