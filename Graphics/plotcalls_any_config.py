@@ -86,14 +86,14 @@ plot_streamfunction_seasonal(msf_seasonal_avg)
 [flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_oceanq','W/m^2')
 [slp,slp_avg,slp_seasonal_avg,slp_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'slp','hPa', factor = 1/100.)
 
-[rh,rh_avg,rh_seasonal_avg,rh_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'rh','%',level=39)
-[sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level='all')
+# [rh,rh_avg,rh_seasonal_avg,rh_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'rh','%',level=39)
+# [sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level='all')
 
-rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask)
+# rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask)
 
 
-any_configuration_plot(outdir,runmin,runmax,-100.,100.,rh_avg,area_array,'%','rh avg','fromwhite',landmaskxr,landlats,landlons,minval = 0, maxval = 100)
-any_configuration_plot(outdir,runmin,runmax,-100.,100.,sphum_avg,area_array,'kg/kg','column int WV','fromwhite',landmaskxr,landlats,landlons,nmb_contours=10)
+# any_configuration_plot(outdir,runmin,runmax,-100.,100.,rh_avg,area_array,'%','rh avg','fromwhite',landmaskxr,landlats,landlons,minval = 0, maxval = 100)
+# any_configuration_plot(outdir,runmin,runmax,-100.,100.,sphum_avg,area_array,'kg/kg','column int WV','fromwhite',landmaskxr,landlats,landlons,nmb_contours=10)
 
 
 
@@ -164,11 +164,9 @@ SON = 'SON'
 # any_configuration_plot(outdir,runmin,runmax,-90.,90.,tsurf_seasonal_avg.sel(season=DJF),area_array,'K','tsurf_DJF (K)','temp',landmaskxr,landlats,landlons,nmb_contours=4)
 
 
-
-
-# [ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,ucomp_annual_avg,time]=seasonal_4D_variable(testdir,model,runmin,runmax,'ucomp','m/s')
-# [vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,vcomp_annual_avg,time]=seasonal_4D_variable(testdir,model,runmin,runmax,'vcomp','m/s')
-# # [omega,omega_avg,omega_seasonal_avg,omega_month_avg,omega_annual_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'omega','Pa/s',level=39)
+[ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,ucomp_annual_avg,time]=seasonal_4D_variable(testdir,model,runmin,runmax,'ucomp','m/s')
+[vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,vcomp_annual_avg,time]=seasonal_4D_variable(testdir,model,runmin,runmax,'vcomp','m/s')
+[omega,omega_avg,omega_seasonal_avg,omega_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'omega','Pa/s',level=39)
 
 # winds_anomaly_uv_vectors(ucomp_avg,vcomp_avg,landmaskxr,landlats,landlons, level = 37)
 
@@ -238,7 +236,7 @@ print('GPCP mean precip = '+str(gpcp_avg))
 
 
 
-any_configuration_plot(outdir,runmin,runmax,-90.,90.,omega_avg,area_array,'hPa/s','omega','rainnorm',landmaskxr,landlats,landlons)
+# any_configuration_plot(outdir,runmin,runmax,-90.,90.,omega_avg,area_array,'hPa/s','omega','rainnorm',landmaskxr,landlats,landlons)
 
 
 # any_configuration_plot(outdir,runmin,runmax,-90.,90.,(bucket_depth_avg),area_array,'m','bucket_depth','fromwhite',landmask,landlats,landlons)
@@ -247,8 +245,8 @@ any_configuration_plot(outdir,runmin,runmax,-90.,90.,omega_avg,area_array,'hPa/s
 
 
 
-# maxval_omega_surf = np.absolute((omega_month_avg[:,39,:,:]).max())
-# minval_omega_surf = np.absolute((omega_month_avg[:,39,:,:]).min())
+maxval_omega_surf = np.absolute(omega_month_avg.max())
+minval_omega_surf = np.absolute(omega_month_avg.min())
 
 
 # for i in range(1,13):
@@ -258,14 +256,14 @@ any_configuration_plot(outdir,runmin,runmax,-90.,90.,omega_avg,area_array,'hPa/s
 # os.system('convert -delay 100 /scratch/mp586/Code/Graphics/'+testdir+'/anim_plot_omega_run_'+str(runmin)+'-'+str(runmax)+'*.png /scratch/mp586/Code/Graphics/'+testdir+'/omega_wind_monthly_clim_run_'+str(runmin)+'-'+str(runmax)+'.gif')
 
 
-# maxval_precip = np.absolute((precipitation_month_avg).max())
-maxval_sphum = np.absolute((sphum_avg).max())
+maxval_precip = np.absolute((precipitation_month_avg).max())
+# maxval_sphum = np.absolute((sphum_avg).max())
 
-# for i in range(1,13):
+for i in range(1,13):
 
-#     month_plot = winds_at_heightlevel(ucomp_month_avg.sel(month=i),vcomp_month_avg.sel(month=i),39,precipitation_month_avg.sel(month=i),'fromwhite','mm/day',0,8,landmaskxr,landlats,landlons)
-#     month_plot.savefig('/scratch/mp586/Code/Graphics/anim_plot_precip_run_'+str(runmin)+'-'+str(runmax)+'month_'+str(i)+'.png',bbox_inches='tight')
-# os.system('convert -delay 100 /scratch/mp586/Code/Graphics/anim_plot_precip_run_'+str(runmin)+'-'+str(runmax)+'*.png /scratch/mp586/Code/Graphics/precip_wind_monthly_clim_run_'+str(runmin)+'-'+str(runmax)+'.gif')
+    month_plot = winds_at_heightlevel(ucomp_month_avg.sel(month=i),vcomp_month_avg.sel(month=i),39,precipitation_month_avg.sel(month=i),'fromwhite','mm/day',0,8,landmaskxr,landlats,landlons)
+    month_plot.savefig('/scratch/mp586/Code/Graphics/anim_plot_precip_run_'+str(runmin)+'-'+str(runmax)+'month_'+str(i)+'.png',bbox_inches='tight')
+os.system('convert -delay 100 /scratch/mp586/Code/Graphics/anim_plot_precip_run_'+str(runmin)+'-'+str(runmax)+'*.png /scratch/mp586/Code/Graphics/precip_wind_monthly_clim_run_'+str(runmin)+'-'+str(runmax)+'.gif')
 
 
 # for i in range(1,13):

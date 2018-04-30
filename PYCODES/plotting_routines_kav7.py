@@ -1344,9 +1344,9 @@ def worldmap_variable(outdir,field,units,title,palette,minval,maxval,nmb_contour
     plt.close()
     
 
-    small = 10 #largefonts 14 # smallfonts 12 # medfonts = 14
-    med = 12 #largefonts 18 # smallfonts 14 # medfonts = 16
-    lge = 14 #largefonts 22 # smallfonts 18 # medfonts = 20
+    small = 12 #largefonts 14 # smallfonts 12 # medfonts = 14
+    med = 18 #largefonts 18 # smallfonts 14 # medfonts = 16
+    lge = 22 #largefonts 22 # smallfonts 18 # medfonts = 20
 
 
     lats=field.lat
@@ -1354,7 +1354,7 @@ def worldmap_variable(outdir,field,units,title,palette,minval,maxval,nmb_contour
     lon_0 = lons.mean() 
     lat_0 = lats.mean() 
 
-    fig = plt.figure(figsize = (25,10))
+    fig = plt.figure(figsize = (30,10))
 
     ax1 = plt.subplot2grid((2,2), (0,0))
 
@@ -1421,7 +1421,7 @@ def worldmap_variable(outdir,field,units,title,palette,minval,maxval,nmb_contour
     cbar.set_label(units, size=med)
     cbar.ax.tick_params(labelsize=small) 
     plt.title(title, size=lge)
-    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_highres.png', bbox_inches='tight', dpi=400)
+    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'.png', bbox_inches='tight', dpi=100)
 
 
 def squareland_inputfile_4dvar(filename,varname):
@@ -1823,14 +1823,19 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
     meravg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-30.,maxlat=30.,axis=0)
 
     lons_128 = lons # non-cyclic lons, i.e. lenght = 128
-    array, lons = addcyclic(array, lons)
     # #newline to replace shiftgrid line which is causing trouble - Doesn't work perfectly
     # lons, array = m.shiftdata(lons, datain = array, lon_0=0.)
     # array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
 
     array = np.asarray(array) #- This line fixes the problem!
     #the following line caused DataType error all of a sudden... Doesnt' accept xarray as input array for shiftgrid anymore.
+
+    array, lons = addcyclic(array, lons)
     array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+# shiftgrid lons0 (first entry) is the longitude in lons which should correspond with the center longitude of the map. start = False --> lonsin is the end latitude, not the beginning.
+    # this doesn't work for some reason
+    #array, lons = shiftgrid(np.max(lons)-100.,array,lons,start=True,cyclic=np.max(lons))
+
     array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
 
     m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0], fontsize=small)
@@ -1895,7 +1900,7 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
 
 
 # Add Colorbar
-    cbar = m.colorbar(cs, location='right', pad="10%")
+    cbar = m.colorbar(cs, location='bottom', pad="10%") # usually on right 
     cbar.set_label(units, size=med)
     cbar.ax.tick_params(labelsize=small) 
 
@@ -1904,7 +1909,9 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
 # Read landmask
 
 # Add rectangles
+#    landmask,landlons = shiftgrid(np.max(landlons)-100.,landmask,landlons,start=True,cyclic=np.max(landlons)) # this works when the array shift is commented....
     landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
+
     landmask, lons_cyclic = addcyclic(landmask, landlons)
 
     if np.any(landmask != 0.):
@@ -1937,10 +1944,13 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
 
 	    manager = plt.get_current_fig_manager()
 	    manager.window.showMaximized()
-	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax)+'_highres.png', format = 'png', dpi = 400, bbox_inches='tight')
+#	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax)+'_highres.png', format = 'png', dpi = 400, bbox_inches='tight')
 	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax)+'.png', format = 'png', bbox_inches='tight')
 #	    plt.show()
     return fig
+
+
+
 
 
 def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0,maxval=1000,landlats = None, landlons = None, landmask = 0.):
@@ -2049,28 +2059,31 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,lan
 	lons = uwind.lon
 	lats = uwind.lat
 	pres = uwind.pres_lev[level]	
-	uwind,lons_shift = shiftgrid(np.max(lons)-180.,uwind,lons,start=False,
-			       cyclic=np.max(lons))
-	vwind,lons_shift = shiftgrid(np.max(lons)-180.,vwind,lons,start=False,
-			       cyclic=np.max(lons))	
-	uwind, lons_cyclic = addcyclic(uwind, lons_shift)
-	vwind, lons_cyclic = addcyclic(vwind, lons_shift)
-
-	lon, lat = np.meshgrid(lons_cyclic, lats)
-	xi, yi = m(lon, lat)
+	uwind, lons_cyclic = addcyclic(uwind, lons)
+	vwind, lons_cyclic = addcyclic(vwind, lons)
+	uwind = np.asarray(uwind)
+	vwind = np.asarray(vwind)
+	uwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,uwind,lons_cyclic,start=False,
+			       cyclic=np.max(lons_cyclic))
+	vwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,vwind,lons_cyclic,start=False,
+			       cyclic=np.max(lons_cyclic))	
 
 	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
 	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
 
 	plt.title('Wind at '+str(pres)+' hPa')
 
-	array, array_lons = shiftgrid(np.max(lons)-180.,array,array.lon,
-				     start=False,cyclic=np.max(lons))
 	array, lons_cyclic = addcyclic(array, lons)
-	array = xr.DataArray(array,coords=[lats,lons_cyclic],dims=['lat','lon'])
+	array = np.asarray(array)
+	array, lons_shift = shiftgrid(np.max(lons_cyclic)-180.,array,lons_cyclic,
+				     start=False,cyclic=np.max(lons_cyclic))
+	array = xr.DataArray(array,coords=[lats,lons_shift],dims=['lat','lon'])
 
 	landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
-	landmask, lons_cyclic = addcyclic(landmask, landlons)
+	landmask, landlons = addcyclic(landmask, landlons)
+
+	lon, lat = np.meshgrid(lons_shift, lats)
+	xi, yi = m(lon, lat)
 
 	if np.any(landmask != 0.):
 		m.contour(xi,yi,landmask, 1)
@@ -2116,6 +2129,10 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,lan
 	# plt.show()
 	return fig
 
+
+# def winds_at_4_levels(): 
+# fig, axes = plt.subplots(2,2,sharex = True, sharey = True, figsize = (25,10))
+# axes[0,0].set_title("Level 39")
 
 
 def animated_winds(testdir,uwind,vwind,level,array,palette,units,imin,imax,plot_title):
@@ -2559,6 +2576,75 @@ def plot_streamfunction(msf_array,title,units='10^10 kg/s'):
 	plt.show()
 
 
+# def plot_streamfunction_seasonal(msf_array,units='10^10 kg/s'):
+
+# 	matplotlib.rcParams['contour.negative_linestyle']= 'dashed'
+
+# 	lats = msf_array.lat
+# 	pfull = msf_array.pfull
+	
+# 	y, p = np.meshgrid(lats, pfull)
+
+
+# 	# fig, axes = plt.subplots(2,2,sharex = True, sharey = True, figsize = (25, 10))
+# 	# fig.gca().invert_yaxis()
+
+# 	# cset1 = axes[0,0].contourf(y, p, msf_array.sel(season='MAM'), 
+# 	# 			   norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r',vmin = -10.,vmax = 10.)
+# 	# cont = axes[0,0].contour(y, p, msf_array.sel(season='MAM'), 20, colors = 'k', linewidth=5)
+# 	# axes[0,0].clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+
+# 	fig = plt.figure()
+# 	ax1 = plt.subplot2grid((8,8), (0,0), colspan=4, rowspan=4)
+# 	cset1 = plt.contourf(y, p, msf_array.sel(season='MAM'), norm=MidpointNormalize(midpoint=0.),
+#                      cmap='RdBu_r')
+# 	cont = plt.contour(y,p,msf_array.sel(season='MAM'), 20, colors = 'k', linewidth=5)
+# 	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+# 	cbar = plt.colorbar(cset1)
+# 	cbar.set_label(units)
+# 	plt.title('MAM')
+# 	plt.xlabel('Latitude N')
+# 	plt.ylabel('Pressure (hPa)')
+# 	plt.gca().invert_yaxis()
+
+# 	ax2 = plt.subplot2grid((8,8), (0,4), colspan=4, rowspan=4)
+# 	cset1 = plt.contourf(y, p, msf_array.sel(season='JJA'), norm=MidpointNormalize(midpoint=0.),
+#                      cmap='RdBu_r')
+# 	cont = plt.contour(y,p,msf_array.sel(season='JJA'), 20, colors = 'k', linewidth=5)
+# 	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+# 	cbar = plt.colorbar(cset1)
+# 	cbar.set_label(units)
+# 	plt.title('JJA')
+# 	plt.xlabel('Latitude N')
+# 	plt.ylabel('Pressure (hPa)')
+# 	plt.gca().invert_yaxis()
+
+# 	ax3 = plt.subplot2grid((8,8), (4,0), colspan=4, rowspan=4)
+# 	cset1 = plt.contourf(y, p, msf_array.sel(season='SON'), norm=MidpointNormalize(midpoint=0.),
+#                      cmap='RdBu_r')
+# 	cont = plt.contour(y,p,msf_array.sel(season='SON'), 20, colors = 'k', linewidth=5)
+# 	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+# 	cbar = plt.colorbar(cset1)
+# 	cbar.set_label(units)
+# 	plt.title('SON')
+# 	plt.xlabel('Latitude N')
+# 	plt.ylabel('Pressure (hPa)')
+# 	plt.gca().invert_yaxis()
+
+# 	ax4 = plt.subplot2grid((8,8), (4,4), colspan=4, rowspan=4)
+# 	cset1 = plt.contourf(y, p, msf_array.sel(season='DJF'), norm=MidpointNormalize(midpoint=0.),
+#                      cmap='RdBu_r')
+# 	cont = plt.contour(y,p,msf_array.sel(season='DJF'), 20, colors = 'k', linewidth=5)
+# 	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+# 	cbar = plt.colorbar(cset1)
+# 	cbar.set_label(units)
+# 	plt.title('DJF')
+# 	plt.xlabel('Latitude N')
+# 	plt.ylabel('Pressure (hPa)')
+# 	plt.gca().invert_yaxis()
+
+# 	plt.show()
+
 def plot_streamfunction_seasonal(msf_array,units='10^10 kg/s'):
 
 	matplotlib.rcParams['contour.negative_linestyle']= 'dashed'
@@ -2569,64 +2655,48 @@ def plot_streamfunction_seasonal(msf_array,units='10^10 kg/s'):
 	y, p = np.meshgrid(lats, pfull)
 
 
-	# fig, axes = plt.subplots(2,2,sharex = True, sharey = True, figsize = (25, 10))
-	# fig.gca().invert_yaxis()
+	fig, axes = plt.subplots(2,2,sharex = True, sharey = True, figsize = (25, 10))
+	fig.gca().invert_yaxis()
 
-	# cset1 = axes[0,0].contourf(y, p, msf_array.sel(season='MAM'), 
-	# 			   norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r',vmin = -10.,vmax = 10.)
-	# cont = axes[0,0].contour(y, p, msf_array.sel(season='MAM'), 20, colors = 'k', linewidth=5)
-	# axes[0,0].clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	cset = axes[0,0].contourf(y, p, msf_array.sel(season='MAM'), 
+				   norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r',vmin = -30.,vmax = 30.)
+	cont = axes[0,0].contour(y, p, msf_array.sel(season='MAM'), 20, colors = 'k', linewidth=5)
+	axes[0,0].clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	axes[0,0].set_title('MAM')
+	axes[0,0].set_xlabel('Latitude N')
+	axes[0,0].set_ylabel('Pressure (hPa)')
 
-	fig = plt.figure()
-	ax1 = plt.subplot2grid((8,8), (0,0), colspan=4, rowspan=4)
-	cset1 = plt.contourf(y, p, msf_array.sel(season='MAM'), norm=MidpointNormalize(midpoint=0.),
-                     cmap='RdBu_r')
-	cont = plt.contour(y,p,msf_array.sel(season='MAM'), 20, colors = 'k', linewidth=5)
-	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
-	cbar = plt.colorbar(cset1)
+	cset = axes[0,1].contourf(y, p, msf_array.sel(season='JJA'), 
+				   norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r',vmin = -30.,vmax = 30.)
+	cont = axes[0,1].contour(y, p, msf_array.sel(season='JJA'), 20, colors = 'k', linewidth=5)
+	axes[0,1].clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	axes[0,1].set_title('JJA')
+	axes[0,1].set_xlabel('Latitude N')
+	axes[0,1].set_ylabel('Pressure (hPa)')
+
+	cset3 = axes[1,1].contourf(y, p, msf_array.sel(season='DJF'), 
+				   norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r',vmin = -30.,vmax = 30.)
+	cont = axes[1,1].contour(y, p, msf_array.sel(season='DJF'), 20, colors = 'k', linewidth=5)
+	axes[1,1].clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	axes[1,1].set_title('DJF')
+	axes[1,1].set_xlabel('Latitude N')
+	axes[1,1].set_ylabel('Pressure (hPa)')
+
+	cset = axes[1,0].contourf(y, p, msf_array.sel(season='SON'), 
+				   norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r',vmin = -30.,vmax = 30.)
+	cont = axes[1,0].contour(y, p, msf_array.sel(season='SON'), 20, colors = 'k', linewidth=5)
+	axes[1,0].clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
+	axes[1,0].set_title('SON')
+	axes[1,0].set_xlabel('Latitude N')
+	axes[1,0].set_ylabel('Pressure (hPa)')
+
+
+	cbar = fig.colorbar(cset3,ax=axes) # ax = axes tells it to take space away from all the subplots. could adjust location by setting ax to axes[0,0] for example. 
 	cbar.set_label(units)
-	plt.title('MAM')
-	plt.xlabel('Latitude N')
-	plt.ylabel('Pressure (hPa)')
-	plt.gca().invert_yaxis()
-
-	ax2 = plt.subplot2grid((8,8), (0,4), colspan=4, rowspan=4)
-	cset1 = plt.contourf(y, p, msf_array.sel(season='JJA'), norm=MidpointNormalize(midpoint=0.),
-                     cmap='RdBu_r')
-	cont = plt.contour(y,p,msf_array.sel(season='JJA'), 20, colors = 'k', linewidth=5)
-	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
-	cbar = plt.colorbar(cset1)
-	cbar.set_label(units)
-	plt.title('JJA')
-	plt.xlabel('Latitude N')
-	plt.ylabel('Pressure (hPa)')
-	plt.gca().invert_yaxis()
-
-	ax3 = plt.subplot2grid((8,8), (4,0), colspan=4, rowspan=4)
-	cset1 = plt.contourf(y, p, msf_array.sel(season='SON'), norm=MidpointNormalize(midpoint=0.),
-                     cmap='RdBu_r')
-	cont = plt.contour(y,p,msf_array.sel(season='SON'), 20, colors = 'k', linewidth=5)
-	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
-	cbar = plt.colorbar(cset1)
-	cbar.set_label(units)
-	plt.title('SON')
-	plt.xlabel('Latitude N')
-	plt.ylabel('Pressure (hPa)')
-	plt.gca().invert_yaxis()
-
-	ax4 = plt.subplot2grid((8,8), (4,4), colspan=4, rowspan=4)
-	cset1 = plt.contourf(y, p, msf_array.sel(season='DJF'), norm=MidpointNormalize(midpoint=0.),
-                     cmap='RdBu_r')
-	cont = plt.contour(y,p,msf_array.sel(season='DJF'), 20, colors = 'k', linewidth=5)
-	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
-	cbar = plt.colorbar(cset1)
-	cbar.set_label(units)
-	plt.title('DJF')
-	plt.xlabel('Latitude N')
-	plt.ylabel('Pressure (hPa)')
-	plt.gca().invert_yaxis()
 
 	plt.show()
+
+
 
 
 def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
@@ -2645,6 +2715,17 @@ def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 	P_land_1d = np.asarray(precip_avg_tropical_land).flatten()
 	E_land_1d = np.asarray(evap_avg_tropical_land).flatten()
 
+	rh_avg_tropical_ocean = rh_avg.where(landmask==0.).sel(lat=slice(-30.,30.))
+	precip_avg_tropical_ocean = precipitation_avg.where(landmask==0.).sel(lat=slice(-30.,30.))
+	evap_avg_tropical_ocean = net_lhe_avg.where(landmask==0.).sel(lat=slice(-30.,30.))
+
+	rh_ocean_1d = np.asarray(rh_avg_tropical_ocean).flatten()
+	P_ocean_1d = np.asarray(precip_avg_tropical_ocean).flatten()
+	E_ocean_1d = np.asarray(evap_avg_tropical_ocean).flatten()
+
+
+	
+
 # 	rh_P_E = np.stack((rh_1d,P_1d,E_1d),axis=1)
 
 	mask = ~np.isnan(rh_land_1d)
@@ -2659,13 +2740,30 @@ def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 # #	plt.plot(rh_1d, line_E, 'g', label = 'E_regr')
 
 # 	plt.legend()
-# 	plt.xlabel('RH %')
-# 	plt.ylabel('P and E (mm/d)')
-# 	plt.title('P and E versus RH, annual mean (land only)')
-# 	manager = plt.get_current_fig_manager()
-# 	manager.window.showMaximized()	
-# 	plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_land_'+str(runmin)+'-'+str(runmax), bbox_inches='tight', dpi=100)
-# 	plt.show()
+	# plt.xlabel('RH %')
+	# plt.ylabel('P and E (mm/d)')
+	# plt.title('P and E versus RH, annual mean (land only)')
+	# manager = plt.get_current_fig_manager()
+	# manager.window.showMaximized()	
+	# plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_land_'+str(runmin)+'-'+str(runmax), bbox_inches='tight', dpi=100)
+	# plt.show()
+
+	fig, ax = plt.subplots(1,2,sharey=True,figsize=(25,10))
+	ax[0].plot(rh_land_1d,P_land_1d,'b.',label = 'P land')
+	ax[0].plot(rh_land_1d,E_land_1d,'g.',label = 'E land')
+	ax[1].plot(rh_ocean_1d,P_ocean_1d,'b.',label = 'P ocean')
+	ax[1].plot(rh_ocean_1d,E_ocean_1d,'g.',label = 'E ocean')
+	ax[0].set_xlabel("RH (%)",fontsize = lge)
+	ax[1].set_xlabel("RH (%)",fontsize = lge)
+	ax[0].tick_params(labelsize = med)
+	ax[1].tick_params(labelsize = med)
+	ax[0].legend(fontsize = lge)
+	ax[1].legend(fontsize = lge)
+	ax[0].set_ylabel('P and E (mm/day)',fontsize = lge)
+
+#	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_land_oc_'+str(runmin)+'-'+str(runmax)+'_highres.pdf', bbox_inches='tight', dpi=400)
+	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_land_oc_'+str(runmin)+'-'+str(runmax)+'.png', bbox_inches='tight', dpi=100)
+
 
 	fig, ax = plt.subplots(2,1,sharex = True,figsize = (15,10))
 	rh_oc_1d = np.asarray(rh_avg.where(landmask==0.).sel(lat=slice(-30.,30.))).flatten()
@@ -2691,8 +2789,8 @@ def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 	ax[1].set_ylabel('P-E (mm/day)',fontsize = lge)
 
 #	fig.suptitle('P-E versus RH')
-	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_PE_land_oc_all_'+str(runmin)+'-'+str(runmax)+'_highres.pdf', bbox_inches='tight', dpi=400)
-	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_PE_land_oc_all_'+str(runmin)+'-'+str(runmax)+'_highres.png', bbox_inches='tight', dpi=400)
+#	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_PE_land_oc_all_'+str(runmin)+'-'+str(runmax)+'_highres.pdf', bbox_inches='tight', dpi=400)
+	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_PE_land_oc_all_'+str(runmin)+'-'+str(runmax)+'.png', bbox_inches='tight', dpi=100)
 #	fig.show()
 
 	fig2, ax2 = plt.subplots(3,1,sharex = True,figsize = (25,10))
@@ -2710,7 +2808,7 @@ def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 	ax2[1].set_ylabel('E (mm/d)')
 	ax2[2].set_ylabel('P-E (mm/d)')
 	fig2.suptitle('P, E and P-E versus RH (tropics)')
-	fig2.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_all_'+str(runmin)+'-'+str(runmax)+'_highres.png', bbox_inches='tight', dpi=400)
+	fig2.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_all_'+str(runmin)+'-'+str(runmax)+'.png', bbox_inches='tight', dpi=100)
 #	fig2.show()
 
 # NB if I need a (2,2) subplot, need to use ax[0, 1] -- there has to be a space between the comma and the 1 otherwise it doesn't work! i.e. .plot(...) doesn't work and also can't access the subplot that I want! OR fig, axes = plt.subplots(2,2....) and then can call axes[0,0]...
