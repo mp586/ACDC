@@ -2835,7 +2835,7 @@ def plot_streamfunction_seasonal(msf_array,units='10^10 kg/s'):
 
 
 
-def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
+def rh_P_E_T(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,tsurf_avg,landmask):
 
 
 
@@ -2846,18 +2846,22 @@ def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 	rh_avg_tropical_land = rh_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
 	precip_avg_tropical_land = precipitation_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
 	evap_avg_tropical_land = net_lhe_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
+	tsurf_avg_tropical_land = tsurf_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
 
 	rh_land_1d = np.asarray(rh_avg_tropical_land).flatten()
 	P_land_1d = np.asarray(precip_avg_tropical_land).flatten()
 	E_land_1d = np.asarray(evap_avg_tropical_land).flatten()
+	tsurf_land_1d = np.asarray(tsurf_avg_tropical_land).flatten()
 
 	rh_avg_tropical_ocean = rh_avg.where(landmask==0.).sel(lat=slice(-30.,30.))
 	precip_avg_tropical_ocean = precipitation_avg.where(landmask==0.).sel(lat=slice(-30.,30.))
 	evap_avg_tropical_ocean = net_lhe_avg.where(landmask==0.).sel(lat=slice(-30.,30.))
+	tsurf_avg_tropical_ocean = tsurf_avg.where(landmask==0.).sel(lat=slice(-30.,30.))
 
 	rh_ocean_1d = np.asarray(rh_avg_tropical_ocean).flatten()
 	P_ocean_1d = np.asarray(precip_avg_tropical_ocean).flatten()
 	E_ocean_1d = np.asarray(evap_avg_tropical_ocean).flatten()
+	tsurf_ocean_1d = np.asarray(tsurf_avg_tropical_ocean).flatten()
 
 
 	
@@ -2885,10 +2889,10 @@ def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 	# plt.show()
 
 	fig, ax = plt.subplots(1,2,sharey=True,figsize=(25,10))
-	ax[0].plot(rh_land_1d,P_land_1d,'b.',label = 'P land')
-	ax[0].plot(rh_land_1d,E_land_1d,'g.',label = 'E land')
-	ax[1].plot(rh_ocean_1d,P_ocean_1d,'b.',label = 'P ocean')
-	ax[1].plot(rh_ocean_1d,E_ocean_1d,'g.',label = 'E ocean')
+	ax[0].plot(rh_land_1d,P_land_1d,'b.',label = 'P land (tropics)')
+	ax[0].plot(rh_land_1d,E_land_1d,'g.',label = 'E land (tropics)')
+	ax[1].plot(rh_ocean_1d,P_ocean_1d,'b.',label = 'P ocean (tropics)')
+	ax[1].plot(rh_ocean_1d,E_ocean_1d,'g.',label = 'E ocean (tropics)')
 	ax[0].set_xlabel("RH (%)",fontsize = lge)
 	ax[1].set_xlabel("RH (%)",fontsize = lge)
 	ax[0].tick_params(labelsize = med)
@@ -2900,6 +2904,36 @@ def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 #	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_land_oc_'+str(runmin)+'-'+str(runmax)+'_highres.pdf', bbox_inches='tight', dpi=400)
 	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_land_oc_'+str(runmin)+'-'+str(runmax)+'.png', bbox_inches='tight', dpi=100)
 
+	fig, ax = plt.subplots(1,2, figsize=(25,10))
+	ax[0].plot(rh_land_1d,P_land_1d,'b.',label = 'P land (tropics)')
+	ax[0].plot(rh_land_1d,E_land_1d,'g.',label = 'E land (tropics)')
+	ax[1].plot(rh_land_1d,tsurf_land_1d,'r.',label = 'T land (tropics)')
+	ax[0].set_xlabel("RH (%)",fontsize = lge)
+	ax[1].set_xlabel("RH (%)",fontsize = lge)
+	ax[0].tick_params(labelsize = med)
+	ax[1].tick_params(labelsize = med)
+	ax[0].legend(fontsize = lge)
+	ax[1].legend(fontsize = lge)
+	ax[0].set_ylabel('P and E (mm/day)',fontsize = lge)
+	ax[1].set_ylabel('tsurf (K)',fontsize = lge)
+
+	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_T_land_'+str(runmin)+'-'+str(runmax)+'.png', bbox_inches='tight', dpi=100)
+
+	fig, ax = plt.subplots(1,2, figsize=(25,10))
+	ax[0].plot(rh_ocean_1d,P_ocean_1d,'b.',label = 'P ocean (tropics)')
+	ax[0].plot(rh_ocean_1d,E_ocean_1d,'g.',label = 'E ocean (tropics)')
+	ax[1].plot(rh_ocean_1d,tsurf_ocean_1d,'r.',label = 'T ocean (tropics)')
+	ax[0].set_xlabel("RH (%)",fontsize = lge)
+	ax[1].set_xlabel("RH (%)",fontsize = lge)
+	ax[0].tick_params(labelsize = med)
+	ax[1].tick_params(labelsize = med)
+	ax[0].legend(fontsize = lge)
+	ax[1].legend(fontsize = lge)
+	ax[0].set_ylabel('P and E (mm/day)',fontsize = lge)
+	ax[1].set_ylabel('tsurf (K)',fontsize = lge)
+
+	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_T_ocean_'+str(runmin)+'-'+str(runmax)+'.png', bbox_inches='tight', dpi=100)
+
 
 	fig, ax = plt.subplots(2,1,sharex = True,figsize = (15,10))
 	rh_oc_1d = np.asarray(rh_avg.where(landmask==0.).sel(lat=slice(-30.,30.))).flatten()
@@ -2909,8 +2943,8 @@ def rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask):
 	PE_all_1d = np.asarray(PE_avg.sel(lat=slice(-30.,30.))).flatten()
 	rh_all_1d = np.asarray(rh_avg.sel(lat=slice(-30.,30.))).flatten()
 
-	ax[0].plot(rh_land_1d,PE_land_1d,'g.', label='P-E land')
-	ax[1].plot(rh_oc_1d,PE_oc_1d,'b.', label='P-E ocean')
+	ax[0].plot(rh_land_1d,PE_land_1d,'g.', label='P-E land (tropics)')
+	ax[1].plot(rh_oc_1d,PE_oc_1d,'b.', label='P-E ocean (tropics)')
 #	ax[2].plot(rh_all_1d,PE_all_1d,'k.', label='P-E allsfcs')
 #	ax[0].legend()
 #	ax[1].legend()

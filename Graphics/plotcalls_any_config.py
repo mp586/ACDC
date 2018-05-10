@@ -82,17 +82,17 @@ plot_streamfunction_seasonal(msf_seasonal_avg)
 [net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_lhe','W/m^2',factor = 1/28.) # latent heat flux at surface (UP)
 # 1/28.=conversion from W/m^# 2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg, see www.ce.utexas.edu/prof/maidment/CE374KSpr12/.../Latent%20heat%20flux.pptx @30DegC
 [precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'precipitation','kg/m2s', factor=86400)
-#[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'bucket_depth','m')
+[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'bucket_depth','m')
 #[flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_oceanq','W/m^2')
 [slp,slp_avg,slp_seasonal_avg,slp_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'slp','hPa', factor = 1/100.)
 
-# [rh,rh_avg,rh_seasonal_avg,rh_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'rh','%',level=39)
+[rh,rh_avg,rh_seasonal_avg,rh_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'rh','%',level=39)
 # [sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level='all')
 
-# rh_P_E(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,landmask)
+rh_P_E_T(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,tsurf_avg,landmask)
 
 
-# any_configuration_plot(outdir,runmin,runmax,-100.,100.,rh_avg,area_array,'%','rh avg','fromwhite',landmaskxr,landlats,landlons,minval = 0, maxval = 100)
+any_configuration_plot(outdir,runmin,runmax,-100.,100.,rh_avg,area_array,'%','rh_avg','fromwhite',landmaskxr,landlats,landlons,minval = 0, maxval = 100, nmb_contours=5)
 # any_configuration_plot(outdir,runmin,runmax,-100.,100.,sphum_avg,area_array,'kg/kg','column int WV','fromwhite',landmaskxr,landlats,landlons,nmb_contours=10)
 
 
@@ -140,7 +140,9 @@ any_configuration_plot(outdir,runmin,runmax,-90.,90.,net_lhe_avg,area_array,'mm/
 any_configuration_plot(outdir,runmin,runmax,-90.,90.,precipitation_avg,area_array,'mm/day','P_avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=8,minval=0.,maxval=8.)
 any_configuration_plot(outdir,runmin,runmax,-90.,90.,tsurf_avg,area_array,'K','avg_surface_T','temp',landmaskxr,landlats,landlons,nmb_contours=5)
 
-any_configuration_plot(outdir,runmin,runmax,-90.,90.,tsurf_avg.where(landmask==1.),area_array,'K','avg_surface_T','temp',landmaskxr,landlats,landlons,nmb_contours=5)
+any_configuration_plot(outdir,runmin,runmax,-90.,90.,tsurf_avg.where(landmask==1.),area_array,'K','avg_surface_T_land','temp',landmaskxr,landlats,landlons,nmb_contours=5)
+
+
 JJA = 'JJA'
 DJF = 'DJF'
 MAM = 'MAM'
@@ -166,9 +168,11 @@ SON = 'SON'
 
 [ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,ucomp_annual_avg,time]=seasonal_4D_variable(testdir,model,runmin,runmax,'ucomp','m/s')
 [vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,vcomp_annual_avg,time]=seasonal_4D_variable(testdir,model,runmin,runmax,'vcomp','m/s')
-[omega,omega_avg,omega_seasonal_avg,omega_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'omega','Pa/s',level=39)
+#[omega,omega_avg,omega_seasonal_avg,omega_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'omega','Pa/s',level=39)
 
 winds_seasons(ucomp_seasonal_avg,vcomp_seasonal_avg,39,precipitation_seasonal_avg,'fromwhite','mm/d',0.,8.,landmaskxr,landlats,landlons,outdir,runmin,runmax)
+
+winds_seasons(ucomp_seasonal_avg,vcomp_seasonal_avg,39,(precipitation_seasonal_avg-net_lhe_seasonal_avg),'rainnorm','mm/d',-2.,2.,landmaskxr,landlats,landlons,outdir,runmin,runmax)
 
 
 # winds_anomaly_uv_vectors(ucomp_avg,vcomp_avg,landmaskxr,landlats,landlons, level = 37)
