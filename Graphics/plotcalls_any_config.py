@@ -62,9 +62,11 @@ print ('land sfc area (*10^14) = '+str(land_sfc_area/(10**14)))
 ocean_sfc_area = np.sum(area_array.where(landmask!=1.))
 print ('ocean sfc area (*10^14) = '+str(ocean_sfc_area/(10**14)))
 
-globavg_var_timeseries_total_and_land(outdir,testdir,model,area_array,'t_surf',1,runmax,1.,landmaskxr)
-# globavg_var_timeseries_total_and_land(testdir,area_array,'t_surf',1,runmax,1.,landmaskxr,minlat=-30.,maxlat=30.)
-# globavg_var_timeseries_total_and_land(outdir,testdir,model,area_array,'bucket_depth',1,runmax,1.,landmaskxr, select='land')
+globavg_var_timeseries_total_and_land(outdir,testdir,model,area_array,'t_surf',runmin,runmax,1.,landmaskxr,select='all')
+
+
+### only for 6 hourly data ###
+# globavg_var_timeseries_total_and_land_6hrly_severalvars(outdir,testdir,model,area_array,'flux_lhe','precipitation','t_surf','bucket_depth',runmin,runmax,1/28.,86400.,1.,1.,landmaskxr,minlat=-10.,maxlat=10.,select='land')
 
 
 ########### Mass Stream function plots 
@@ -90,6 +92,14 @@ plot_streamfunction_seasonal(msf_seasonal_avg)
 # [sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level='all')
 
 rh_P_E_T(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,tsurf_avg,landmask)
+
+
+# animated_map(outdir,slp_month_avg,'hPa','slp','slp_clim_animated','slp',0,12)
+# animated_map(outdir,bucket_depth_month_avg,'m','soil moisture','bucket_depth_animated','fromwhite',0,12,minval = 0., maxval = 0.15)
+# animated_map(outdir,tsurf_month_avg,'K','T','tsurf_animated','temp',0,12,minval = 240.,maxval = 320.)
+# animated_map(outdir,net_lhe_month_avg,'mm/d','E','E_animated','fromwhite',0,12,minval = 0.,maxval = 8.0)
+# animated_map(outdir,precipitation_month_avg,'mm/d','P','P_animated','fromwhite',0,12,minval = 0.,maxval = 8.)
+
 
 
 any_configuration_plot(outdir,runmin,runmax,-100.,100.,rh_avg,area_array,'%','rh_avg','fromwhite',landmaskxr,landlats,landlons,minval = 0, maxval = 100, nmb_contours=5)

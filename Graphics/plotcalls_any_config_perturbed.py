@@ -108,7 +108,7 @@ plot_streamfunction_seasonal(msf_seasonal_avg)
 # #[omega_ctl,omega_avg_ctl,omega_seasonal_avg_ctl,omega_month_avg_ctl,time]=seasonal_4D_variable(control_dir,ctl_runmin,ctl_runmax,'omega','Pa/s')
 
 
-winds_seasons((ucomp_seasonal_avg-ucomp_seasonal_avg_ctl),(vcomp_seasonal_avg-vcomp_seasonal_avg_ctl),39,(precipitation_seasonal_avg-precipitation_seasonal_avg_ctl),'rainnorm','mm/d',-2.,2.,landmaskxr,landlats,landlons,outdir,runmin,runmax)
+# winds_seasons((ucomp_seasonal_avg-ucomp_seasonal_avg_ctl),(vcomp_seasonal_avg-vcomp_seasonal_avg_ctl),39,(precipitation_seasonal_avg-precipitation_seasonal_avg_ctl),'rainnorm','mm/d',-2.,2.,landmaskxr,landlats,landlons,outdir,runmin,runmax)
 
 
 

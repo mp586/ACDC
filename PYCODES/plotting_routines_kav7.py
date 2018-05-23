@@ -288,6 +288,233 @@ def globavg_var_timeseries_total_and_land(outdir,testdir,model,area_array,varnam
     return(timeseries)
 
 
+
+def globavg_var_timeseries_total_and_land_6hrly(outdir,testdir,model,area_array,varname,runmin,runmax,factor,landmask,minlat=-90.,maxlat=90.,select='all'):
+    
+#	""" Plots and returns timeseries of global average for specified variable """
+# factor is needed to convert eg precip from kg/s to mm/day 
+
+    for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
+        if model=='isca':
+		runnr="{0:04}".format(i)
+	elif model=='gfdl':
+		runnr="{0:03}".format(i)
+        filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_6_hourly.nc'
+        nc = Dataset(filename,mode='r')
+        
+	lats = nc.variables['lat'][:]
+	lons = nc.variables['lon'][:]
+              
+        if i==runmin:
+            var=xr.DataArray(nc.variables[varname][:])
+        else:
+            var_i=xr.DataArray(nc.variables[varname][:])
+            var=xr.concat([var,var_i],'dim_0')
+    
+    time=[np.array(np.linspace(0,(runmax-runmin-1),(runmax-runmin)*4*30,dtype='datetime64[h]'))]
+    var=xr.DataArray((var.values)*factor,coords=[time[0],lats,lons],dims=['time','lat','lon'])	
+
+
+    for i in range (0,(runmax-runmin)*120):
+        if i==0:
+		timeseries = [area_weighted_avg(var[0,:,:],area_array,landmask,'all_sfcs',minlat,maxlat)]
+		timeseries_land = [area_weighted_avg(var[0,:,:],area_array,landmask,'land',minlat,maxlat)]
+		timeseries_ocean = [area_weighted_avg(var[0,:,:],area_array,landmask,'ocean',minlat,maxlat)]
+
+        else:
+		timeseries.append(area_weighted_avg(var[i,:,:],area_array,landmask,'all_sfcs',minlat,maxlat))
+		timeseries_land.append(area_weighted_avg(var[i,:,:],area_array,landmask,'land',minlat,maxlat))
+		timeseries_ocean.append(area_weighted_avg(var[i,:,:],area_array,landmask,'ocean',minlat,maxlat))
+	
+    timeseries=np.asarray(timeseries)
+    timeseries_land=np.asarray(timeseries_land)
+    timeseries_ocean=np.asarray(timeseries_ocean)
+    months=np.linspace(runmin,(runmax-1),timeseries.size)
+    if select == 'all':
+	    plt.plot(months,timeseries,'r',label='total')
+	    plt.plot(months,timeseries_land,'g',label='land only')
+	    plt.plot(months,timeseries_ocean,'b',label='ocean only')
+	    plt.title('avg '+varname+' total and land/ocean only between '+str(minlat)+' and '+str(maxlat)+' N')
+    
+    if select == 'land':
+	    plt.plot(months,timeseries_land,'g',label='land only')
+	    plt.title('avg '+varname+' land only between '+str(minlat)+' - '+str(maxlat)+' N')
+    elif select == 'ocean': 
+	    plt.plot(months,timeseries_ocean,'b',label='ocean only')
+	    plt.title('avg '+varname+' ocean only between '+str(minlat)+' - '+str(maxlat)+' N')
+    elif select =='total':
+	    plt.plot(months,timeseries,'r',label='total')
+	    plt.title('avg '+varname+' total (land and ocean) between '+str(minlat)+' and '+str(maxlat)+' N')
+
+
+    plt.xlabel('6 hourly units # ')
+    plt.ylabel('Area weighted average')
+    plt.legend()
+    plt.grid(b=True)
+    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+varname+'_timeseries_'+str(runmin)+'-'+str(runmax)+'_'+select+'_between_'+str(minlat)+'_and_'+str(maxlat)+'.png', bbox_inches='tight')
+    plt.close()
+#    plt.show()    
+    return(timeseries)
+
+
+
+def globavg_var_timeseries_total_and_land_6hrly_severalvars(outdir,testdir,model,area_array,varname1,varname2,varname3,varname4,runmin,runmax,factor1,factor2,factor3,factor4,landmask,minlat=-90.,maxlat=90.,select='all'):
+    
+#	""" Plots and returns timeseries of global average for specified variable """
+# factor is needed to convert eg precip from kg/s to mm/day 
+
+    for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
+        if model=='isca':
+		runnr="{0:04}".format(i)
+	elif model=='gfdl':
+		runnr="{0:03}".format(i)
+        filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_6_hourly.nc'
+        nc = Dataset(filename,mode='r')
+        
+	lats = nc.variables['lat'][:]
+	lons = nc.variables['lon'][:]
+              
+        if i==runmin:
+            var1=xr.DataArray(nc.variables[varname1][:])
+            var2=xr.DataArray(nc.variables[varname2][:])
+            var3=xr.DataArray(nc.variables[varname3][:])
+            var4=xr.DataArray(nc.variables[varname4][:])
+
+        else:
+            var1_i=xr.DataArray(nc.variables[varname1][:])
+            var1=xr.concat([var1,var1_i],'dim_0')
+            var2_i=xr.DataArray(nc.variables[varname2][:])
+            var2=xr.concat([var2,var2_i],'dim_0')
+            var3_i=xr.DataArray(nc.variables[varname3][:])
+            var3=xr.concat([var3,var3_i],'dim_0')
+            var4_i=xr.DataArray(nc.variables[varname4][:])
+            var4=xr.concat([var4,var4_i],'dim_0')
+
+    time=[np.array(np.linspace(0,(runmax-runmin-1),(runmax-runmin)*4*30,dtype='datetime64[h]'))]
+    var1=xr.DataArray((var1.values)*factor1,coords=[time[0],lats,lons],dims=['time','lat','lon'])	
+
+    var2=xr.DataArray((var2.values)*factor2,coords=[time[0],lats,lons],dims=['time','lat','lon'])
+
+    var3=xr.DataArray((var3.values)*factor3,coords=[time[0],lats,lons],dims=['time','lat','lon'])
+
+    var4=xr.DataArray((var4.values)*factor4,coords=[time[0],lats,lons],dims=['time','lat','lon'])
+
+
+    for i in range (0,(runmax-runmin)*120):
+        if i==0:
+		timeseries1 = [area_weighted_avg(var1[0,:,:],area_array,landmask,'all_sfcs',minlat,maxlat)]
+		timeseries1_land = [area_weighted_avg(var1[0,:,:],area_array,landmask,'land',minlat,maxlat)]
+		timeseries1_ocean = [area_weighted_avg(var1[0,:,:],area_array,landmask,'ocean',minlat,maxlat)]
+
+		timeseries2 = [area_weighted_avg(var2[0,:,:],area_array,landmask,'all_sfcs',minlat,maxlat)]
+		timeseries2_land = [area_weighted_avg(var2[0,:,:],area_array,landmask,'land',minlat,maxlat)]
+		timeseries2_ocean = [area_weighted_avg(var2[0,:,:],area_array,landmask,'ocean',minlat,maxlat)]
+
+
+		timeseries3 = [area_weighted_avg(var3[0,:,:],area_array,landmask,'all_sfcs',minlat,maxlat)]
+		timeseries3_land = [area_weighted_avg(var3[0,:,:],area_array,landmask,'land',minlat,maxlat)]
+		timeseries3_ocean = [area_weighted_avg(var3[0,:,:],area_array,landmask,'ocean',minlat,maxlat)]
+
+
+		timeseries4 = [area_weighted_avg(var4[0,:,:],area_array,landmask,'all_sfcs',minlat,maxlat)]
+		timeseries4_land = [area_weighted_avg(var4[0,:,:],area_array,landmask,'land',minlat,maxlat)]
+		timeseries4_ocean = [area_weighted_avg(var4[0,:,:],area_array,landmask,'ocean',minlat,maxlat)]
+
+        else:
+		timeseries1.append(area_weighted_avg(var1[i,:,:],area_array,landmask,'all_sfcs',minlat,maxlat))
+		timeseries1_land.append(area_weighted_avg(var1[i,:,:],area_array,landmask,'land',minlat,maxlat))
+		timeseries1_ocean.append(area_weighted_avg(var1[i,:,:],area_array,landmask,'ocean',minlat,maxlat))
+
+
+		timeseries2.append(area_weighted_avg(var2[i,:,:],area_array,landmask,'all_sfcs',minlat,maxlat))
+		timeseries2_land.append(area_weighted_avg(var2[i,:,:],area_array,landmask,'land',minlat,maxlat))
+		timeseries2_ocean.append(area_weighted_avg(var2[i,:,:],area_array,landmask,'ocean',minlat,maxlat))
+
+
+		timeseries3.append(area_weighted_avg(var3[i,:,:],area_array,landmask,'all_sfcs',minlat,maxlat))
+		timeseries3_land.append(area_weighted_avg(var3[i,:,:],area_array,landmask,'land',minlat,maxlat))
+		timeseries3_ocean.append(area_weighted_avg(var3[i,:,:],area_array,landmask,'ocean',minlat,maxlat))
+
+
+		timeseries4.append(area_weighted_avg(var4[i,:,:],area_array,landmask,'all_sfcs',minlat,maxlat))
+		timeseries4_land.append(area_weighted_avg(var4[i,:,:],area_array,landmask,'land',minlat,maxlat))
+		timeseries4_ocean.append(area_weighted_avg(var4[i,:,:],area_array,landmask,'ocean',minlat,maxlat))
+
+	
+    timeseries1=np.asarray(timeseries1)
+    timeseries1_land=np.asarray(timeseries1_land)
+    timeseries1_ocean=np.asarray(timeseries1_ocean)
+
+	
+    timeseries2=np.asarray(timeseries2)
+    timeseries2_land=np.asarray(timeseries2_land)
+    timeseries2_ocean=np.asarray(timeseries2_ocean)
+
+	
+    timeseries3=np.asarray(timeseries3)
+    timeseries3_land=np.asarray(timeseries3_land)
+    timeseries3_ocean=np.asarray(timeseries3_ocean)
+
+	
+    timeseries4=np.asarray(timeseries4)
+    timeseries4_land=np.asarray(timeseries4_land)
+    timeseries4_ocean=np.asarray(timeseries4_ocean)
+
+    months=np.linspace(runmin,(runmax-1),timeseries1.size)
+    
+    if select == 'land':
+
+	    fig, ax = plt.subplots()
+# Twin the x-axis twice to make independent y-axes.
+	    axes = [ax, ax.twinx(), ax.twinx(), ax.twinx()] 
+# Make some space on the right side for the extra y-axis.
+	    fig.subplots_adjust(right=0.75)
+## Move the last y-axis spine over to the right by 20% of the width of the axes
+	    axes[-1].spines['right'].set_position(('axes', 1.2))
+
+# To make the border of the right-most axis visible, we need to turn the frame
+# on. This hides the other plots, however, so we need to turn its fill off.
+	    axes[-1].set_frame_on(True)
+	    axes[-1].patch.set_visible(False)
+
+	    colors = ('g','b','r','k')
+	    field = (timeseries1_land,timeseries2_land,timeseries3_land,timeseries4_land)
+	    names = (varname1,varname2,varname3,varname4)
+	    i=0
+	    for ax, color in zip(axes, colors):
+		    data = field[i]
+		    ax.plot(months,data,color=color,label=names[i])
+		    ax.set_ylabel(names[i])
+		    if (i<=1):
+			    ax.set_ylim(0,timeseries1.max()+1.)
+		    ax.tick_params(axis='y',colors=color)
+		    i+=1
+		    axes[0].set_xlabel('month #')
+		    plt.legend()
+		    plt.title('avg land only between '+str(minlat)+' and '+str(maxlat)+' N')
+    # elif select == 'ocean': 
+    # 	    plt.plot(months,timeseries1_ocean,'g',label=varname1)
+    # 	    plt.plot(months,timeseries2_ocean,'b',label=varname2)
+    # 	    plt.plot(months,timeseries3_ocean,'r',label=varname3)
+    # 	    plt.plot(months,timeseries4_ocean,'k',label=varname4)
+    # 	    plt.title('avg ocean only between '+str(minlat)+' and '+str(maxlat)+' N')
+    # elif select =='total':
+    # 	    plt.plot(months,timeseries1,'g',label=varname1)
+    # 	    plt.plot(months,timeseries2,'b',label=varname2)
+    # 	    plt.plot(months,timeseries3,'r',label=varname3)
+    # 	    plt.plot(months,timeseries4,'k',label=varname4)
+    # 	    plt.title('avg total between '+str(minlat)+' and '+str(maxlat)+' N')
+
+    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/P_E_bucket_t_timeseries_'+str(runmin)+'-'+str(runmax)+'_'+select+'_between_'+str(minlat)+'_and_'+str(maxlat)+'.png', bbox_inches='tight')
+    plt.close()
+#    plt.show()    
+
+
+
+
+
+
+
 def globavg_var_timeseries_total_and_land_perturbed(testdir,model,area_array,varname,runmin,runmax,factor,landmask,spinup_dir,spinup_model,spinup_runmin, spinup_runmax,minlat=-90.,maxlat=90.,select='all'):
     
 #	""" Plots and returns timeseries of global average for specified variable """
@@ -421,6 +648,44 @@ def seasonal_surface_variable(testdir,model,runmin,runmax,varname,units,factor=1
     var_month_avg=var.groupby('time.month').mean('time')
 
     return(var,var_avg,var_seasonal_avg,var_month_avg,time)
+
+def seasonal_surface_variable_6hrly(testdir,model,runmin,runmax,varname,units,factor=1.,level=None): 
+
+    print(varname+' '+str(factor))
+
+    plt.close()
+    for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
+        if model=='isca':
+		runnr="{0:04}".format(i)
+	elif model=='gfdl':
+		runnr="{0:03}".format(i)
+        filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_6_hourly.nc'
+        nc = Dataset(filename,mode='r')
+              
+        if i==runmin:
+            var=xr.DataArray(nc.variables[varname][:])
+        else:
+            var_i=xr.DataArray(nc.variables[varname][:])
+            var=xr.concat([var,var_i],'dim_0')
+
+    if level == 'all':
+	    var = var.sum('dim_1') # height integral
+    elif level>=0.:
+	    var = var[:,level,:,:]
+    
+    lons= nc.variables['lon'][:]
+    lats= nc.variables['lat'][:]
+    
+    time=[np.array(np.linspace(0,(runmax-runmin-1),(runmax-runmin)*4*30,dtype='datetime64[h]'))]
+    var=xr.DataArray((var.values)*factor,coords=[time[0],lats,lons],dims=['time','lat','lon'])
+    var_avg=var.mean(dim='time')
+#    var_seasonal_avg=var.groupby('time.season').mean('time') 
+#    var_month_avg=var.groupby('time.month').mean('time')
+
+    return(var,var_avg,time)
+
+
+
 
 def seasonal_4D_variable(testdir,model,runmin,runmax,varname,units): 
 
@@ -1963,14 +2228,13 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0
 
     fig = plt.figure()
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+    array = np.asarray(array)
+    array, lons = addcyclic(array, lons)
     array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
-    array = xr.DataArray(array)
-
 # draw parallels and meridians.
 
     #m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
     #m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
-    array, lons_cyclic = addcyclic(array, lons)
     array = xr.DataArray(array)
 
 
@@ -1978,7 +2242,7 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0
 # use meshgrid to create 2D arrays 
 # Not necessary if coordinates are already in 2D arrays.
 
-    lon, lat = np.meshgrid(lons_cyclic, lats)
+    lon, lat = np.meshgrid(lons, lats)
     xi, yi = m(lon, lat)
 
 
@@ -2004,7 +2268,7 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0
 		    cs = m.pcolor(xi,yi,array[idx,:,:],cmap=plt.cm.BrBG)
 	    
 	    elif palette=='temp':
-		    cs = m.pcolor(xi,yi,array[idx,:,:],norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin=minval,vmax=maxval)
+		    cs = m.pcolor(xi,yi,array[idx,:,:],norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),vmax=maxval)
 	    elif palette=='fromwhite': 
 		    pal = plt.cm.Blues
 		    pal.set_under('w',None)
