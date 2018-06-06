@@ -466,7 +466,7 @@ def globavg_var_timeseries_total_and_land_6hrly_severalvars(outdir,testdir,model
 
 	    fig, ax = plt.subplots()
 # Twin the x-axis twice to make independent y-axes.
-	    axes = [ax, ax.twinx(), ax.twinx(), ax.twinx()] 
+	    axes = [ax, ax.twinx(), ax.twinx()] 
 # Make some space on the right side for the extra y-axis.
 	    fig.subplots_adjust(right=0.75)
 ## Move the last y-axis spine over to the right by 20% of the width of the axes
@@ -481,14 +481,16 @@ def globavg_var_timeseries_total_and_land_6hrly_severalvars(outdir,testdir,model
 	    field = (timeseries1_land,timeseries2_land,timeseries3_land,timeseries4_land)
 	    names = (varname1,varname2,varname3,varname4)
 	    i=0
-	    for ax, color in zip(axes, colors):
-		    data = field[i]
-		    ax.plot(months,data,color=color,label=names[i])
-		    ax.set_ylabel(names[i])
+	    for i in range(0,4):
 		    if (i<=1):
-			    ax.set_ylim(0,timeseries1.max()+1.)
+			    axes[0].plot(months,field[i],color=colors[i],label=names[i])
+			    axes[0].set_ylabel(names[0]+', '+names[1])
+		    else: 
+			    axes[i-1].set_ylabel(names[i])
+			    axes[i-1].plot(months,field[i],color=colors[i],label=names[i])
+		    # if (i<1):
+		    # 	    ax.set_ylim(0,timeseries1.max()+1.)
 		    ax.tick_params(axis='y',colors=color)
-		    i+=1
 		    axes[0].set_xlabel('month #')
 		    plt.legend()
 		    plt.title('avg land only between '+str(minlat)+' and '+str(maxlat)+' N')
@@ -512,6 +514,123 @@ def globavg_var_timeseries_total_and_land_6hrly_severalvars(outdir,testdir,model
 
 
 
+def globavg_var_timeseries_selected_points__6hrly_severalvars(outdir,testdir,model,area_array,varname1,varname2,varname3,varname4,varname5,runmin,runmax,factor1,factor2,factor3,factor4,factor5,landmask,precipitation_avg,minlat=-90.,maxlat=90.,maxormin='max',level5=39):
+    
+#	""" Plots and returns timeseries of global average for specified variable """
+# factor is needed to convert eg precip from kg/s to mm/day 
+
+# currently not using minlat and maxlat!
+
+    for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
+        if model=='isca':
+		runnr="{0:04}".format(i)
+	elif model=='gfdl':
+		runnr="{0:03}".format(i)
+        filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_6_hourly.nc'
+        nc = Dataset(filename,mode='r')
+        
+	lats = nc.variables['lat'][:]
+	lons = nc.variables['lon'][:]
+              
+        if i==runmin:
+            var1=xr.DataArray(nc.variables[varname1][:])
+            var2=xr.DataArray(nc.variables[varname2][:])
+            var3=xr.DataArray(nc.variables[varname3][:])
+            var4=xr.DataArray(nc.variables[varname4][:])
+            var5=xr.DataArray(nc.variables[varname5][:,level5,:,:])
+
+        else:
+            var1_i=xr.DataArray(nc.variables[varname1][:])
+            var1=xr.concat([var1,var1_i],'dim_0')
+            var2_i=xr.DataArray(nc.variables[varname2][:])
+            var2=xr.concat([var2,var2_i],'dim_0')
+            var3_i=xr.DataArray(nc.variables[varname3][:])
+            var3=xr.concat([var3,var3_i],'dim_0')
+            var4_i=xr.DataArray(nc.variables[varname4][:])
+            var4=xr.concat([var4,var4_i],'dim_0')
+            var5_i=xr.DataArray(nc.variables[varname5][:,level5,:,:])
+            var5=xr.concat([var5,var5_i],'dim_0')
+	
+    time=[np.array(np.linspace(0,(runmax-runmin-1),(runmax-runmin)*4*30,dtype='datetime64[h]'))]
+    var1=xr.DataArray((var1.values)*factor1,coords=[time[0],lats,lons],dims=['time','lat','lon'])	
+
+    var2=xr.DataArray((var2.values)*factor2,coords=[time[0],lats,lons],dims=['time','lat','lon'])
+
+    var3=xr.DataArray((var3.values)*factor3,coords=[time[0],lats,lons],dims=['time','lat','lon'])
+
+    var4=xr.DataArray((var4.values)*factor4,coords=[time[0],lats,lons],dims=['time','lat','lon'])
+    var5=xr.DataArray((var5.values)*factor5,coords=[time[0],lats,lons],dims=['time','lat','lon'])
+
+
+    if (maxormin == 'max'):
+	    coords = np.where((precipitation_avg.where(landmask == 1.)) == (precipitation_avg.where(landmask == 1.)).max()) # gives a tuple
+	    print (precipitation_avg.where(landmask == 1.)).where((precipitation_avg.where(landmask == 1.) == (precipitation_avg.where(landmask == 1.)).max()),drop=True)
+    elif (maxormin == 'min'):
+	    coords = np.where((precipitation_avg.where(landmask == 1.)) == (precipitation_avg.where(landmask == 1.)).min()) # gives a tuple# gives a tuple
+	    print (precipitation_avg.where(landmask == 1.)).where((precipitation_avg.where(landmask == 1.) == (precipitation_avg.where(landmask == 1.)).min()),drop=True)
+    latP = (coords[0])[0]
+    lonP = (coords[1])[0]
+
+
+# NB: precipitation_avg.where(precipitation_avg == precipitation_avg.max(), drop=True)
+# shows the Pmax, and corresponding lat and lon 
+    timeseries1=np.empty((runmax-runmin)*120)
+    timeseries2=np.empty((runmax-runmin)*120)
+    timeseries3=np.empty((runmax-runmin)*120)
+    timeseries4=np.empty((runmax-runmin)*120)
+    timeseries5=np.empty((runmax-runmin)*120)
+
+    
+    for i in range (0,(runmax-runmin)*120):
+	    timeseries1[i] = var1[i,latP,lonP]
+	    timeseries2[i] = var2[i,latP,lonP]
+	    timeseries3[i] = var3[i,latP,lonP]
+	    timeseries4[i] = var4[i,latP,lonP]
+	    timeseries5[i] = var5[i,latP,lonP]
+
+    months=np.linspace(runmin,(runmax-1),timeseries1.size)
+    hours = np.linspace(0,(runmax-runmin-1)*30.*24.,timeseries1.size)
+    fig, ax = plt.subplots()
+# Twin the x-axis twice to make independent y-axes.
+    axes = [ax, ax.twinx(), ax.twinx(), ax.twinx()] 
+# Make some space on the right side for the extra y-axis.
+    fig.subplots_adjust(right=0.60)
+## Move the last y-axis spine over to the right by 20% of the width of the axes
+    axes[-1].spines['right'].set_position(('axes', 1.2))
+    axes[-2].spines['right'].set_position(('axes', 1.4))
+
+# To make the border of the right-most axis visible, we need to turn the frame
+# on. This hides the other plots, however, so we need to turn its fill off.
+    # axes[-1].set_frame_on(True)
+    # axes[-1].patch.set_visible(False)
+    axes[-2].set_frame_on(True)
+    axes[-2].patch.set_visible(False)
+
+
+    colors = ('g','b','r','k','Orange')
+    field = (timeseries1,timeseries2,timeseries3,timeseries4,timeseries5)
+    names = (varname1,varname2,varname3,varname4,varname5)
+    for i in range(0,5):
+	    if (i<=1):
+		    axes[0].plot(hours,field[i],color=colors[i],label=names[i])
+		    axes[0].set_ylabel(names[0]+', '+names[1])
+		    axes[0].legend()
+	    else: 
+		    axes[i-1].set_ylabel(names[i])
+		    axes[i-1].plot(hours,field[i],color=colors[i],label=names[i])
+		    # if (i<1):
+		    # 	    ax.set_ylim(0,timeseries1.max()+1.)
+		    axes[i-1].yaxis.label.set_color(colors[i])
+
+	    ax.tick_params(axis='y',color=colors[i])
+	    axes[0].set_xlabel('hour')
+    plt.title('timeseries in P_'+maxormin)
+
+    plt.show()
+#    plt.close()
+
+
+
 
 
 
@@ -527,7 +646,7 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,model,area_array,var
 		elif model=='gfdl':
 			runnr="{0:03}".format(i)
 		filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_monthly.nc'
-		print(filename)
+
 
 		nc = Dataset(filename,mode='r')   
 		lats = nc.variables['lat'][:]
@@ -555,7 +674,6 @@ def globavg_var_timeseries_total_and_land_perturbed(testdir,model,area_array,var
 		elif spinup_model=='gfdl':
 			runnr="{0:03}".format(i)
 		filename = '/scratch/mp586/'+spinup_dir+'/run'+runnr+'/atmos_monthly.nc'
-		print(filename)
 		nc = Dataset(filename,mode='r')
         
 		var=nc.variables[varname][0,:,:]*factor
@@ -628,15 +746,21 @@ def seasonal_surface_variable(testdir,model,runmin,runmax,varname,units,factor=1
         nc = Dataset(filename,mode='r')
               
         if i==runmin:
-            var=xr.DataArray(nc.variables[varname][:]) # only monthly avg for month i
+		if (level==None) or (level=='all'):
+			var=xr.DataArray(nc.variables[varname][:]) # only monthly avg for month i
+		else:
+			var=xr.DataArray(nc.variables[varname][:,level,:,:]) # only monthly avg for month i
+
         else:
-            var_i=xr.DataArray(nc.variables[varname][:])
-            var=xr.concat([var,var_i],'dim_0')
+		if (level==None) or (level=='all'): 
+			var_i=xr.DataArray(nc.variables[varname][:])
+			var=xr.concat([var,var_i],'dim_0')
+		else:
+			var_i=xr.DataArray(nc.variables[varname][:,level,:,:])
+			var=xr.concat([var,var_i],'dim_0')
 
     if level == 'all':
 	    var = var.sum('dim_1') # height integral
-    elif level>=0.:
-	    var = var[:,level,:,:]
     
     lons= nc.variables['lon'][:]
     lats= nc.variables['lat'][:]
@@ -670,8 +794,6 @@ def seasonal_surface_variable_6hrly(testdir,model,runmin,runmax,varname,units,fa
 
     if level == 'all':
 	    var = var.sum('dim_1') # height integral
-    elif level>=0.:
-	    var = var[:,level,:,:]
     
     lons= nc.variables['lon'][:]
     lats= nc.variables['lat'][:]

@@ -86,12 +86,23 @@ plot_streamfunction_seasonal(msf_seasonal_avg)
 [precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'precipitation','kg/m2s', factor=86400)
 [bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'bucket_depth','m')
 #[flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_oceanq','W/m^2')
+
+
+runmin=481
+runmax=493
+globavg_var_timeseries_selected_points__6hrly_severalvars(outdir,testdir,model,area_array,'flux_lhe','precipitation','t_surf','bucket_depth','rh',runmin,runmax,1/28.,86400.,1.,1.,1.,landmask,precipitation_avg,minlat=-10.,maxlat=10.,maxormin='max')
+
+
+
+
 [slp,slp_avg,slp_seasonal_avg,slp_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'slp','hPa', factor = 1/100.)
 
 [rh,rh_avg,rh_seasonal_avg,rh_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'rh','%',level=39)
 # [sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level='all')
 
 rh_P_E_T(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,tsurf_avg,landmask)
+
+
 
 
 # animated_map(outdir,slp_month_avg,'hPa','slp','slp_clim_animated','slp',0,12)
