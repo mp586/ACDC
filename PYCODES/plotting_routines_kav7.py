@@ -1741,7 +1741,7 @@ def worldmap_variable(outdir,field,units,title,palette,minval,maxval,nmb_contour
     lon_0 = lons.mean() 
     lat_0 = lats.mean() 
 
-    fig = plt.figure(figsize = (30,10))
+    fig = plt.figure(figsize = (35,15))
 
     ax1 = plt.subplot2grid((2,2), (0,0))
 
@@ -1804,7 +1804,7 @@ def worldmap_variable(outdir,field,units,title,palette,minval,maxval,nmb_contour
 	    else:
 		    plt.clabel(cont, inline=2, fmt='%1.3f', fontsize=med)
 
-    cbar = m.colorbar(cs, location='right', pad="10%")
+    cbar = m.colorbar(cs, location='bottom', pad="10%")
     cbar.set_label(units, size=med)
     cbar.ax.tick_params(labelsize=small) 
     plt.title(title, size=lge)
@@ -3369,37 +3369,74 @@ def rh_P_E_T(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,tsurf_avg
 
 # NB if I need a (2,2) subplot, need to use ax[0, 1] -- there has to be a space between the comma and the 1 otherwise it doesn't work! i.e. .plot(...) doesn't work and also can't access the subplot that I want! OR fig, axes = plt.subplots(2,2....) and then can call axes[0,0]...
 
-def rh_P_E_change(outdir,runmin,runmax,rh_avg,rh_avg_ctl,precipitation_avg,precipitation_avg_ctl,net_lhe_avg,net_lhe_avg_ctl,landmask):
+def rh_P_E_change(outdir,runmin,runmax,rh_avg,rh_avg_ctl,precipitation_avg,precipitation_avg_ctl,net_lhe_avg,net_lhe_avg_ctl,tsurf_avg,tsurf_avg_ctl,landmask,sfc='all',minlat=-30.,maxlat=30.):
 	
-	rh_avg_tropical_land = rh_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
-	precip_avg_tropical_land = precipitation_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
-	evap_avg_tropical_land = net_lhe_avg.where(landmask==1.).sel(lat=slice(-30.,30.))
 
-	rh_land_1d = np.asarray(rh_avg_tropical_land).flatten()
-	P_land_1d = np.asarray(precip_avg_tropical_land).flatten()
-	E_land_1d = np.asarray(evap_avg_tropical_land).flatten()
+	small = 14 #largefonts 14 # smallfonts 10 # medfonts = 14
+	med = 18 #largefonts 18 # smallfonts 14 # medfonts = 16
+	lge = 22 #largefonts 22 # smallfonts 18 # medfonts = 20
 
-	rh_avg_ctl_tropical_land = rh_avg_ctl.where(landmask==1.).sel(lat=slice(-30.,30.))
-	precip_avg_ctl_tropical_land = precipitation_avg_ctl.where(landmask==1.).sel(lat=slice(-30.,30.))
-	evap_avg_ctl_tropical_land = net_lhe_avg_ctl.where(landmask==1.).sel(lat=slice(-30.,30.))
+	if sfc == 'all':
+		rh_avg = rh_avg.sel(lat=slice(minlat,maxlat))
+		P_avg = precipitation_avg.sel(lat=slice(minlat,maxlat))
+		T_avg = tsurf_avg.sel(lat=slice(minlat,maxlat))
+		E_avg = net_lhe_avg.sel(lat=slice(minlat,maxlat))
 
-	rh_land_ctl_1d = np.asarray(rh_avg_ctl_tropical_land).flatten()
-	P_land_ctl_1d = np.asarray(precip_avg_ctl_tropical_land).flatten()
-	E_land_ctl_1d = np.asarray(evap_avg_ctl_tropical_land).flatten()
+		rh_avg_ctl = rh_avg_ctl.sel(lat=slice(minlat,maxlat))
+		P_avg_ctl = precipitation_avg_ctl.sel(lat=slice(minlat,maxlat))
+		T_avg_ctl = tsurf_avg_ctl.sel(lat=slice(minlat,maxlat))
+		E_avg_ctl = net_lhe_avg_ctl.sel(lat=slice(minlat,maxlat))
 
-	plt.plot(rh_land_1d,P_land_1d,'b.',label = 'P land')
-	plt.plot(rh_land_ctl_1d,P_land_ctl_1d,'c.',label = 'P land ctl')
-	plt.plot(rh_land_1d,E_land_1d,'g.',label = 'E land')
-	plt.plot(rh_land_ctl_1d,E_land_ctl_1d,'y.',label = 'E land ctl')
+		rh_1d = np.asarray(rh_avg).flatten()
+		P_1d = np.asarray(P_avg).flatten()
+		E_1d = np.asarray(E_avg).flatten()
+		T_1d = np.asarray(T_avg).flatten()
 
-	plt.legend()
-	plt.xlabel('RH %')
-	plt.ylabel('P and E (mm/d)')
-	plt.title('P and E versus RH, annual mean')
-	manager = plt.get_current_fig_manager()
-	manager.window.showMaximized()	
-	plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/RH_P_E_land_change_'+str(runmin)+'-'+str(runmax), bbox_inches='tight', dpi=100)	
-	plt.show()
+		rh_ctl_1d = np.asarray(rh_avg_ctl).flatten()
+		P_ctl_1d = np.asarray(P_avg_ctl).flatten()
+		E_ctl_1d = np.asarray(E_avg_ctl).flatten()
+		T_ctl_1d = np.asarray(T_avg_ctl).flatten()
+
+	elif (sfc == 'land') or (sfc == 'ocean'):
+		if sfc == 'land':
+			condition = 1.
+		elif sfc == 'ocean':
+			condition = 0.
+		
+		rh_avg = rh_avg.where(landmask==condition).sel(lat=slice(minlat,maxlat))
+		P_avg = precipitation_avg.where(landmask==condition).sel(lat=slice(minlat,maxlat))
+		T_avg = tsurf_avg.where(landmask==condition).sel(lat=slice(minlat,maxlat))
+		E_avg = net_lhe_avg.where(landmask==condition).sel(lat=slice(minlat,maxlat))
+
+		rh_avg_ctl = rh_avg_ctl.where(landmask==condition).sel(lat=slice(minlat,maxlat))
+		P_avg_ctl = precipitation_avg_ctl.where(landmask==condition).sel(lat=slice(minlat,maxlat))
+		T_avg_ctl = tsurf_avg_ctl.where(landmask==condition).sel(lat=slice(minlat,maxlat))
+		E_avg_ctl = net_lhe_avg_ctl.where(landmask==condition).sel(lat=slice(minlat,maxlat))
+
+		rh_1d = np.asarray(rh_avg).flatten()
+		P_1d = np.asarray(P_avg).flatten()
+		E_1d = np.asarray(E_avg).flatten()
+		T_1d = np.asarray(T_avg).flatten()
+
+		rh_ctl_1d = np.asarray(rh_avg_ctl).flatten()
+		P_ctl_1d = np.asarray(P_avg_ctl).flatten()
+		E_ctl_1d = np.asarray(E_avg_ctl).flatten()
+		T_ctl_1d = np.asarray(T_avg_ctl).flatten()
+
+	fig, ax = plt.subplots(1,2, sharey = True, figsize=(25,10))
+	ax[0].plot(P_ctl_1d,(P_1d - P_ctl_1d),'g.', label = sfc)
+	ax[0].set_xlabel("P control (mm/d)",fontsize = lge)
+	ax[1].set_xlabel("T change (K)",fontsize = lge)
+	ax[1].plot((T_1d - T_ctl_1d),(P_1d - P_ctl_1d),'r.', label = sfc)
+	ax[0].tick_params(labelsize = med)
+	ax[1].tick_params(labelsize = med)
+	ax[0].legend(fontsize = lge)
+	ax[1].legend(fontsize = lge)
+	ax[0].set_ylabel('P change (mm/d)', fontsize = lge)
+
+	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/Delta_P_vs_Delta_T_and_P_control_'+str(runmin)+'-'+str(runmax)+'_'+sfc+'_between_'+str(minlat)+'N_and_'+str(maxlat)+'N.png', bbox_inches='tight', dpi=100)
+
+
 
 
 

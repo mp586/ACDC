@@ -92,6 +92,8 @@ runmin=481
 runmax=493
 globavg_var_timeseries_selected_points__6hrly_severalvars(outdir,testdir,model,area_array,'flux_lhe','precipitation','t_surf','bucket_depth','rh',runmin,runmax,1/28.,86400.,1.,1.,1.,landmask,precipitation_avg,minlat=-10.,maxlat=10.,maxormin='max')
 
+globavg_var_timeseries_selected_points__6hrly_severalvars(outdir,testdir,model,area_array,'flux_lhe','precipitation','t_surf','bucket_depth','rh',runmin,runmax,1/28.,86400.,1.,1.,1.,landmask,precipitation_avg,minlat=-10.,maxlat=10.,maxormin='min')
+
 
 
 
