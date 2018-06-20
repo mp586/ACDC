@@ -81,18 +81,32 @@ plot_streamfunction_seasonal(msf_seasonal_avg)
 ###########
 
 [tsurf,tsurf_avg,tsurf_seasonal_avg,tsurf_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'t_surf','K')
-[net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_lhe','W/m^2',factor = 1/28.) # latent heat flux at surface (UP)
-# 1/28.=conversion from W/m^# 2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg, see www.ce.utexas.edu/prof/maidment/CE374KSpr12/.../Latent%20heat%20flux.pptx @30DegC
 [precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'precipitation','kg/m2s', factor=86400)
-[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'bucket_depth','m')
-#[flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_oceanq','W/m^2')
+#[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'bucket_depth','m')
+
+# [flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_oceanq','W/m^2')
+[net_sw,net_sw_avg,net_sw_seasonal_avg,net_sw_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_sw','W/m^2',factor = 1.) # 
+[lw_down,lw_down_avg,lw_down_seasonal_avg,lw_down_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_lw','W/m^2',factor = 1.) # 
+[net_t,net_t_avg,net_t_seasonal_avg,net_t_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_t','W/m^2',factor = 1.) # 
+[net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_lhe','W/m^2',factor = 1.) #for SEB in W/m²
+
+sigma = 5.67*10**(-8)
+net_lw_avg = sigma*(tsurf_avg**4) - lw_down_avg
+
+SEB = area_weighted_avg(net_sw_avg,area_array,landmaskxr,option='all_sfcs') - area_weighted_avg(net_lw_avg,area_array,landmaskxr,option='all_sfcs')- area_weighted_avg(net_lhe_avg,area_array,landmaskxr,option='all_sfcs') - area_weighted_avg(net_t_avg,area_array,landmaskxr,option='all_sfcs') # optional, if there is a qflux + area_weighted_avg(flux_oceanq_avg,area_array,landmaskxr,option='ocean')
+
+print('SEB in W/m2 = '+str(SEB))
+
+[net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_lhe','W/m^2',factor = 1/28.) # latent heat flux at surface (UP) in mm/day
+# 1/28.=conversion from W/m^# 2 to mm/day using E=H/(rho*L), rho=1000kg/m3, L=2.5*10^6J/kg, see www.ce.utexas.edu/prof/maidment/CE374KSpr12/.../Latent%20heat%20flux.pptx @30DegC
 
 
-runmin=481
-runmax=493
-globavg_var_timeseries_selected_points__6hrly_severalvars(outdir,testdir,model,area_array,'flux_lhe','precipitation','t_surf','bucket_depth','rh',runmin,runmax,1/28.,86400.,1.,1.,1.,landmask,precipitation_avg,minlat=-10.,maxlat=10.,maxormin='max')
+# only possible for full continents newbucket fullnewbucketqflux 
+# runmin=481
+# runmax=493
+# globavg_var_timeseries_selected_points__6hrly_severalvars(outdir,testdir,model,area_array,'flux_lhe','precipitation','t_surf','bucket_depth','rh',runmin,runmax,1/28.,86400.,1.,1.,1.,landmask,precipitation_avg,minlat=-10.,maxlat=10.,maxormin='max')
 
-globavg_var_timeseries_selected_points__6hrly_severalvars(outdir,testdir,model,area_array,'flux_lhe','precipitation','t_surf','bucket_depth','rh',runmin,runmax,1/28.,86400.,1.,1.,1.,landmask,precipitation_avg,minlat=-10.,maxlat=10.,maxormin='min')
+# globavg_var_timeseries_selected_points__6hrly_severalvars(outdir,testdir,model,area_array,'flux_lhe','precipitation','t_surf','bucket_depth','rh',runmin,runmax,1/28.,86400.,1.,1.,1.,landmask,precipitation_avg,minlat=-10.,maxlat=10.,maxormin='min')
 
 
 
@@ -191,6 +205,10 @@ SON = 'SON'
 
 [ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,ucomp_annual_avg,time]=seasonal_4D_variable(testdir,model,runmin,runmax,'ucomp','m/s')
 [vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,vcomp_annual_avg,time]=seasonal_4D_variable(testdir,model,runmin,runmax,'vcomp','m/s')
+
+
+winds_at_heightlevel(ucomp_avg,vcomp_avg,39,precipitation_avg,'fromwhite','mm/d',0.,8.,landmaskxr,landlats,landlons)
+
 #[omega,omega_avg,omega_seasonal_avg,omega_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'omega','Pa/s',level=39)
 
 winds_seasons(ucomp_seasonal_avg,vcomp_seasonal_avg,39,precipitation_seasonal_avg,'fromwhite','mm/d',0.,8.,landmaskxr,landlats,landlons,outdir,runmin,runmax)
@@ -272,7 +290,6 @@ print('GPCP mean precip = '+str(gpcp_avg))
 # any_configuration_plot(outdir,runmin,runmax,-90.,90.,(bucket_depth_avg),area_array,'m','bucket_depth','fromwhite',landmask,landlats,landlons)
 
 # animated_map(testdir,flux_oceanq_month_avg,area_array,'W/m^2','resulting_q_flux','qflux_clim_animated','rainnorm',0,12,-300,300)
-
 
 
 maxval_omega_surf = np.absolute(omega_month_avg.max())

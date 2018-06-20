@@ -2202,8 +2202,8 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
     ax1 = plt.subplot2grid((5,8), (0,1), colspan = 5, rowspan = 3)
 
 
-    m = Basemap(projection='kav7',lon_0=0.,resolution='c')
-    
+    m = Basemap(projection='kav7',lon_0=0.,llcrnrlon=-180.,llcrnrlat=-30.,urcrnrlon=180.,urcrnrlat=30.,resolution='c')
+#    m = Basemap(projection='cyl',llcrnrlon=-180.,llcrnrlat=-30.,urcrnrlon=180.,urcrnrlat=30.,resolution='c') works, but not with kav7 projection
     array = xr.DataArray(array,coords=[lats,lons],dims=['lat','lon'])
 
     zonavg_thin = area_weighted_avg(array,area_array,landmaskxr,option = 'all_sfcs',minlat=-90.,maxlat=90.,axis=1)
@@ -2428,7 +2428,7 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0
     # os.system('ffmpeg -f gif -i /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.mp4')
 
 	
-def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,landmaskxr,landlats,landlons):
+def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,landmaskxr,landlats,landlons,veclen=10):
 
 # Plots every third wind vector at specified height level
 # onto a world map of the 'array' which could be e.g. precip
@@ -2509,7 +2509,7 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,lan
 	cbar.set_label(units)
 
 	Q = plt.quiver(xi[::3,::3], yi[::3,::3], uwind[level,::3,::3], vwind[level,::3,::3], units='width')
-	qk = plt.quiverkey(Q, 0.9, 0.9, 10, r'$10 \frac{m}{s}$', 
+	qk = plt.quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}$', 
 			   labelpos='E', coordinates='figure')
 
 	# plt.show()
@@ -2521,7 +2521,7 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,lan
 # axes[0,0].set_title("Level 39")
 
 
-def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,landmaskxr,landlats,landlons,outdir,runmin,runmax,quivkey=4): 
+def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,landmaskxr,landlats,landlons,outdir,runmin,runmax,quivkey=4,veclen=1.): 
 	
 	fig, axes = plt.subplots(2,2, figsize = (25, 10))
 
@@ -2532,7 +2532,7 @@ def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,l
 
 	landmask = np.asarray(landmaskxr)
 
-	fig = plt.figure()
+#	fig = plt.figure()
 	m = Basemap(projection='kav7',lon_0=0.,resolution='c', ax = axes[0,0])
 	lons = uwind.lon
 	lats = uwind.lat
@@ -2597,7 +2597,7 @@ def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,l
 
 
 	Q = axes[0,0].quiver(xi[::quivkey,::quivkey], yi[::quivkey,::quivkey], uwind[level,::quivkey,::quivkey], vwind[level,::quivkey,::quivkey], units='width')
-	qk = axes[0,0].quiverkey(Q, 0.9, 0.9, 10, r'$10 \frac{m}{s}$', 
+	qk = axes[0,0].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}$', 
 			   labelpos='E', coordinates='figure')
 
 
@@ -2665,7 +2665,8 @@ def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,l
 
 
 	Q = axes[0,1].quiver(xi[::quivkey,::quivkey], yi[::quivkey,::quivkey], uwind[level,::quivkey,::quivkey], vwind[level,::quivkey,::quivkey], units='width')
-	qk = axes[0,1].quiverkey(Q, 0.9, 0.9, 10, r'$10 \frac{m}{s}$', 
+
+	qk = axes[0,1].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}$', 
 			   labelpos='E', coordinates='figure')
 
 
@@ -2733,9 +2734,9 @@ def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,l
 
 
 	Q = axes[1,0].quiver(xi[::quivkey,::quivkey], yi[::quivkey,::quivkey], uwind[level,::quivkey,::quivkey], vwind[level,::quivkey,::quivkey], units='width')
-	qk = axes[1,0].quiverkey(Q, 0.9, 0.9, 10, r'$10 \frac{m}{s}$', 
-			   labelpos='E', coordinates='figure')
 
+	qk = axes[1,0].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}$', 
+			   labelpos='E', coordinates='figure')
 
 	axes[1,1].set_title('DJF')
 	uwind = uwind_in.sel(season='DJF')
@@ -2801,10 +2802,8 @@ def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,l
 
 
 	Q = axes[1,1].quiver(xi[::quivkey,::quivkey], yi[::quivkey,::quivkey], uwind[level,::quivkey,::quivkey], vwind[level,::quivkey,::quivkey], units='width')
-	qk = axes[1,1].quiverkey(Q, 0.9, 0.9, 10, r'$10 \frac{m}{s}$', 
-			   labelpos='E', coordinates='figure')
-
-
+	qk = axes[1,1].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}$', 
+			   labelpos='E', coordinates='figure')	
 	cbar = fig.colorbar(cs,ax=axes)
 	cbar.set_label(units)
 
@@ -3001,7 +3000,7 @@ def area_weighted_avg(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90.,
 
 	if option=='all_sfcs': # meaning both land and ocean
 		w_avg = np.average(array, axis=axis, weights=area_array)
-
+#		w_avg_check = (np.sum(array*area_array))/np.sum(area_array) # is the saame
 #		aquaplanet_plot(-90.,90.,array,'1','all_sfc',0)
 
 	elif option=='ocean':
@@ -3030,6 +3029,58 @@ def area_weighted_avg(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90.,
 		# plt.show()
 		# plt.close()
 	return w_avg
+
+
+
+def area_weighted_avg_4D(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90.,axis=None):
+
+#	time = array.time
+	lats = array.lat
+	lons = array.lon
+	levs = array.pres_lev
+	landmask = np.asarray(landmaskxr)
+#	array = xr.DataArray(array, coords=[time,pres_lev,lats,lons], dims = ['time','pres_lev','lat','lon'])
+	area_array = xr.DataArray(area_array, coords=[levs,lats,lons], dims = ['pres_lev','lat','lon'])
+
+	if (minlat!=-90. and maxlat!=90.):
+		array = array.sel(lat=slice(minlat,maxlat))
+		landmask = np.asarray(landmaskxr.sel(lat=slice(minlat,maxlat)))
+		area_array = area_array.sel(lat=slice(minlat,maxlat))
+
+	if option=='all_sfcs': # meaning both land and ocean
+		w_avg = np.average(array, axis=axis, weights=area_array)
+#		w_avg_check = (np.sum(array*area_array))/np.sum(area_array) # is the saame
+#		aquaplanet_plot(-90.,90.,array,'1','all_sfc',0)
+
+	elif option=='ocean':
+		ma = np.ma.array(array, mask=np.isnan(array.where(landmask!=1.)))
+		w_avg = np.ma.average(ma,axis=axis,weights=area_array)
+
+
+		# ma = xr.DataArray(ma, coords=[lats,lons], dims = ['lat','lon'])
+		# aquaplanet_plot(-90.,90.,ma,'1','ocean masked array',0)
+
+		# xr.DataArray(mo).plot()
+		# plt.show()	
+		# plt.close()
+	elif option=='land': 
+		ma = np.ma.array(array, mask=np.isnan(array.where(landmask==1.)))
+		w_avg = np.ma.average(ma,axis=axis,weights=area_array)
+
+		# ma = xr.DataArray(ma, coords=[lats,lons], dims = ['lat','lon'])
+
+		# aquaplanet_plot(-90.,90.,ma,'1','land masked array',0)
+
+		# why can't I plot land mask and then ocean mask or vice  
+		# versa if calling ocean option first... ?
+		# is it a plotting issue or is the mask then wrong for the 2nd option?
+		# xr.DataArray(ml).plot() 
+		# plt.show()
+		# plt.close()
+	return w_avg
+
+
+
 
 def area_integral(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90.,factor=1.):
 
@@ -3433,10 +3484,25 @@ def rh_P_E_change(outdir,runmin,runmax,rh_avg,rh_avg_ctl,precipitation_avg,preci
 	ax[0].legend(fontsize = lge)
 	ax[1].legend(fontsize = lge)
 	ax[0].set_ylabel('P change (mm/d)', fontsize = lge)
+	ax[0].set_xlim(precipitation_avg.min(),precipitation_avg.max())
+	ax[1].set_xlim((tsurf_avg-tsurf_avg_ctl).min(),(tsurf_avg-tsurf_avg_ctl).max())
 
 	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/Delta_P_vs_Delta_T_and_P_control_'+str(runmin)+'-'+str(runmax)+'_'+sfc+'_between_'+str(minlat)+'N_and_'+str(maxlat)+'N.png', bbox_inches='tight', dpi=100)
 
+	fig2, ax2 = plt.subplots(1,2, sharey = True, figsize=(25,10))
+	ax2[0].plot((P_ctl_1d-E_ctl_1d),(P_1d - E_1d - (P_ctl_1d-E_ctl_1d)),'k.', label = sfc)
+	ax2[0].set_xlabel("P-E control (mm/d)",fontsize = lge)
+	ax2[1].set_xlabel("T change (K)",fontsize = lge)
+	ax2[1].plot((T_1d - T_ctl_1d),(P_1d - E_1d - (P_ctl_1d-E_ctl_1d)),'r.', label = sfc)
+	ax2[0].tick_params(labelsize = med)
+	ax2[1].tick_params(labelsize = med)
+	ax2[0].legend(fontsize = lge)
+	ax2[1].legend(fontsize = lge)
+	ax2[0].set_ylabel('P-E change (mm/d)', fontsize = lge)
+	ax2[0].set_xlim((precipitation_avg - net_lhe_avg).min(),(precipitation_avg - net_lhe_avg).max())
+	ax2[1].set_xlim((tsurf_avg-tsurf_avg_ctl).min(),(tsurf_avg-tsurf_avg_ctl).max())
 
+	fig2.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/Delta_P-E_vs_Delta_T_and_P-E_control_'+str(runmin)+'-'+str(runmax)+'_'+sfc+'_between_'+str(minlat)+'N_and_'+str(maxlat)+'N.png', bbox_inches='tight', dpi=100)
 
 
 
