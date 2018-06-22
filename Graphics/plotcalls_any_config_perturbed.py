@@ -8,7 +8,6 @@ import os
 
 import sys
 sys.path.insert(0, '/scratch/mp586/Code/PYCODES')
-import plotting_routines
 from plotting_routines_kav7 import *
 import stats as st
 
@@ -119,6 +118,13 @@ rh_P_E_change(outdir,runmin,runmax,rh_avg,rh_avg_ctl,precipitation_avg,precipita
 
 [sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level=39)
 [sphum_ctl,sphum_avg_ctl,sphum_seasonal_avg_ctl,sphum_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'sphum','kg/kg',level=39)
+
+
+[sphum_6hrly,sphum_6hrly_avg,time]=seasonal_surface_variable_6hrly(testdir,model,runmin_6hrly,runmax_6hrly,'sphum','kg/kg')
+[sphum_6hrly_ctl,sphum_6hrly_avg_ctl,time]=seasonal_surface_variable_6hrly(control_dir,ctl_model,ctl_runmin_6hrly,ctl_runmax_6hrly,'sphum','kg/kg')
+
+
+
 M_ctl = precipitation_ctl / sphum_ctl
 M_new = precipitation / sphum
 Delta_M = M_new - M_ctl
@@ -141,9 +147,21 @@ any_configuration_plot(outdir,runmin,runmax,-90.,90.,Delta_P_circ.mean('time'),a
 any_configuration_plot(outdir,runmin,runmax,-90.,90.,Delta_P_q.mean('time'),area_array,'mm/day','Delta_P_q_narrowcbar','rainnorm',landmaskxr,landlats,landlons,minval=-1.,maxval=1.)
 any_configuration_plot(outdir,runmin,runmax,-90.,90.,Delta_P_cross.mean('time'),area_array,'mm/day','Delta_P_cross_narrowcbar','rainnorm',landmaskxr,landlats,landlons,minval=-1.,maxval=1.)
 
-any_configuration_plot(outdir,runmin,runmax,-90.,90.,(Delta_M/(tsurf_avg - tsurf_avg_ctl).mean()).mean('time'),area_array,'mm/day','Delta_M_normalized','rainnorm',landmaskxr,landlats,landlons,minval=-40.,maxval=40) # change in circulation normalized by global mean T change # following Chadwick et al., 2013 (Fig. 8)
-any_configuration_plot(outdir,runmin,runmax,-90.,90.,sphum_avg - sphum_avg_ctl,area_array,'mm/day','q_avg_minus_ctl_lev39','rainnorm',landmaskxr,landlats,landlons) 
+globavg_deltaT = area_weighted_avg((tsurf_avg - tsurf_avg_ctl),area_array,landmask,'all_sfcs')
 
+any_configuration_plot(outdir,runmin,runmax,-90.,90.,(Delta_M/globavg_deltaT).mean('time'),area_array,'mm/day/K','Delta_M_normalized','rainnorm',landmaskxr,landlats,landlons,minval=-40.,maxval=40) # change in circulation normalized by global mean T change # following Chadwick et al., 2013 (Fig. 8)
+any_configuration_plot(outdir,runmin,runmax,-90.,90.,sphum_avg - sphum_avg_ctl,area_array,'kg/kg','q_avg_minus_ctl_lev39','rainnorm',landmaskxr,landlats,landlons) 
+any_configuration_plot(outdir,runmin,runmax,-90.,90.,sphum_avg_ctl,area_array,'kg/kg','q_ctl_lev39','fromwhite',landmaskxr,landlats,landlons,nmb_contours=10) 
+any_configuration_plot(outdir,runmin,runmax,-90.,90.,sphum_avg,area_array,'kg/kg','q_avg_lev39','fromwhite',landmaskxr,landlats,landlons,nmb_contours=10) 
+any_configuration_plot(outdir,runmin,runmax,-90.,90.,M_ctl,area_array,'mm/day','M_ctl','fromwhite',landmaskxr,landlats,landlons)  
+any_configuration_plot(outdir,runmin,runmax,-90.,90.,M_new,area_array,'mm/day','M_avg','fromwhite',landmaskxr,landlats,landlons) 
+any_configuration_plot(outdir,runmin,runmax,-90.,90.,(Delta_M).mean('time')/M_ctl.mean('time'),area_array,' ','DeltaM_avg_div_M_ctl_avg','rainnorm',landmaskxr,landlats,landlons,minval=-1.0,maxval=1.0)
+
+any_configuration_plot(outdir,runmin,runmax,-90.,90.,((sphum_avg - sphum_avg_ctl)/sphum_avg_ctl),area_array,' ','Deltaq_div_q_ctl','rainnorm',landmaskxr,landlats,landlons)
+
+any_configuration_plot(outdir,runmin,runmax,-90.,90.,(Delta_M).mean('time')*(sphum_avg - sphum_avg_ctl).mean('time'),area_array,'mm/day','DeltaM_avg_dot_Deltaq_avg','rainnorm',landmaskxr,landlats,landlons,minval=-2.0,maxval=2.0)
+                                            
+                     
 ###################################################################
 
 any_configuration_plot(outdir,runmin,runmax,-90.,90.,(net_lhe_avg - net_lhe_avg_ctl),area_array,'mm/day','E_avg_minus_ctl_oceanscale','rainnorm',landmaskxr,landlats,landlons,minval=0.,maxval=0.5)
@@ -214,6 +232,13 @@ any_configuration_plot(outdir,runmin,runmax,-90.,90.,(net_lhe_avg - net_lhe_avg_
 [ucomp_ctl,ucomp_avg_ctl,ucomp_seasonal_avg_ctl,ucomp_month_avg_ctl,ucomp_annual_avg_ctl,time]=seasonal_4D_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'ucomp','m/s')
 [vcomp_ctl,vcomp_avg_ctl,vcomp_seasonal_avg_ctl,vcomp_month_avg_ctl,vcomp_annual_avg_ctl,time]=seasonal_4D_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'vcomp','m/s')
 
+runmin_6hrly = 481
+runmax_6hrly = 493
+
+[ucomp_6hrly,ucomp_6hrly_avg,time]=seasonal_4D_variable_6hrly(testdir,model,runmin_6hrly,runmax_6hrly,'ucomp','m/s')
+[vcomp_6hrly,vcomp_6hrly_avg,time]=seasonal_4D_variable_6hrly(testdir,model,runmin_6hrly,runmax_6hrly,'vcomp','m/s')
+[ucomp_6hrly_ctl,ucomp_6hrly_avg_ctl,time]=seasonal_4D_variable_6hrly(control_dir,ctl_model,ctl_runmin_6hrly,ctl_runmax_6hrly,'ucomp','m/s')
+[vcomp_6hrly_ctl,vcomp_6hrly_avg_ctl,time]=seasonal_4D_variable_6hrly(control_dir,ctl_model,ctl_runmin_6hrly,ctl_runmax_6hrly,'vcomp','m/s')
 
 
 winds_seasons(ucomp_seasonal_avg,vcomp_seasonal_avg,39,(PE_seasonal_avg - PE_seasonal_avg_ctl),'rainnorm','mm/d',-2.,2.,landmaskxr,landlats,landlons,outdir,runmin,runmax)

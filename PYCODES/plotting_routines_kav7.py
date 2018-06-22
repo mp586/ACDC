@@ -807,6 +807,31 @@ def seasonal_surface_variable_6hrly(testdir,model,runmin,runmax,varname,units,fa
     return(var,var_avg,time)
 
 
+def seasonal_4D_variable_6hrly(testdir,model,runmin,runmax,varname,units): 
+
+    for i in range (runmin,runmax): # excludes last one! i.e. not from 1 - 12 but from 1 - 11!
+        if model=='isca':
+		runnr="{0:04}".format(i)
+	elif model=='gfdl':
+		runnr="{0:03}".format(i)
+        filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_6_hourly.nc'
+        nc = Dataset(filename,mode='r')
+              
+        if i==runmin:
+            var=xr.DataArray(nc.variables[varname][:])
+        else:
+            var_i=xr.DataArray(nc.variables[varname][:])
+            var=xr.concat([var,var_i],'dim_0')
+    
+    lons= nc.variables['lon'][:]
+    lats= nc.variables['lat'][:]
+    pres_levs= nc.variables['pfull'][:]
+ 
+    time=[np.array(np.linspace(0,(runmax-runmin-1),(runmax-runmin)*4*30,dtype='datetime64[h]'))]
+    var=xr.DataArray(var.values,coords=[time[0],pres_levs,lats,lons],dims=['time','pres_lev','lat','lon'])
+    var_avg=var.mean(dim='time')
+
+    return(var,var_avg,time)
 
 
 def seasonal_4D_variable(testdir,model,runmin,runmax,varname,units): 
@@ -2440,7 +2465,7 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,lan
 # units are for the underlying plot
 	landmask = np.asarray(landmaskxr)
 
-	fig = plt.figure()
+	fig = plt.figure(figsize = (25,10))
 	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 	lons = uwind.lon
 	lats = uwind.lat
@@ -2519,6 +2544,93 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,lan
 # def winds_at_4_levels(): 
 # fig, axes = plt.subplots(2,2,sharex = True, sharey = True, figsize = (25,10))
 # axes[0,0].set_title("Level 39")
+
+
+
+	
+def winds_one_level(outdir,runmin,runmax,uwind,vwind,array,palette,units,minval,maxval,landmaskxr,landlats,landlons,veclen=10,level=39):
+
+# Plots every third wind vector at specified height level
+# onto a world map of the 'array' which could be e.g. precip
+
+# uwind and vwind are 4D arrays, 
+# level should be between 0 and 39 for MiMA
+# array is the underlying plot (e.g. Tsurf, precip, ...)
+# palette is for the underlying plot
+# units are for the underlying plot
+	landmask = np.asarray(landmaskxr)
+
+	fig = plt.figure(figsize = (25,10))
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
+	lons = uwind.lon
+	lats = uwind.lat
+	uwind, lons_cyclic = addcyclic(uwind, lons)
+	vwind, lons_cyclic = addcyclic(vwind, lons)
+	uwind = np.asarray(uwind)
+	vwind = np.asarray(vwind)
+	uwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,uwind,lons_cyclic,start=False,
+			       cyclic=np.max(lons_cyclic))
+	vwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,vwind,lons_cyclic,start=False,
+			       cyclic=np.max(lons_cyclic))	
+
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+
+
+	array, lons_cyclic = addcyclic(array, lons)
+	array = np.asarray(array)
+	array, lons_shift = shiftgrid(np.max(lons_cyclic)-180.,array,lons_cyclic,
+				     start=False,cyclic=np.max(lons_cyclic))
+	array = xr.DataArray(array,coords=[lats,lons_shift],dims=['lat','lon'])
+
+	landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
+	landmask, landlons = addcyclic(landmask, landlons)
+
+	lon, lat = np.meshgrid(lons_shift, lats)
+	xi, yi = m(lon, lat)
+
+	if np.any(landmask != 0.):
+		m.contour(xi,yi,landmask, 1)
+
+	if palette=='rainnorm':
+
+		if maxval >= minval:
+			minval = - maxval
+		else: 
+			maxval = minval
+			minval = - minval
+
+		cs = m.pcolor(xi,yi,array,
+			      norm=MidpointNormalize(midpoint=0.),
+			      cmap='BrBG',vmin=minval, vmax=maxval)
+
+	elif palette == 'raindefault':
+		cs = m.pcolor(xi,yi,array, 
+			      cmap=plt.cm.BrBG)
+
+	elif palette=='temp': 
+		cs = m.pcolor(xi,yi,array, 
+			      norm=MidpointNormalize(midpoint=273.15), 
+			      cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),
+			      vmax=maxval) 
+
+	elif palette=='fromwhite': 
+		pal = plt.cm.Blues
+		pal.set_under('w',None)
+		cs = m.pcolormesh(xi,yi,array,
+				  cmap=pal,vmin=0,vmax=maxval)
+
+	else:
+		cs = m.pcolor(xi,yi,array)
+
+	cbar = m.colorbar(cs, location='right', pad="10%")
+	cbar.set_label(units)
+
+	Q = plt.quiver(xi[::3,::3], yi[::3,::3], uwind[::3,::3], vwind[::3,::3], units='width')
+	qk = plt.quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}$', 
+			   labelpos='E', coordinates='figure')
+
+	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/winds_level'+str(level)+'_'+str(runmin)+'-'+str(runmax)+'.png', bbox_inches='tight', dpi=100)
 
 
 def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,landmaskxr,landlats,landlons,outdir,runmin,runmax,quivkey=4,veclen=1.): 
@@ -2817,7 +2929,7 @@ def winds_anomaly(uwind,vwind,landmaskxr,landlats,landlons,level=39, minval = -8
 # vectors = absolute wind field 
 	landmask = np.asarray(landmaskxr)
 
-	fig = plt.figure()
+	fig = plt.figure(figsize = (25,10))
 	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 	lons = uwind.lon
 	lats = uwind.lat
@@ -2876,7 +2988,7 @@ def winds_anomaly_uv_vectors(uwind,vwind,landmaskxr,landlats,landlons,level=39):
 
 	landmask = np.asarray(landmaskxr)
 
-	fig = plt.figure()
+	fig = plt.figure(figsize = (25,10))
 	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 	lons = uwind.lon
 	lats = uwind.lat
