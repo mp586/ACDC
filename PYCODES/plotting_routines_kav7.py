@@ -785,24 +785,32 @@ def seasonal_surface_variable_6hrly(testdir,model,runmin,runmax,varname,units,fa
 		runnr="{0:03}".format(i)
         filename = '/scratch/mp586/'+testdir+'/run'+runnr+'/atmos_6_hourly.nc'
         nc = Dataset(filename,mode='r')
+
+
               
         if i==runmin:
-            var=xr.DataArray(nc.variables[varname][:])
+		if (level==None) or (level=='all'):
+			var=xr.DataArray(nc.variables[varname][:]) # only monthly avg for month i
+		else:
+			var=xr.DataArray(nc.variables[varname][:,level,:,:]) # only monthly avg for month i
+
         else:
-            var_i=xr.DataArray(nc.variables[varname][:])
-            var=xr.concat([var,var_i],'dim_0')
+		if (level==None) or (level=='all'): 
+			var_i=xr.DataArray(nc.variables[varname][:])
+			var=xr.concat([var,var_i],'dim_0')
+		else:
+			var_i=xr.DataArray(nc.variables[varname][:,level,:,:])
+			var=xr.concat([var,var_i],'dim_0')
 
     if level == 'all':
 	    var = var.sum('dim_1') # height integral
     
     lons= nc.variables['lon'][:]
     lats= nc.variables['lat'][:]
-    
+
     time=[np.array(np.linspace(0,(runmax-runmin-1),(runmax-runmin)*4*30,dtype='datetime64[h]'))]
     var=xr.DataArray((var.values)*factor,coords=[time[0],lats,lons],dims=['time','lat','lon'])
     var_avg=var.mean(dim='time')
-#    var_seasonal_avg=var.groupby('time.season').mean('time') 
-#    var_month_avg=var.groupby('time.month').mean('time')
 
     return(var,var_avg,time)
 
@@ -2365,7 +2373,7 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
 
 
 
-def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0,maxval=1000,landlats = None, landlons = None, landmask = 0.):
+def animated_map(testdir,outdir,array,units,title,plot_title,palette,imin,imax,minval=0,maxval=1000,landlats = None, landlons = None, landmask = 0.):
 
 # Can be used for a surface variable, e.g. to animate the climatology of evaporation
 
@@ -2373,7 +2381,7 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0
     lats=array.lat
     lons=array.lon
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(25,10))
     m = Basemap(projection='kav7',lon_0=0.,resolution='c')
     array = np.asarray(array)
     array, lons = addcyclic(array, lons)
@@ -2443,12 +2451,12 @@ def animated_map(testdir,array,units,title,plot_title,palette,imin,imax,minval=0
 
 	    plt.title(title)
 	    plt.annotate('Month #'+str(idx+1), xy=(0.15,0.8), xycoords='figure fraction')
-	    plt.savefig('/scratch/mp586/Code/Graphics/'+plot_title+'_month'+str(1000+idx)+'.png',bbox_inches='tight')
+	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+plot_title+'_month'+str(1000+idx)+'.png',bbox_inches='tight')
 	    fig.clf()
    
 
 #+testdir+'/'
-    os.system('convert -delay 50 /scratch/mp586/Code/Graphics/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
+    os.system('convert -delay 50 /scratch/mp586/Code/Graphics/'+outdir+'/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
     # Use ffmeg to convert animated gif to mp4
     # os.system('ffmpeg -f gif -i /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.mp4')
 
@@ -2548,7 +2556,7 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,lan
 
 
 	
-def winds_one_level(outdir,runmin,runmax,uwind,vwind,array,palette,units,minval,maxval,landmaskxr,landlats,landlons,veclen=10,level=39):
+def winds_one_level(outdir,runmin,runmax,plt_title,uwind,vwind,array,palette,units,minval,maxval,landmaskxr,landlats,landlons,veclen=10,level=39):
 
 # Plots every third wind vector at specified height level
 # onto a world map of the 'array' which could be e.g. precip
@@ -2627,10 +2635,10 @@ def winds_one_level(outdir,runmin,runmax,uwind,vwind,array,palette,units,minval,
 	cbar.set_label(units)
 
 	Q = plt.quiver(xi[::3,::3], yi[::3,::3], uwind[::3,::3], vwind[::3,::3], units='width')
-	qk = plt.quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}$', 
+	qk = plt.quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}\frac{kg}{kg}$', 
 			   labelpos='E', coordinates='figure')
 
-	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/winds_level'+str(level)+'_'+str(runmin)+'-'+str(runmax)+'.png', bbox_inches='tight', dpi=100)
+	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+plt_title+'_level'+str(level)+'_'+str(runmin)+'-'+str(runmax)+'.png', bbox_inches='tight', dpi=100)
 
 
 def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,landmaskxr,landlats,landlons,outdir,runmin,runmax,quivkey=4,veclen=1.): 

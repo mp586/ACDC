@@ -84,7 +84,7 @@ plot_streamfunction_seasonal(msf_seasonal_avg)
 [precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'precipitation','kg/m2s', factor=86400)
 #[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'bucket_depth','m')
 [rh,rh_avg,rh_seasonal_avg,rh_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'rh','%',level=39)
-[CIWV,CIWV_avg,CIWV_seasonal_avg,CIWV_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level='all')
+#[CIWV,CIWV_avg,CIWV_seasonal_avg,CIWV_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level='all')
 
 [net_sw,net_sw_avg,net_sw_seasonal_avg,net_sw_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_sw','W/m^2',factor = 1.) # 
 [net_lw,net_lw_avg,net_lw_seasonal_avg,net_lw_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_lw','W/m^2',factor = 1.) # 
@@ -100,11 +100,35 @@ plot_streamfunction_seasonal(msf_seasonal_avg)
 [precipitation_ctl,precipitation_avg_ctl,precipitation_seasonal_avg_ctl,precipitation_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'precipitation','kg/m2s', factor=86400)
 #[bucket_depth_ctl,bucket_depth_avg_ctl,bucket_depth_seasonal_avg_ctl,bucket_depth_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'bucket_depth','m')
 [rh_ctl,rh_avg_ctl,rh_seasonal_avg_ctl,rh_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'rh','%',level=39)
-[CIWV_ctl,CIWV_avg_ctl,CIWV_seasonal_avg_ctl,CIWV_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'sphum','kg/kg',level='all')
+#[CIWV_ctl,CIWV_avg_ctl,CIWV_seasonal_avg_ctl,CIWV_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'sphum','kg/kg',level='all')
 #[flux_oceanq_ctl,flux_oceanq_avg_ctl,flux_oceanq_seasonal_avg_ctl,flux_oceanq_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'flux_oceanq','W/m^2')
 [net_sw_ctl,net_sw_avg_ctl,net_sw_seasonal_avg_ctl,net_sw_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'flux_sw','W/m^2',factor = 1.) # 
 [net_lw_ctl,net_lw_avg_ctl,net_lw_seasonal_avg_ctl,net_lw_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'flux_lw','W/m^2',factor = 1.) # 
 [net_t_ctl,net_t_avg_ctl,net_t_seasonal_avg_ctl,net_t_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'flux_t','W/m^2',factor = 1.) # 
+
+
+# ctl_runmin = 421
+# ctl_runmax = 481
+# runmin = 1
+# runmax = 60
+# [precipitation_ctl,precipitation_avg_ctl,precipitation_seasonal_avg_ctl,precipitation_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'precipitation','kg/m2s', factor=86400)
+# [precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'precipitation','kg/m2s', factor=86400)
+
+
+# for i in range(ctl_runmin-ctl_runmin+1,ctl_runmax-ctl_runmin):
+#     month_plot = any_configuration_plot(outdir,ctl_runmin,ctl_runmax,-90.,90.,precipitation_ctl[i,:,:],
+#                                         area_array,'mm/day',
+#                                         'P_avg_ctl','fromwhite',landmaskxr,landlats,landlons,nmb_contours=10,
+#                                         minval = 0., maxval = 8.,month_annotate=i)
+#     month_plot.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/P_month'+str(1000+i)+'.png',bbox_inches='tight')
+# for i in range(runmin-runmin+1,runmax-runmin):
+#     month_plot = any_configuration_plot(outdir,runmin,runmax,-90.,90.,precipitation[i,:,:],area_array,'mm/day',
+#                                         'P_avg','fromwhite',landmaskxr,landlats,landlons,nmb_contours=10,
+#                                         minval = 0., maxval = 8.,month_annotate=i)
+#     month_plot.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/P_month'+str(2000+i)+'.png',bbox_inches='tight')
+
+# os.system('convert -delay 50 /scratch/mp586/Code/Graphics/'+outdir+'/P_month*.png /scratch/mp586/Code/Graphics/'+outdir+'/P_month_animation.gif')
+
 
 
 
@@ -118,12 +142,6 @@ rh_P_E_change(outdir,runmin,runmax,rh_avg,rh_avg_ctl,precipitation_avg,precipita
 
 [sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level=39)
 [sphum_ctl,sphum_avg_ctl,sphum_seasonal_avg_ctl,sphum_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'sphum','kg/kg',level=39)
-
-
-[sphum_6hrly,sphum_6hrly_avg,time]=seasonal_surface_variable_6hrly(testdir,model,runmin_6hrly,runmax_6hrly,'sphum','kg/kg')
-[sphum_6hrly_ctl,sphum_6hrly_avg_ctl,time]=seasonal_surface_variable_6hrly(control_dir,ctl_model,ctl_runmin_6hrly,ctl_runmax_6hrly,'sphum','kg/kg')
-
-
 
 M_ctl = precipitation_ctl / sphum_ctl
 M_new = precipitation / sphum
@@ -194,7 +212,7 @@ PE_seasonal_avg_ctl = precipitation_seasonal_avg_ctl - net_lhe_seasonal_avg_ctl
 #any_configuration_plot(outdir,runmin,runmax,-90.,90.,(bucket_depth_avg - bucket_depth_avg_ctl).where(landmask==1.),area_array,'mm/day','bucket_depth_avg_minus_ctl_land','rainnorm',landmaskxr,landlats,landlons,minval = -0.1, maxval = 0.1)
 any_configuration_plot(outdir,runmin,runmax,-90.,90.,rh_avg - rh_avg_ctl,area_array,'%','surface_rh_avg_minus_ctl','rainnorm',landmaskxr,landlats,landlons,nmb_contours=5, minval=-7., maxval = 7.)
 
-any_configuration_plot(outdir,runmin,runmax,-90.,90.,CIWV_avg - CIWV_avg_ctl,area_array,'kg/kg','column_IWV_minus_ctl','rainnorm',landmaskxr,landlats,landlons,nmb_contours=5, minval = -0.05, maxval = 0.05)
+#any_configuration_plot(outdir,runmin,runmax,-90.,90.,CIWV_avg - CIWV_avg_ctl,area_array,'kg/kg','column_IWV_minus_ctl','rainnorm',landmaskxr,landlats,landlons,nmb_contours=5, minval = -0.05, maxval = 0.05)
 
 # # degrees C symbol : ...,u"\u00b0"+'C',..
 
@@ -227,19 +245,38 @@ any_configuration_plot(outdir,runmin,runmax,-90.,90.,(net_lhe_avg - net_lhe_avg_
 # for i in range(20,40):
 #     any_configuration_plot(outdir,runmin,runmax,-90.,90.,rh_avg[i,:,:] - rh_ctl_avg[i,:,:],area_array,'%','lev'+str(i)+'_rh_avg_minus_ctl','rainnorm',landmaskxr,landlats,landlons,nmb_contours=5, minval=-7., maxval = 7.)
 
+ctl_runmin_6hrly = 493
+ctl_runmax_6hrly = 601
+
+runmin_6hrly = 492
+runmax_6hrly = 600
+
+[sphum_6hrly,sphum_6hrly_avg,time]=seasonal_surface_variable_6hrly(testdir,model,runmin_6hrly,runmax_6hrly,'sphum','kg/kg',level=39)
+[sphum_6hrly_ctl,sphum_6hrly_avg_ctl,time]=seasonal_surface_variable_6hrly(control_dir,ctl_model,ctl_runmin_6hrly,ctl_runmax_6hrly,'sphum','kg/kg',level=39)
+
+[ucomp_6hrly,ucomp_6hrly_avg,time]=seasonal_surface_variable_6hrly(testdir,model,runmin_6hrly,runmax_6hrly,'ucomp','m/s',level=39)
+[vcomp_6hrly,vcomp_6hrly_avg,time]=seasonal_surface_variable_6hrly(testdir,model,runmin_6hrly,runmax_6hrly,'vcomp','m/s',level=39)
+[ucomp_6hrly_ctl,ucomp_6hrly_avg_ctl,time]=seasonal_surface_variable_6hrly(control_dir,ctl_model,ctl_runmin_6hrly,ctl_runmax_6hrly,'ucomp','m/s',level=39)
+[vcomp_6hrly_ctl,vcomp_6hrly_avg_ctl,time]=seasonal_surface_variable_6hrly(control_dir,ctl_model,ctl_runmin_6hrly,ctl_runmax_6hrly,'vcomp','m/s',level=39)
+
+[precipitation_6hrly,precipitation_6hrly_avg,time]=seasonal_surface_variable_6hrly(testdir,model,runmin_6hrly,runmax_6hrly,'precipitation','mm/d',factor=86400.)
+[precipitation_6hrly_ctl,precipitation_6hrly_avg_ctl,time]=seasonal_surface_variable_6hrly(control_dir,ctl_model,ctl_runmin_6hrly,ctl_runmax_6hrly,'precipitation','mm/d',factor=86400.)
+
+
+winds_one_level(outdir,runmin_6hrly,runmax_6hrly,'moisture_flux_total_',(ucomp_6hrly*sphum_6hrly).mean('time'),(vcomp_6hrly*sphum_6hrly).mean('time'),precipitation_6hrly_avg,'fromwhite','mm/d',0.,8.,landmaskxr,landlats,landlons,veclen=0.1,level=39)
+winds_one_level(outdir,ctl_runmin_6hrly,ctl_runmax_6hrly,'moisture_flux_total_ctl_',(ucomp_6hrly_ctl*sphum_6hrly_ctl).mean('time'),(vcomp_6hrly_ctl*sphum_6hrly_ctl).mean('time'),precipitation_6hrly_avg_ctl,'fromwhite','mm/d',0.,8.,landmaskxr,landlats,landlons,veclen=0.1,level=39)
+
+winds_one_level(outdir,runmin_6hrly,runmax_6hrly,'moisture_flux_stationary_',(ucomp_6hrly_avg*sphum_6hrly_avg),(vcomp_6hrly_avg*sphum_6hrly_avg),precipitation_6hrly_avg,'fromwhite','mm/d',0.,8.,landmaskxr,landlats,landlons,veclen=0.1,level=39)
+winds_one_level(outdir,ctl_runmin_6hrly,ctl_runmax_6hrly,'moisture_flux_stationary_ctl_',(ucomp_6hrly_avg_ctl*sphum_6hrly_avg_ctl),(vcomp_6hrly_avg_ctl*sphum_6hrly_avg_ctl),precipitation_6hrly_avg_ctl,'fromwhite','mm/d',0.,8.,landmaskxr,landlats,landlons,veclen=0.1,level=39)
+
+
+
+
+
 [ucomp,ucomp_avg,ucomp_seasonal_avg,ucomp_month_avg,ucomp_annual_avg,time]=seasonal_4D_variable(testdir,model,runmin,runmax,'ucomp','m/s')
 [vcomp,vcomp_avg,vcomp_seasonal_avg,vcomp_month_avg,vcomp_annual_avg,time]=seasonal_4D_variable(testdir,model,runmin,runmax,'vcomp','m/s')
 [ucomp_ctl,ucomp_avg_ctl,ucomp_seasonal_avg_ctl,ucomp_month_avg_ctl,ucomp_annual_avg_ctl,time]=seasonal_4D_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'ucomp','m/s')
 [vcomp_ctl,vcomp_avg_ctl,vcomp_seasonal_avg_ctl,vcomp_month_avg_ctl,vcomp_annual_avg_ctl,time]=seasonal_4D_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'vcomp','m/s')
-
-runmin_6hrly = 481
-runmax_6hrly = 493
-
-[ucomp_6hrly,ucomp_6hrly_avg,time]=seasonal_4D_variable_6hrly(testdir,model,runmin_6hrly,runmax_6hrly,'ucomp','m/s')
-[vcomp_6hrly,vcomp_6hrly_avg,time]=seasonal_4D_variable_6hrly(testdir,model,runmin_6hrly,runmax_6hrly,'vcomp','m/s')
-[ucomp_6hrly_ctl,ucomp_6hrly_avg_ctl,time]=seasonal_4D_variable_6hrly(control_dir,ctl_model,ctl_runmin_6hrly,ctl_runmax_6hrly,'ucomp','m/s')
-[vcomp_6hrly_ctl,vcomp_6hrly_avg_ctl,time]=seasonal_4D_variable_6hrly(control_dir,ctl_model,ctl_runmin_6hrly,ctl_runmax_6hrly,'vcomp','m/s')
-
 
 winds_seasons(ucomp_seasonal_avg,vcomp_seasonal_avg,39,(PE_seasonal_avg - PE_seasonal_avg_ctl),'rainnorm','mm/d',-2.,2.,landmaskxr,landlats,landlons,outdir,runmin,runmax)
 
@@ -338,7 +375,7 @@ ax[0].set_ylabel('Pressure (hPa)')
 
 
 
-#animated_map(testdir,bucket_depth.where(landmask==1.),'m','bucket depth','bucket_depth','fromwhite',0,140) # need runmin = 1!
+#animated_map(testdir,outdir,bucket_depth.where(landmask==1.),'m','bucket depth','bucket_depth','fromwhite',0,140) # need runmin = 1!
 
 
 
