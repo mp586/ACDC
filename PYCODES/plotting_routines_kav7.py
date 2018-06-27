@@ -790,9 +790,9 @@ def seasonal_surface_variable_6hrly(testdir,model,runmin,runmax,varname,units,fa
               
         if i==runmin:
 		if (level==None) or (level=='all'):
-			var=xr.DataArray(nc.variables[varname][:]) # only monthly avg for month i
+			var=xr.DataArray(nc.variables[varname][:])
 		else:
-			var=xr.DataArray(nc.variables[varname][:,level,:,:]) # only monthly avg for month i
+			var=xr.DataArray(nc.variables[varname][:,level,:,:])
 
         else:
 		if (level==None) or (level=='all'): 
@@ -2207,7 +2207,7 @@ def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
 
     plt.show()
 
-def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,units,title,palette,landmaskxr,landlats,landlons,nmb_contours=0,minval=None,maxval=None,month_annotate=None):
+def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,units,title,palette,landmaskxr,nmb_contours=0,minval=None,maxval=None,month_annotate=None):
 # plotting only the zonal average next to the map 
 # currently hard coded -30.,30. slice instead of squarelats_min, squarelats_max
     plt.close()
@@ -2225,7 +2225,8 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
     maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0] 
     selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
 
-
+    landlats = np.asarray(landmaskxr.lat)
+    landlons = np.asarray(landmaskxr.lon)
 
     landmask = np.asarray(landmaskxr)
 
@@ -2300,8 +2301,6 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
 		      vmin = -maxval,
 		      vmax = maxval)
     elif palette=='slp':
-	    minval = np.min(array)
-	    maxval = np.max(array)
 	    cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.coolwarm,vmin=minval,vmax=maxval)
 
 
@@ -2556,7 +2555,7 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,lan
 
 
 	
-def winds_one_level(outdir,runmin,runmax,plt_title,uwind,vwind,array,palette,units,minval,maxval,landmaskxr,landlats,landlons,veclen=10,level=39):
+def winds_one_level(outdir,runmin,runmax,plt_title,uwind,vwind,array,palette,units,minval,maxval,landmaskxr,landlats,landlons,veclen=10,level=39, units_numerator = 'm', units_denom = 's'):
 
 # Plots every third wind vector at specified height level
 # onto a world map of the 'array' which could be e.g. precip
@@ -2635,8 +2634,7 @@ def winds_one_level(outdir,runmin,runmax,plt_title,uwind,vwind,array,palette,uni
 	cbar.set_label(units)
 
 	Q = plt.quiver(xi[::3,::3], yi[::3,::3], uwind[::3,::3], vwind[::3,::3], units='width')
-	qk = plt.quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}\frac{kg}{kg}$', 
-			   labelpos='E', coordinates='figure')
+	qk = plt.quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{'+units_numerator+'}{'+units_denom+'}$', labelpos='E', coordinates='figure')
 
 	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+plt_title+'_level'+str(level)+'_'+str(runmin)+'-'+str(runmax)+'.png', bbox_inches='tight', dpi=100)
 
@@ -3625,166 +3623,28 @@ def rh_P_E_change(outdir,runmin,runmax,rh_avg,rh_avg_ctl,precipitation_avg,preci
 	fig2.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/Delta_P-E_vs_Delta_T_and_P-E_control_'+str(runmin)+'-'+str(runmax)+'_'+sfc+'_between_'+str(minlat)+'N_and_'+str(maxlat)+'N.png', bbox_inches='tight', dpi=100)
 
 
+def land_sea_contrast(array_avg, array_avg_ctl, area_array, landmaskxr, outdir, runmin, runmax, minlat, maxlat, units, plot_title, colorbar, minval = None, maxval = None): 
 
+	print(maxval)
 
-# def animated_winds(testdir,uwind,vwind,level,array,palette,units,imin,imax,plot_title):
+	landmask = np.asarray(landmaskxr)
+	zonavg_delta_oc = ((array_avg - array_avg_ctl).where(landmask == 0.)).mean('lon')
 
-# dont think this is necessary, because I am using winds_at_height_level for animations anyway... 
+	lats = array_avg.lat
+	lons = array_avg.lon
 
-# # Can be used to animate monhtly wind plots for entire period 
+	zonavg_delta_oc_2D = np.expand_dims(zonavg_delta_oc, axis = 1)
+	zonavg_delta_oc_2D = np.repeat(zonavg_delta_oc_2D, len(lons), axis = 1)
+	zonavg_delta_oc_2D = xr.DataArray(zonavg_delta_oc_2D, coords = [lats, lons], dims = ['lat','lon'])
 
-# 	print np.shape(array)
-# 	fig = plt.figure()
-# 	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
-# 	lons = uwind.lon
-# 	lats = uwind.lat
-# 	pres = uwind.pres_lev[level]	
-# 	uwind,lons_shift = shiftgrid(np.max(lons)-180.,uwind[:,level,:,:],lons,start=False,
-# 			       cyclic=np.max(lons))
-# 	vwind,lons_shift = shiftgrid(np.max(lons)-180.,vwind[:,level,:,:],lons,start=False,
-# 			       cyclic=np.max(lons))	
-# 	uwind, lons_cyclic = addcyclic(uwind, lons_shift)
-# 	vwind, lons_cyclic = addcyclic(vwind, lons_shift)
+	plot = any_configuration_plot(outdir,runmin,runmax,-90.,90.,(array_avg-array_avg_ctl)/zonavg_delta_oc_2D,area_array,units,plot_title,colorbar,landmaskxr,minval = minval, maxval=maxval)
 
-# 	lon, lat = np.meshgrid(lons_cyclic, lats)
-# 	xi, yi = m(lon, lat)
-
-# #	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
-# #	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
-
-# 	plt.title('Wind at '+str(pres)+' hPa')
-
-# 	array, array_lons = shiftgrid(np.max(lons)-180.,array,array.lon,
-# 				     start=False,cyclic=np.max(lons))
-# 	array, lons_cyclic = addcyclic(array, lons)
-
-# 	minval = np.min(array)
-# 	maxval = np.max(array)
-
-# 	array_all = array
-# 	uwind_all = uwind
-# 	vwind_all = vwind
-
-# 	for idx in range (imin,imax): 
-		
-# 		array = xr.DataArray(array_all[idx,:,:],coords=[lats,lons_cyclic],dims=['lat','lon'])
-
-# 		uwind = uwind_all[idx,:,:]
-# 		vwind = vwind_all[idx,:,:]
-
-# 		if palette=='rainnorm':
-# 			minval = np.absolute(minval)
-# 			maxval = no.absolute(maxval)	
-# 			if maxval >= minval:
-# 				minval = - maxval
-# 			else: 
-# 				maxval = minval
-# 				minval = - minval
-
-# 				cs = m.pcolor(xi,yi,array,
-# 					      norm=MidpointNormalize(midpoint=0.),
-# 					      cmap='BrBG',vmin=minval, vmax=maxval)
-
-# 		elif palette == 'raindefault':
-# 			cs = m.pcolor(xi,yi,array, 
-# 				      cmap=plt.cm.BrBG)
-
-# 		elif palette=='temp': 
-# 			cs = m.pcolor(xi,yi,array, 
-# 				      norm=MidpointNormalize(midpoint=273.15), 
-# 				      cmap=plt.cm.RdBu_r,vmin=minval,vmax=maxval)
-
-# 		elif palette=='fromwhite': 
-# 			pal = plt.cm.Blues
-# 			pal.set_under('w',None)
-# 			cs = m.pcolormesh(xi,yi,array,
-# 					  cmap=pal,vmin=0,vmax=maxval)
-
-# 		else:
-# 			cs = m.pcolor(xi,yi,array)
-
-# 		cbar = m.colorbar(cs, location='right', pad="10%")
-# 		cbar.set_label(units)
-
-# 		Q = plt.quiver(xi[::3,::3], yi[::3,::3], uwind[::3,::3], 
-# 			       vwind[::3,::3], units='width')
-# 		qk = plt.quiverkey(Q, 0.9, 0.9, 10, r'$10 \frac{m}{s}$', 
-# 				   labelpos='E', coordinates='figure')
-
-# 		plt.annotate('Month #'+str(idx+1), xy=(0.15,0.8), xycoords='figure fraction')
-# 		plt.savefig('/scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month'+str(1000+idx)+'.png',bbox_inches='tight')
-# 		fig.clf()
-   
-# 	os.system('convert -delay 30 /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'_month*.png /scratch/mp586/Code/Graphics/'+testdir+'/'+plot_title+'.gif')
+	plot.show()
 
 
 
 
-# def plot_streamfunction_seasonal(msf_array,units='10^10 kg/s'):
-# old version, uses subplot2grid instead of fig, axes = plt.subplots 
-# 	matplotlib.rcParams['contour.negative_linestyle']= 'dashed'
-
-# 	lats = msf_array.lat
-# 	pfull = msf_array.pfull
-	
-# 	y, p = np.meshgrid(lats, pfull)
 
 
-# 	# fig, axes = plt.subplots(2,2,sharex = True, sharey = True, figsize = (25, 10))
-# 	# fig.gca().invert_yaxis()
 
-# 	# cset1 = axes[0,0].contourf(y, p, msf_array.sel(season='MAM'), 
-# 	# 			   norm=MidpointNormalize(midpoint=0.),cmap='RdBu_r',vmin = -10.,vmax = 10.)
-# 	# cont = axes[0,0].contour(y, p, msf_array.sel(season='MAM'), 20, colors = 'k', linewidth=5)
-# 	# axes[0,0].clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
 
-# 	fig = plt.figure()
-# 	ax1 = plt.subplot2grid((8,8), (0,0), colspan=4, rowspan=4)
-# 	cset1 = plt.contourf(y, p, msf_array.sel(season='MAM'), norm=MidpointNormalize(midpoint=0.),
-#                      cmap='RdBu_r')
-# 	cont = plt.contour(y,p,msf_array.sel(season='MAM'), 20, colors = 'k', linewidth=5)
-# 	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
-# 	cbar = plt.colorbar(cset1)
-# 	cbar.set_label(units)
-# 	plt.title('MAM')
-# 	plt.xlabel('Latitude N')
-# 	plt.ylabel('Pressure (hPa)')
-# 	plt.gca().invert_yaxis()
-
-# 	ax2 = plt.subplot2grid((8,8), (0,4), colspan=4, rowspan=4)
-# 	cset1 = plt.contourf(y, p, msf_array.sel(season='JJA'), norm=MidpointNormalize(midpoint=0.),
-#                      cmap='RdBu_r')
-# 	cont = plt.contour(y,p,msf_array.sel(season='JJA'), 20, colors = 'k', linewidth=5)
-# 	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
-# 	cbar = plt.colorbar(cset1)
-# 	cbar.set_label(units)
-# 	plt.title('JJA')
-# 	plt.xlabel('Latitude N')
-# 	plt.ylabel('Pressure (hPa)')
-# 	plt.gca().invert_yaxis()
-
-# 	ax3 = plt.subplot2grid((8,8), (4,0), colspan=4, rowspan=4)
-# 	cset1 = plt.contourf(y, p, msf_array.sel(season='SON'), norm=MidpointNormalize(midpoint=0.),
-#                      cmap='RdBu_r')
-# 	cont = plt.contour(y,p,msf_array.sel(season='SON'), 20, colors = 'k', linewidth=5)
-# 	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
-# 	cbar = plt.colorbar(cset1)
-# 	cbar.set_label(units)
-# 	plt.title('SON')
-# 	plt.xlabel('Latitude N')
-# 	plt.ylabel('Pressure (hPa)')
-# 	plt.gca().invert_yaxis()
-
-# 	ax4 = plt.subplot2grid((8,8), (4,4), colspan=4, rowspan=4)
-# 	cset1 = plt.contourf(y, p, msf_array.sel(season='DJF'), norm=MidpointNormalize(midpoint=0.),
-#                      cmap='RdBu_r')
-# 	cont = plt.contour(y,p,msf_array.sel(season='DJF'), 20, colors = 'k', linewidth=5)
-# 	plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=14)
-# 	cbar = plt.colorbar(cset1)
-# 	cbar.set_label(units)
-# 	plt.title('DJF')
-# 	plt.xlabel('Latitude N')
-# 	plt.ylabel('Pressure (hPa)')
-# 	plt.gca().invert_yaxis()
-
-# 	plt.show()
