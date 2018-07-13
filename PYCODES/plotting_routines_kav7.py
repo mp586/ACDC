@@ -2285,6 +2285,8 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
 
     if palette=='rainnorm':
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG',vmin=minval, vmax=maxval)
+    elif palette == 'PE_scale':
+        cs = m.pcolor(xi,yi,array.sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='bwr_r',vmin=minval, vmax=maxval)
     elif palette == 'raindefault':
         cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), cmap=plt.cm.BrBG)
     elif palette=='temp':
@@ -2295,6 +2297,12 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
 	    pal = plt.cm.Blues
 	    pal.set_under('w',None)
 	    cs = m.pcolormesh(xi,yi,array.sel(lat=selected_lats),cmap=pal,vmin=0,vmax=maxval)
+
+    elif palette=='bucket': 
+	    pal = plt.cm.Greens
+	    pal.set_under('w',None)
+	    cs = m.pcolormesh(xi,yi,array.sel(lat=selected_lats),cmap=pal,vmin=0,vmax=maxval)
+
     elif palette=='tempdiff': 
 	    cs = m.pcolor(xi,yi,array.sel(lat=selected_lats), 
 		      norm=MidpointNormalize(midpoint=0), cmap=plt.cm.RdBu_r, 
@@ -2555,7 +2563,7 @@ def winds_at_heightlevel(uwind,vwind,level,array,palette,units,minval,maxval,lan
 
 
 	
-def winds_one_level(outdir,runmin,runmax,plt_title,uwind,vwind,array,palette,units,minval,maxval,landmaskxr,landlats,landlons,veclen=10,level=39, units_numerator = 'm', units_denom = 's'):
+def winds_one_level(outdir,runmin,runmax,plt_title,uwind,vwind,array,palette,units,minval,maxval,landmaskxr,veclen=10,level=39, units_numerator = 'm', units_denom = 's',save = False):
 
 # Plots every third wind vector at specified height level
 # onto a world map of the 'array' which could be e.g. precip
@@ -2565,9 +2573,14 @@ def winds_one_level(outdir,runmin,runmax,plt_title,uwind,vwind,array,palette,uni
 # array is the underlying plot (e.g. Tsurf, precip, ...)
 # palette is for the underlying plot
 # units are for the underlying plot
+	landlats = np.asarray(landmaskxr.lat)
+	landlons = np.asarray(landmaskxr.lon)
 	landmask = np.asarray(landmaskxr)
 
-	fig = plt.figure(figsize = (25,10))
+	fig, ax = plt.subplots(figsize = (25,10))
+
+# if fig, ax = plt.subplots(0,0, figsize = (25,10)) then ax is a numpy array --> can't do quiver plot on it
+
 	m = Basemap(projection='kav7',lon_0=0.,resolution='c')
 	lons = uwind.lon
 	lats = uwind.lat
@@ -2583,6 +2596,94 @@ def winds_one_level(outdir,runmin,runmax,plt_title,uwind,vwind,array,palette,uni
 	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
 	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
 
+
+	array, lons_cyclic = addcyclic(array, lons)
+	array = np.asarray(array)
+	array, lons_shift = shiftgrid(np.max(lons_cyclic)-180.,array,lons_cyclic,
+				     start=False,cyclic=np.max(lons_cyclic))
+	array = xr.DataArray(array,coords=[lats,lons_shift],dims=['lat','lon'])
+
+	landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
+	landmask, landlons = addcyclic(landmask, landlons)
+
+	lon, lat = np.meshgrid(lons_shift, lats)
+	xi, yi = m(lon, lat)
+
+	if np.any(landmask != 0.):
+		m.contour(xi,yi,landmask, 1)
+
+	if palette=='rainnorm':
+
+		if maxval >= minval:
+			minval = - maxval
+		else: 
+			maxval = minval
+			minval = - minval
+
+		cs = m.pcolor(xi,yi,array,
+			      norm=MidpointNormalize(midpoint=0.),
+			      cmap='BrBG',vmin=minval, vmax=maxval)
+	elif palette == 'PE_scale':
+		cs = m.pcolor(xi,yi,array,norm=MidpointNormalize(midpoint=0.),cmap='bwr_r',vmin=minval, vmax=maxval)
+	elif palette == 'raindefault':
+		cs = m.pcolor(xi,yi,array, 
+			      cmap=plt.cm.BrBG)
+
+	elif palette=='temp': 
+		cs = m.pcolor(xi,yi,array, 
+			      norm=MidpointNormalize(midpoint=273.15), 
+			      cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),
+			      vmax=maxval) 
+
+	elif palette=='fromwhite': 
+		pal = plt.cm.Blues
+		pal.set_under('w',None)
+		cs = m.pcolormesh(xi,yi,array,
+				  cmap=pal,vmin=0,vmax=maxval)
+
+	else:
+		cs = m.pcolor(xi,yi,array)
+
+	cbar = m.colorbar(cs, location='right', pad="10%")
+	cbar.set_label(units)
+
+	Q = ax.quiver(xi[::3,::3], yi[::3,::3], uwind[::3,::3], vwind[::3,::3], units='width')
+	ax.quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{'+units_numerator+'}{'+units_denom+'}$', labelpos='E', coordinates='figure')
+
+	if save == True:
+		fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+plt_title+'_level'+str(level)+'_'+str(runmin)+'-'+str(runmax)+'.png', dpi=100) # if add bbox_inches = 'tight' the quiverkey is not saved!
+
+	return fig
+
+def winds_seasons_one_level(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,landmaskxr,outdir,runmin,runmax,units_numerator='m',units_denom='s',quivkey=4,veclen=1.): 
+
+	landlats = np.asarray(landmaskxr.lat)
+	landlons = np.asarray(landmaskxr.lon)
+	
+	fig, axes = plt.subplots(2,2, figsize = (25, 10))
+
+	axes[0,0].set_title('MAM')
+	uwind = uwind_in.sel(season='MAM')
+	vwind = vwind_in.sel(season='MAM')
+	array = array_in.sel(season='MAM')
+
+	landmask = np.asarray(landmaskxr)
+
+#	fig = plt.figure()
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c', ax = axes[0,0])
+	lons = uwind.lon
+	lats = uwind.lat
+	uwind, lons_cyclic = addcyclic(uwind, lons)
+	vwind, lons_cyclic = addcyclic(vwind, lons)
+	uwind = np.asarray(uwind)
+	vwind = np.asarray(vwind)
+	uwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,uwind,lons_cyclic,start=False,
+			       cyclic=np.max(lons_cyclic))
+	vwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,vwind,lons_cyclic,start=False,
+			       cyclic=np.max(lons_cyclic))	
+
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
 
 	array, lons_cyclic = addcyclic(array, lons)
 	array = np.asarray(array)
@@ -2630,16 +2731,226 @@ def winds_one_level(outdir,runmin,runmax,plt_title,uwind,vwind,array,palette,uni
 	else:
 		cs = m.pcolor(xi,yi,array)
 
-	cbar = m.colorbar(cs, location='right', pad="10%")
+
+	Q = axes[0,0].quiver(xi[::quivkey,::quivkey], yi[::quivkey,::quivkey], uwind[::quivkey,::quivkey], vwind[::quivkey,::quivkey], units='width')
+	qk = axes[0,0].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{'+units_numerator+'}{'+units_denom+'}$', 
+			   labelpos='E', coordinates='figure')
+
+
+	axes[0,1].set_title('JJA')
+	uwind = uwind_in.sel(season='JJA')
+	vwind = vwind_in.sel(season='JJA')
+	array = array_in.sel(season='JJA')
+
+	fig = plt.figure()
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c', ax = axes[0,1])
+	lons = uwind.lon
+	lats = uwind.lat
+	uwind, lons_cyclic = addcyclic(uwind, lons)
+	vwind, lons_cyclic = addcyclic(vwind, lons)
+	uwind = np.asarray(uwind)
+	vwind = np.asarray(vwind)
+	uwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,uwind,lons_cyclic,start=False,
+			       cyclic=np.max(lons_cyclic))
+	vwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,vwind,lons_cyclic,start=False,
+			       cyclic=np.max(lons_cyclic))	
+
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+
+	array, lons_cyclic = addcyclic(array, lons)
+	array = np.asarray(array)
+	array, lons_shift = shiftgrid(np.max(lons_cyclic)-180.,array,lons_cyclic,
+				     start=False,cyclic=np.max(lons_cyclic))
+	array = xr.DataArray(array,coords=[lats,lons_shift],dims=['lat','lon'])
+
+	if np.any(landmask != 0.):
+		m.contour(xi,yi,landmask, 1)
+
+	if palette=='rainnorm':
+
+		if maxval >= minval:
+			minval = - maxval
+		else: 
+			maxval = minval
+			minval = - minval
+
+		cs = m.pcolor(xi,yi,array,
+			      norm=MidpointNormalize(midpoint=0.),
+			      cmap='BrBG',vmin=minval, vmax=maxval)
+
+	elif palette == 'raindefault':
+		cs = m.pcolor(xi,yi,array, 
+			      cmap=plt.cm.BrBG)
+
+	elif palette=='temp': 
+		cs = m.pcolor(xi,yi,array, 
+			      norm=MidpointNormalize(midpoint=273.15), 
+			      cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),
+			      vmax=maxval) 
+
+	elif palette=='fromwhite': 
+		pal = plt.cm.Blues
+		pal.set_under('w',None)
+		cs = m.pcolormesh(xi,yi,array,
+				  cmap=pal,vmin=0,vmax=maxval)
+
+	else:
+		cs = m.pcolor(xi,yi,array)
+
+
+	Q = axes[0,1].quiver(xi[::quivkey,::quivkey], yi[::quivkey,::quivkey], uwind[::quivkey,::quivkey], vwind[::quivkey,::quivkey], units='width')
+
+	qk = axes[0,1].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{'+units_numerator+'}{'+units_denom+'}$', 
+			   labelpos='E', coordinates='figure')
+
+
+	axes[1,0].set_title('SON')
+	uwind = uwind_in.sel(season='SON')
+	vwind = vwind_in.sel(season='SON')
+	array = array_in.sel(season='SON')
+
+	fig = plt.figure()
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c', ax = axes[1,0])
+	lons = uwind.lon
+	lats = uwind.lat
+	uwind, lons_cyclic = addcyclic(uwind, lons)
+	vwind, lons_cyclic = addcyclic(vwind, lons)
+	uwind = np.asarray(uwind)
+	vwind = np.asarray(vwind)
+	uwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,uwind,lons_cyclic,start=False,
+			       cyclic=np.max(lons_cyclic))
+	vwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,vwind,lons_cyclic,start=False,
+			       cyclic=np.max(lons_cyclic))	
+
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+
+	array, lons_cyclic = addcyclic(array, lons)
+	array = np.asarray(array)
+	array, lons_shift = shiftgrid(np.max(lons_cyclic)-180.,array,lons_cyclic,
+				     start=False,cyclic=np.max(lons_cyclic))
+	array = xr.DataArray(array,coords=[lats,lons_shift],dims=['lat','lon'])
+
+	if np.any(landmask != 0.):
+		m.contour(xi,yi,landmask, 1)
+
+	if palette=='rainnorm':
+
+		if maxval >= minval:
+			minval = - maxval
+		else: 
+			maxval = minval
+			minval = - minval
+
+		cs = m.pcolor(xi,yi,array,
+			      norm=MidpointNormalize(midpoint=0.),
+			      cmap='BrBG',vmin=minval, vmax=maxval)
+
+	elif palette == 'raindefault':
+		cs = m.pcolor(xi,yi,array, 
+			      cmap=plt.cm.BrBG)
+
+	elif palette=='temp': 
+		cs = m.pcolor(xi,yi,array, 
+			      norm=MidpointNormalize(midpoint=273.15), 
+			      cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),
+			      vmax=maxval) 
+
+	elif palette=='fromwhite': 
+		pal = plt.cm.Blues
+		pal.set_under('w',None)
+		cs = m.pcolormesh(xi,yi,array,
+				  cmap=pal,vmin=0,vmax=maxval)
+
+	else:
+		cs = m.pcolor(xi,yi,array)
+
+
+	Q = axes[1,0].quiver(xi[::quivkey,::quivkey], yi[::quivkey,::quivkey], uwind[::quivkey,::quivkey], vwind[::quivkey,::quivkey], units='width')
+
+	qk = axes[1,0].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{'+units_numerator+'}{'+units_denom+'}$', 
+			   labelpos='E', coordinates='figure')
+
+	axes[1,1].set_title('DJF')
+	uwind = uwind_in.sel(season='DJF')
+	vwind = vwind_in.sel(season='DJF')
+	array = array_in.sel(season='DJF')
+
+	fig = plt.figure()
+	m = Basemap(projection='kav7',lon_0=0.,resolution='c', ax = axes[1,1])
+	lons = uwind.lon
+	lats = uwind.lat
+	uwind, lons_cyclic = addcyclic(uwind, lons)
+	vwind, lons_cyclic = addcyclic(vwind, lons)
+	uwind = np.asarray(uwind)
+	vwind = np.asarray(vwind)
+	uwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,uwind,lons_cyclic,start=False,
+			       cyclic=np.max(lons_cyclic))
+	vwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,vwind,lons_cyclic,start=False,
+			       cyclic=np.max(lons_cyclic))	
+
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,1,0,0])
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+
+	array, lons_cyclic = addcyclic(array, lons)
+	array = np.asarray(array)
+	array, lons_shift = shiftgrid(np.max(lons_cyclic)-180.,array,lons_cyclic,
+				     start=False,cyclic=np.max(lons_cyclic))
+	array = xr.DataArray(array,coords=[lats,lons_shift],dims=['lat','lon'])
+
+	if np.any(landmask != 0.):
+		m.contour(xi,yi,landmask, 1)
+
+	if palette=='rainnorm':
+
+		if maxval >= minval:
+			minval = - maxval
+		else: 
+			maxval = minval
+			minval = - minval
+
+		cs = m.pcolor(xi,yi,array,
+			      norm=MidpointNormalize(midpoint=0.),
+			      cmap='BrBG',vmin=minval, vmax=maxval)
+
+	elif palette == 'raindefault':
+		cs = m.pcolor(xi,yi,array, 
+			      cmap=plt.cm.BrBG)
+
+	elif palette=='temp': 
+		cs = m.pcolor(xi,yi,array, 
+			      norm=MidpointNormalize(midpoint=273.15), 
+			      cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),
+			      vmax=maxval) 
+
+	elif palette=='fromwhite': 
+		pal = plt.cm.Blues
+		pal.set_under('w',None)
+		cs = m.pcolormesh(xi,yi,array,
+				  cmap=pal,vmin=0,vmax=maxval)
+
+	else:
+		cs = m.pcolor(xi,yi,array)
+
+
+	Q = axes[1,1].quiver(xi[::quivkey,::quivkey], yi[::quivkey,::quivkey], uwind[::quivkey,::quivkey], vwind[::quivkey,::quivkey], units='width')
+	qk = axes[1,1].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{'+units_numerator+'}{'+units_denom+'}$', 
+			   labelpos='E', coordinates='figure')	
+	cbar = fig.colorbar(cs,ax=axes)
 	cbar.set_label(units)
 
-	Q = plt.quiver(xi[::3,::3], yi[::3,::3], uwind[::3,::3], vwind[::3,::3], units='width')
-	qk = plt.quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{'+units_numerator+'}{'+units_denom+'}$', labelpos='E', coordinates='figure')
+# not working for some reason.... only saves white space
+#	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/winds_4_seasons_'+str(runmin)+'-'+str(runmax)+'.png', dpi=100)
 
-	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+plt_title+'_level'+str(level)+'_'+str(runmin)+'-'+str(runmax)+'.png', bbox_inches='tight', dpi=100)
+	plt.show()
 
 
-def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,landmaskxr,landlats,landlons,outdir,runmin,runmax,quivkey=4,veclen=1.): 
+
+def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,landmaskxr,outdir,runmin,runmax,units_numerator='m',units_denom='s',quivkey=4,veclen=1.): 
+
+	landlats = np.asarray(landmaskxr.lat)
+	landlons = np.asarray(landmaskxr.lon)
 	
 	fig, axes = plt.subplots(2,2, figsize = (25, 10))
 
@@ -2715,7 +3026,7 @@ def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,l
 
 
 	Q = axes[0,0].quiver(xi[::quivkey,::quivkey], yi[::quivkey,::quivkey], uwind[level,::quivkey,::quivkey], vwind[level,::quivkey,::quivkey], units='width')
-	qk = axes[0,0].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}$', 
+	qk = axes[0,0].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{'+units_numerator+'}{'+units_denom+'}$', 
 			   labelpos='E', coordinates='figure')
 
 
@@ -2784,7 +3095,7 @@ def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,l
 
 	Q = axes[0,1].quiver(xi[::quivkey,::quivkey], yi[::quivkey,::quivkey], uwind[level,::quivkey,::quivkey], vwind[level,::quivkey,::quivkey], units='width')
 
-	qk = axes[0,1].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}$', 
+	qk = axes[0,1].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{'+units_numerator+'}{'+units_denom+'}$', 
 			   labelpos='E', coordinates='figure')
 
 
@@ -2853,7 +3164,7 @@ def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,l
 
 	Q = axes[1,0].quiver(xi[::quivkey,::quivkey], yi[::quivkey,::quivkey], uwind[level,::quivkey,::quivkey], vwind[level,::quivkey,::quivkey], units='width')
 
-	qk = axes[1,0].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}$', 
+	qk = axes[1,0].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{'+units_numerator+'}{'+units_denom+'}$', 
 			   labelpos='E', coordinates='figure')
 
 	axes[1,1].set_title('DJF')
@@ -2920,7 +3231,7 @@ def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,l
 
 
 	Q = axes[1,1].quiver(xi[::quivkey,::quivkey], yi[::quivkey,::quivkey], uwind[level,::quivkey,::quivkey], vwind[level,::quivkey,::quivkey], units='width')
-	qk = axes[1,1].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{m}{s}$', 
+	qk = axes[1,1].quiverkey(Q, 0.9, 0.9, veclen, str(veclen)+r'$\frac{'+units_numerator+'}{'+units_denom+'}$', 
 			   labelpos='E', coordinates='figure')	
 	cbar = fig.colorbar(cs,ax=axes)
 	cbar.set_label(units)
@@ -2929,6 +3240,13 @@ def winds_seasons(uwind_in,vwind_in,level,array_in,palette,units,minval,maxval,l
 #	plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/winds_4_seasons_'+str(runmin)+'-'+str(runmax)+'.png', bbox_inches='tight', dpi=100)
 
 	plt.show()
+
+
+
+
+
+
+
 
 def winds_anomaly(uwind,vwind,landmaskxr,landlats,landlons,level=39, minval = -8, maxval = 8):
 # colors = u wind minus zonal avg wind
@@ -3150,15 +3468,24 @@ def area_weighted_avg(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90.,
 
 
 
-def area_weighted_avg_4D(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90.,axis=None):
+def area_weighted_avg_4D(array,area_array,landmaskxr,option,minlat=-90.,maxlat=90):
 
-#	time = array.time
+	num_dims = np.size(np.shape(array))
+
 	lats = array.lat
 	lons = array.lon
-	levs = array.pres_lev
+	dim0_name = array.dims[0]
+	dim_0 = array[dim0_name]
 	landmask = np.asarray(landmaskxr)
-#	array = xr.DataArray(array, coords=[time,pres_lev,lats,lons], dims = ['time','pres_lev','lat','lon'])
-	area_array = xr.DataArray(area_array, coords=[levs,lats,lons], dims = ['pres_lev','lat','lon'])
+	axis = (num_dims - 2, num_dims - 1)
+
+	if num_dims == 3:
+		area_array = xr.DataArray(area_array, coords=[dim_0,lats,lons], dims = [dim0_name,'lat','lon'])
+
+	elif num_dims == 4:
+		dim1_name = array.dims[1]
+		dim_1 = array[dim1_name]
+		area_array = xr.DataArray(area_array, coords=[dim_0,dim_1,lats,lons], dims = [dim0_name,dim1_name,'lat','lon'])
 
 	if (minlat!=-90. and maxlat!=90.):
 		array = array.sel(lat=slice(minlat,maxlat))
@@ -3195,8 +3522,11 @@ def area_weighted_avg_4D(array,area_array,landmaskxr,option,minlat=-90.,maxlat=9
 		# xr.DataArray(ml).plot() 
 		# plt.show()
 		# plt.close()
-	return w_avg
 
+	if num_dims == 3:
+		return xr.DataArray(w_avg, coords = [dim_0], dims = [dim0_name])
+	elif num_dims == 4: 
+		return xr.DataArray(w_avg, coords = [dim_0,dim_1], dims = [dim0_name,dim1_name])
 
 
 
@@ -3623,7 +3953,7 @@ def rh_P_E_change(outdir,runmin,runmax,rh_avg,rh_avg_ctl,precipitation_avg,preci
 	fig2.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/Delta_P-E_vs_Delta_T_and_P-E_control_'+str(runmin)+'-'+str(runmax)+'_'+sfc+'_between_'+str(minlat)+'N_and_'+str(maxlat)+'N.png', bbox_inches='tight', dpi=100)
 
 
-def land_sea_contrast(array_avg, array_avg_ctl, area_array, landmaskxr, outdir, runmin, runmax, minlat, maxlat, units, plot_title, colorbar, minval = None, maxval = None): 
+def land_sea_contrast(array_avg, array_avg_ctl, area_array, landmaskxr, outdir, runmin, runmax, units, plot_title, colorbar, minval = None, maxval = None): 
 
 	print(maxval)
 
@@ -3641,10 +3971,17 @@ def land_sea_contrast(array_avg, array_avg_ctl, area_array, landmaskxr, outdir, 
 
 	plot.show()
 
+def make_var_seasonal(var):
 
+	lats = var.lat
+	lons = var.lon
+	time = var.time
+#	time=[np.array(np.linspace(0,(runmax-runmin-1),(runmax-runmin),dtype='datetime64[M]'))]
+	var=xr.DataArray((var.values),coords=[time,lats,lons],dims=['time','lat','lon'])
+	var_avg=var.mean(dim='time')
+	var_seasonal_avg=var.groupby('time.season').mean('time') 
+	var_month_avg=var.groupby('time.month').mean('time')
 
-
-
-
+	return(var,var_avg,var_seasonal_avg,var_month_avg,time)
 
 
