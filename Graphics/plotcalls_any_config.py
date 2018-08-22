@@ -2,17 +2,13 @@ from netCDF4 import Dataset
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.basemap import Basemap, cm
-from mpl_toolkits.basemap import interp
-
 import xarray as xr
 import pandas as pd
 import os
+
 import sys
 sys.path.insert(0, '/scratch/mp586/Code/PYCODES')
-# import plotting_routines
-from plotting_routines_kav7 import * # isca and gfdl have 0:04 and 0:03 
-# filename format, respectively --> choose correct plotting routines kav7 or kav7_isca .py
-
+from plotting_routines_kav7 import *
 import stats as st
 
 GFDL_BASE = os.environ['GFDL_BASE']
@@ -81,14 +77,14 @@ plot_streamfunction_seasonal(msf_seasonal_avg)
 ###########
 
 [tsurf,tsurf_avg,tsurf_seasonal_avg,tsurf_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'t_surf','K')
-[precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'precipitation','kg/m2s', factor=86400)
+[precipitation,precipitation_avg,precipitation_seasonal_avg,precipitation_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'precipitation','mm/d', factor=86400)
 #[bucket_depth,bucket_depth_avg,bucket_depth_seasonal_avg,bucket_depth_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'bucket_depth','m')
 
 # [flux_oceanq,flux_oceanq_avg,flux_oceanq_seasonal_avg,flux_oceanq_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_oceanq','W/m^2')
 [net_sw,net_sw_avg,net_sw_seasonal_avg,net_sw_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_sw','W/m^2',factor = 1.) # 
 [lw_down,lw_down_avg,lw_down_seasonal_avg,lw_down_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_lw','W/m^2',factor = 1.) # 
 [net_t,net_t_avg,net_t_seasonal_avg,net_t_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_t','W/m^2',factor = 1.) # 
-[net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_lhe','W/m^2',factor = 1.) #for SEB in W/m²
+[net_lhe,net_lhe_avg,net_lhe_seasonal_avg,net_lhe_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'flux_lhe','W/m^2',factor = 1.) #for SEB in W/m^2
 
 sigma = 5.67*10**(-8)
 net_lw_avg = sigma*(tsurf_avg**4) - lw_down_avg
@@ -113,8 +109,8 @@ print('SEB in W/m2 = '+str(SEB))
 
 [slp,slp_avg,slp_seasonal_avg,slp_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'slp','hPa', factor = 1/100.)
 
-[rh,rh_avg,rh_seasonal_avg,rh_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'rh','%',level=39)
-# [sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level='all')
+[rh,rh_avg,rh_seasonal_avg,rh_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'rh','%',level=level)
+[sphum,sphum_avg,sphum_seasonal_avg,sphum_month_avg,time]=seasonal_surface_variable(testdir,model,runmin,runmax,'sphum','kg/kg',level=level)
 
 rh_P_E_T(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,tsurf_avg,landmask)
 
@@ -129,8 +125,7 @@ rh_P_E_T(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,tsurf_avg,lan
 
 
 
-any_configuration_plot(outdir,runmin,runmax,-100.,100.,rh_avg,area_array,'%','rh_avg','fromwhite',landmaskxr,minval = 0, maxval = 100, nmb_contours=5)
-# any_configuration_plot(outdir,runmin,runmax,-100.,100.,sphum_avg,area_array,'kg/kg','column int WV','fromwhite',landmaskxr,nmb_contours=10)
+any_configuration_plot(outdir,runmin,runmax,-100.,100.,rh_avg,area_array,'%','rh_avg_level'+str(level),'fromwhite',landmaskxr,minval = 0, maxval = 100, nmb_contours=5)
 
 
 

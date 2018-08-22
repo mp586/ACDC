@@ -2207,7 +2207,7 @@ def squareland_plot_correlation(minlat,maxlat,array1,array2,title):
 
     plt.show()
 
-def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,units,title,palette,landmaskxr,nmb_contours=0,minval=None,maxval=None,month_annotate=None):
+def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,units,title,palette,landmaskxr,nmb_contours=0,minval=None,maxval=None,month_annotate=None,save_fig=True):
 # plotting only the zonal average next to the map 
 # currently hard coded -30.,30. slice instead of squarelats_min, squarelats_max
     plt.close()
@@ -2372,9 +2372,155 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
 	    manager = plt.get_current_fig_manager()
 	    manager.window.showMaximized()
 #	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax)+'_highres.png', format = 'png', dpi = 400, bbox_inches='tight')
-	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax)+'.png', format = 'png', bbox_inches='tight')
+
+	    if save_fig == True:
+		    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax)+'.png', format = 'png', bbox_inches='tight')
 #	    plt.show()
     return fig
+
+
+def any_configuration_plot_allmonths(outdir,runmin,runmax,minlat,maxlat,array,area_array,units,title,palette,landmaskxr,nmb_contours=0,minval=None,maxval=None,month_annotate=None,save_fig=True):
+# plotting only the zonal average next to the map 
+# currently hard coded -30.,30. slice instead of squarelats_min, squarelats_max
+    plt.close()
+
+
+    small = 10 #largefonts 14 # smallfonts 10 # medfonts = 14
+    med = 14 #largefonts 18 # smallfonts 14 # medfonts = 16
+    lge = 18 #largefonts 22 # smallfonts 18 # medfonts = 20
+
+    time = array.month
+    lats=array.lat
+    lons=array.lon
+    
+    # why is this not working anymore when land areas are selected ? worked in commit d110990e
+    minlatindex=np.asarray(np.where(lats>=minlat))[0,0]
+    maxlatreverseindex=np.asarray(np.where(lats[::-1]<=maxlat))[0,0] 
+    selected_lats=lats[minlatindex:(lats.size-maxlatreverseindex)+1]
+
+    landlats = np.asarray(landmaskxr.lat)
+    landlons = np.asarray(landmaskxr.lon)
+
+    landmask = np.asarray(landmaskxr)
+
+
+    fig = plt.figure(figsize = (25,10))
+
+    array = xr.DataArray(array,coords=[time,lats,lons],dims=['time','lat','lon'])
+    lons_128 = lons # non-cyclic lons, i.e. lenght = 128
+    array = np.asarray(array) #- This line fixes the problem!
+    array, lons = addcyclic(array, lons)
+    array,lons = shiftgrid(np.max(lons)-180.,array,lons,start=False,cyclic=np.max(lons))
+    array = xr.DataArray(array,coords=[time,lats,lons],dims=['time','lat','lon'])
+
+
+    m = Basemap(projection='kav7',lon_0=0.,llcrnrlon=-180.,llcrnrlat=-30.,urcrnrlon=180.,urcrnrlat=30.,resolution='c')
+
+    m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0], fontsize=small)
+    m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1], fontsize=small)
+    lon, lat = np.meshgrid(lons, lats)
+    xi, yi = m(lon, lat)
+
+    landmask,landlons = shiftgrid(np.max(landlons)-180.,landmask,landlons,start=False,cyclic=np.max(landlons))
+    landmask, lons_cyclic = addcyclic(landmask, landlons)
+
+    months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+
+    for i in range (0,12):
+	    if (i < 4):
+		    ax = plt.subplot2grid((3,4), (0,i))
+	    elif (i >= 4) and (i < 8):
+		    ax = plt.subplot2grid((3,4), (1,i-4))
+	    elif (i >= 8):
+		    ax = plt.subplot2grid((3,4), (2,i-8))
+
+	    if minval==None and maxval==None:
+		    minval = array[i,:,:].min()
+		    maxval = array[i,:,:].max()
+
+	    minval = np.absolute(minval)
+	    maxval = np.absolute(maxval)
+
+	    if maxval >= minval:
+		    minval = - maxval
+	    else: 
+		    maxval = minval
+		    minval = - minval
+
+
+	    if palette=='rainnorm':
+		cs = m.pcolor(xi,yi,array[i,:,:].sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='BrBG',vmin=minval, vmax=maxval)
+	    elif palette == 'PE_scale':
+		cs = m.pcolor(xi,yi,array[i,:,:].sel(lat=selected_lats),norm=MidpointNormalize(midpoint=0.),cmap='bwr_r',vmin=minval, vmax=maxval)
+	    elif palette == 'raindefault':
+		cs = m.pcolor(xi,yi,array[i,:,:].sel(lat=selected_lats), cmap=plt.cm.BrBG)
+	    elif palette=='temp':
+		   # cs = m.pcolor(xi,yi,array[i,:,:].sel(lat=selected_lats),norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin = 273.15-(maxval-273.15),vmax=maxval)
+		    cs = m.pcolor(xi,yi,array[i,:,:].sel(lat=selected_lats),norm=MidpointNormalize(midpoint=273.15), cmap=plt.cm.RdBu_r,vmin = 273.15-30.,vmax=273.15+30.) # forpaper
+
+	    elif palette=='fromwhite': 
+		    pal = plt.cm.Blues
+		    pal.set_under('w',None)
+		    cs = m.pcolormesh(xi,yi,array[i,:,:].sel(lat=selected_lats),cmap=pal,vmin=0,vmax=maxval)
+
+	    elif palette=='bucket': 
+		    pal = plt.cm.Greens
+		    pal.set_under('w',None)
+		    cs = m.pcolormesh(xi,yi,array[i,:,:].sel(lat=selected_lats),cmap=pal,vmin=0,vmax=maxval)
+
+	    elif palette=='tempdiff': 
+		    cs = m.pcolor(xi,yi,array[i,:,:].sel(lat=selected_lats), 
+			      norm=MidpointNormalize(midpoint=0), cmap=plt.cm.RdBu_r, 
+			      vmin = -maxval,
+			      vmax = maxval)
+	    elif palette=='slp':
+		    cs = m.pcolor(xi,yi,array[i,:,:].sel(lat=selected_lats), cmap=plt.cm.coolwarm,vmin=minval,vmax=maxval)
+
+
+
+	    else:
+		cs = m.pcolor(xi,yi,array[i,:,:].sel(lat=selected_lats))
+
+
+	    if nmb_contours != 0:  # add contours 
+		    cont = m.contour(xi,yi,array[i,:,:],nmb_contours,cmap='PuBu_r', linewidth=5)
+		    if cont>=1.:
+			    plt.clabel(cont, inline=2, fmt='%1.1f',fontsize=med)
+		    else:
+			    plt.clabel(cont, inline=2, fmt='%1.3f', fontsize=med)
+
+	# Add rectangles
+
+	    if np.any(landmask != 0.):
+		    m.contour(xi,yi,landmask, 1)
+	    
+	    ax.annotate(months[i], xy=(0.,1.), xycoords='axes fraction')
+
+
+	# Add Colorbar
+    cbar = m.colorbar(cs, location='bottom', pad="10%") # usually on right 
+    cbar.set_label(units, size=med)
+    cbar.ax.tick_params(labelsize=small) 
+
+	    # sns.palplot(sns.color_palette("BrBG", 7))
+
+	# Read landmask
+
+    manager = plt.get_current_fig_manager()
+    manager.window.showMaximized()
+
+    if save_fig == True:
+	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax)+'.png', format = 'png', bbox_inches='tight')
+    #	    plt.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/'+title+'_'+str(runmin)+'-'+str(runmax)+'_highres.png', format = 'png', dpi = 400, bbox_inches='tight')
+
+    plt.show()
+    return fig
+
+
+
+
+
+
 
 
 
@@ -2573,6 +2719,11 @@ def winds_one_level(outdir,runmin,runmax,plt_title,uwind,vwind,array,palette,uni
 # array is the underlying plot (e.g. Tsurf, precip, ...)
 # palette is for the underlying plot
 # units are for the underlying plot
+
+	small = 14 #largefonts 14 # smallfonts 10 # medfonts = 14
+	med = 18 #largefonts 18 # smallfonts 14 # medfonts = 16
+	lge = 22 #largefonts 22 # smallfonts 18 # medfonts = 20
+
 	landlats = np.asarray(landmaskxr.lat)
 	landlons = np.asarray(landmaskxr.lon)
 	landmask = np.asarray(landmaskxr)
@@ -2593,8 +2744,8 @@ def winds_one_level(outdir,runmin,runmax,plt_title,uwind,vwind,array,palette,uni
 	vwind,lons_shift = shiftgrid(np.max(lons_cyclic)-180.,vwind,lons_cyclic,start=False,
 			       cyclic=np.max(lons_cyclic))	
 
-	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0])
-	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1])
+	m.drawparallels(np.arange(-90.,99.,30.),labels=[1,0,0,0], fontsize=med)
+	m.drawmeridians(np.arange(-180.,180.,60.),labels=[0,0,0,1], fontsize=med)
 
 
 	array, lons_cyclic = addcyclic(array, lons)
@@ -3369,18 +3520,25 @@ def winds_anomaly_uv_vectors(uwind,vwind,landmaskxr,landlats,landlons,level=39):
 
 
 
-def plot_a_climatology(clim_field):
+def plot_a_climatology(clim_field,area_array,landmaskxr):
 # Plots each month of the climatology as separate curve
 # Only works for climatology input field (i.e. 'dim_0' = 12)	
-	clim_field = xr.DataArray(clim_field)
-	zonavg = clim_field.mean('dim_2')
+	lats = landmaskxr.lat
+	lons = landmaskxr.lon
+	time = np.linspace(1,12,12)
+	clim_field = xr.DataArray(clim_field, coords = [time, lats, lons], dims = ['time','lat','lon'])
+	zonavg = np.empty([12,len(lats)])
+	for i in range (0,12):
+		zonavg[i,:,] = area_weighted_avg(clim_field[i,:,:],area_array,landmaskxr,option = 'all_sfcs',minlat=-90.,maxlat=90.,axis=1)
+	
 	colors = ['Yellow','Orange','r','Purple','Blue','Gray',
 		  'Brown','Black','Green','Cyan','Teal','Navy']
-	lats = np.linspace(-90.,90.,np.shape(zonavg.dim_1)[0])
 	
 	for i in range (0,12):
 		plt.plot(lats,zonavg[i,:],colors[i],label='Month '+str(i+1))
 	plt.legend()
+	plt.xlabel('Latitude')
+	plt.ylabel('Ocean Heat Transport (W/m^2)')
 	plt.show()
 
 

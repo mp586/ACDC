@@ -8,7 +8,7 @@ import os
 
 import sys
 sys.path.insert(0, '/scratch/mp586/Code/PYCODES')
-import plotting_routines
+# import plotting_routines
 from plotting_routines_kav7 import *
 
 outdir = 'HadGEM2_picontrol'

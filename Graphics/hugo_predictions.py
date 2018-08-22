@@ -248,23 +248,26 @@ for i in range(0,12): # plots for each month
 
 for i in range(0,12): # plots for each month
 
-    any_configuration_plot(outdir,runmin,runmax,-100.,100.,dtpred2_months[i,:,:],area_array,'K','Tchange_advanced_prediction_month'+str(i+1),'tempdiff',landmaskxr,minval=-6.,maxval=6.)
+    any_configuration_plot(outdir,runmin,runmax,-100.,100.,(dtpred2_months[i,:,:]).where(landmask==1.),area_array,'K','Tchange_advanced_prediction_month'+str(i+1),'tempdiff',landmaskxr,minval=-6.,maxval=6.)
 
 
-    any_configuration_plot(outdir,runmin,runmax,-100.,100.,dprpred2_months[i,:,:],area_array,'mm/day','Pchange_advanced_prediction_month'+str(i+1),'rainnorm',landmaskxr,minval=-.5,maxval=.5)
+    any_configuration_plot(outdir,runmin,runmax,-100.,100.,(dprpred2_months[i,:,:]).where(landmask==1.),area_array,'mm/day','Pchange_advanced_prediction_month'+str(i+1),'rainnorm',landmaskxr,minval=-1.,maxval=1.)
 
 
 
 
-any_configuration_plot(outdir,runmin,runmax,-100.,100.,(dprpred2_months.mean('month')),area_array,'mm/day','Pchange_advanced_prediction_avg_allmonths','rainnorm',landmaskxr,minval=-.5,maxval=.5)
+any_configuration_plot(outdir,runmin,runmax,-100.,100.,(dprpred2_months.mean('month')).where(landmask == 1.),area_array,'mm/day','Pchange_advanced_prediction_avg_allmonths','rainnorm',landmaskxr,minval=-1.,maxval=1.)
+
+any_configuration_plot(outdir,runmin,runmax,-100.,100.,(dprcheck2_months.mean('month')).where(landmask == 1.),area_array,'mm/day','Pchange_check_avg_allmonths','rainnorm',landmaskxr,minval=-1.,maxval=1.)
+
 
 
 any_configuration_plot(outdir,runmin,runmax,-100.,100.,(dprpred_months.mean('month')),area_array,'mm/day','Pchange_crude_prediction_avg_allmonths','rainnorm',landmaskxr,minval=-.5,maxval=.5)
 
-any_configuration_plot(outdir,runmin,runmax,-100.,100.,(dtrpred2_months.mean('month')),area_array,'K','Tchange_advanced_prediction_avg_allmonths','tempdiff',landmaskxr,minval=-6.,maxval=6.)
+any_configuration_plot(outdir,runmin,runmax,-100.,100.,(dtpred2_months.mean('month')),area_array,'K','Tchange_advanced_prediction_avg_allmonths','tempdiff',landmaskxr,minval=-6.,maxval=6.)
 
 
-any_configuration_plot(outdir,runmin,runmax,-100.,100.,(dtrpred_months.mean('month')),area_array,'K','Tchange_crude_prediction_avg_allmonths','tempdiff',landmaskxr,minval=-6.,maxval=6.)
+any_configuration_plot(outdir,runmin,runmax,-100.,100.,(dtpred_months.mean('month')),area_array,'K','Tchange_crude_prediction_avg_allmonths','tempdiff',landmaskxr,minval=-6.,maxval=6.)
 
 
 
@@ -379,7 +382,7 @@ ax[0].set_ylabel('dpr_actual')
 #ax[0].set_xlim(-1.0,2.5)
 ax[0].legend()
 
-ax[1].plot(np.asarray(dt.where(landmaskWC == 0.)).flatten(),np.asarray(dpr.where(landmaskWC == 0.)).flatten(),'g.',label='ocean') # West Island. Temperature change.
+ax[1].plot(np.asarray(dt.where(landmask == 0.)).flatten(),np.asarray(dpr.where(landmask == 0.)).flatten(),'g.',label='ocean') # West Island. Temperature change.
 ax[1].set_xlabel('dt_actual')
 ax[1].legend()
 #ax[1].set_xlim(-1.0,2.5)
@@ -395,7 +398,7 @@ ax[0].set_ylabel('dpr_advanced_pred_month_mean')
 #ax[0].set_xlim(-1.0,2.5)
 ax[0].legend()
 
-ax[1].plot(np.asarray(dtpred2_months.mean('month').where(landmaskWC == 0.)).flatten(),np.asarray(dprpred2_months.mean('month').where(landmaskWC == 0.)).flatten(),'g.',label='ocean') # West Island. Temperature change.
+ax[1].plot(np.asarray(dtpred2_months.mean('month').where(landmask == 0.)).flatten(),np.asarray(dprpred2_months.mean('month').where(landmask == 0.)).flatten(),'g.',label='ocean') # West Island. Temperature change.
 ax[1].set_xlabel('dt_advanced_pred_month_mean')
 ax[1].legend()
 #ax[1].set_xlim(-1.0,2.5)
