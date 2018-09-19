@@ -23,7 +23,7 @@ elif (ctl_model == 'gfdl') or (ctl_model == 'GFDL'):
 
 
 control_dir= control_model + '/' + input('Enter control directory name as string ')
-print control_dir
+#print control_dir
 ctl_runmin=input('Enter runmin number ')  # Should be a January month for seasonal variables to be correct
 ctl_runmax=input('Enter runmax number for comparison ')
 ctl_timeseries_max = input('Enter end of ctl timeseries month ')
@@ -56,20 +56,18 @@ landmaskxr=xr.DataArray(landmask,coords=[landlats,landlons],dims=['lat','lon']) 
 level = input('Which Level? ')
 
 
-area_array = ca.cell_area(t_res=42,base_dir='/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/')
-area_array = xr.DataArray(area_array)
+area_array, dx, dy = ca.cell_area_all(t_res=42,base_dir='/scratch/mp586/GFDL_BASE/GFDL_FORK/GFDLmoistModel/') # added _all because then dx and dy are also returned 
+area_array = xr.DataArray(area_array) # returned in units of m bzw m^2, because radius in cell_area.py is given in metres
 
 area_array_3D = np.expand_dims(area_array, axis=0)
 area_array_3D = np.repeat(area_array_3D, 40, axis = 0) # to make area_array 3D (pressure, lat, lon)
 
-
-
 total_sfc_area = np.sum(area_array)
-print ('total sfc area (*10^14) = '+str(np.sum(area_array/(10**14)))) # -- test: correct, equals sfc area of earth (5.1*10**14 m^2)
+#print ('total sfc area (*10^14) = '+str(np.sum(area_array/(10**14)))) # -- test: correct, equals sfc area of earth (5.1*10**14 m^2)
 land_sfc_area = np.sum(area_array.where(landmask==1.))
-print ('land sfc area (*10^14) = '+str(land_sfc_area/(10**14)))
+#print ('land sfc area (*10^14) = '+str(land_sfc_area/(10**14)))
 ocean_sfc_area = np.sum(area_array.where(landmask!=1.))
-print ('ocean sfc area (*10^14) = '+str(ocean_sfc_area/(10**14)))
+#print ('ocean sfc area (*10^14) = '+str(ocean_sfc_area/(10**14)))
 
 # for plotting a spin up run ('control') timeseries followed by the timeseries from the perturbed experiment
 globavg_var_timeseries_total_and_land_perturbed(testdir,model,area_array,'t_surf',1,runmax,1.,landmask,control_dir,ctl_model,1,ctl_timeseries_max)
@@ -107,7 +105,7 @@ plot_streamfunction_seasonal(msf_seasonal_avg_ctl)
 [precipitation_ctl,precipitation_avg_ctl,precipitation_seasonal_avg_ctl,precipitation_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'precipitation','mm/d', factor=86400)
 #[bucket_depth_ctl,bucket_depth_avg_ctl,bucket_depth_seasonal_avg_ctl,bucket_depth_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'bucket_depth','m')
 [rh_ctl,rh_avg_ctl,rh_seasonal_avg_ctl,rh_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'rh','%',level=level)
-[flux_oceanq_ctl,flux_oceanq_avg_ctl,flux_oceanq_seasonal_avg_ctl,flux_oceanq_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'flux_oceanq','W/m^2')
+# [flux_oceanq_ctl,flux_oceanq_avg_ctl,flux_oceanq_seasonal_avg_ctl,flux_oceanq_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'flux_oceanq','W/m^2')
 [net_sw_ctl,net_sw_avg_ctl,net_sw_seasonal_avg_ctl,net_sw_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'flux_sw','W/m^2',factor = 1.) # 
 [net_lw_ctl,net_lw_avg_ctl,net_lw_seasonal_avg_ctl,net_lw_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'flux_lw','W/m^2',factor = 1.) # 
 [net_t_ctl,net_t_avg_ctl,net_t_seasonal_avg_ctl,net_t_month_avg_ctl,time]=seasonal_surface_variable(control_dir,ctl_model,ctl_runmin,ctl_runmax,'flux_t','W/m^2',factor = 1.) # 
@@ -123,7 +121,7 @@ PE_ctl = precipitation_ctl - net_lhe_ctl
 
 PE_avg_sum = area_integral(PE_avg,area_array,landmaskxr,'all_sfcs',factor = 10**(-3)) # factor to 
 #convert from mm/d to m/d
-print('P avg - E avg global integral / total sfc area'+str(PE_avg_sum/total_sfc_area))
+#print('P avg - E avg global integral / total sfc area'+str(PE_avg_sum/total_sfc_area))
 
 
 ############# RH change vs P and E changes - scatter plots #####################
@@ -618,9 +616,9 @@ runmax_6hrly = 13
 # Delta_P_sum = Delta_P_cross + Delta_P_q + Delta_P_circ
 # Delta_P_sum_avg = Delta_P_sum.mean(axis=0)
 # Diff_DeltaPs = (precipitation_avg - precipitation_avg_ctl) - Delta_P_sum_avg
-# print('Diff_DeltaPs.max()'+str(Diff_DeltaPs.max()))
-# print('Diff_DeltaPs.min()'+str(Diff_DeltaPs.min()))
-# print('Diff_DeltaPs.mean()'+str(Diff_DeltaPs.mean()))
+# #print('Diff_DeltaPs.max()'+str(Diff_DeltaPs.max()))
+# #print('Diff_DeltaPs.min()'+str(Diff_DeltaPs.min()))
+# #print('Diff_DeltaPs.mean()'+str(Diff_DeltaPs.mean()))
 
 # any_configuration_plot(outdir,runmin,runmax,-90.,90.,Delta_P_circ.mean('month'),area_array,'mm/day','Delta_P_circ','rainnorm',landmaskxr,minval=-2.,maxval=2.)
 # any_configuration_plot(outdir,runmin,runmax,-90.,90.,Delta_P_q.mean('month'),area_array,'mm/day','Delta_P_q','rainnorm',landmaskxr,minval=-2.,maxval=2.)
@@ -732,9 +730,9 @@ runmax_6hrly = 13
 # Delta_P_sum = Delta_P_cross + Delta_P_q + Delta_P_circ
 # Delta_P_sum_avg = Delta_P_sum.mean('time')
 # Diff_DeltaPs = (precipitation_avg - precipitation_avg_ctl) - Delta_P_sum_avg
-# print('Diff_DeltaPs.max()'+str(Diff_DeltaPs.max()))
-# print('Diff_DeltaPs.min()'+str(Diff_DeltaPs.min()))
-# print('Diff_DeltaPs.mean()'+str(Diff_DeltaPs.mean()))
+# #print('Diff_DeltaPs.max()'+str(Diff_DeltaPs.max()))
+# #print('Diff_DeltaPs.min()'+str(Diff_DeltaPs.min()))
+# #print('Diff_DeltaPs.mean()'+str(Diff_DeltaPs.mean()))
 
 # any_configuration_plot(outdir,runmin,runmax,-90.,90.,Delta_P_circ.mean('time'),area_array,'mm/day','Delta_P_circ','rainnorm',landmaskxr,minval=-2.,maxval=2.)
 # any_configuration_plot(outdir,runmin,runmax,-90.,90.,Delta_P_q.mean('time'),area_array,'mm/day','Delta_P_q','rainnorm',landmaskxr,minval=-2.,maxval=2.)

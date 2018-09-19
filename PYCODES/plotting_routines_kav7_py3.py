@@ -2328,9 +2328,9 @@ def any_configuration_plot(outdir,runmin,runmax,minlat,maxlat,array,area_array,u
 
 
 # Add Colorbar
-    cbar = m.colorbar(cs, location='right', pad="10%") # usually on right 
+    cbar = m.colorbar(cs, location='bottom', pad="10%") # usually on right 
     cbar.set_label(units, size=med)
-    cbar.ax.tick_params(labelsize=med) 
+    cbar.ax.tick_params(labelsize=small) 
 
     # sns.palplot(sns.color_palette("BrBG", 7))
 
@@ -4027,7 +4027,7 @@ def rh_P_E_T(outdir,runmin,runmax,rh_avg,precipitation_avg,net_lhe_avg,tsurf_avg
 
 # NB if I need a (2,2) subplot, need to use ax[0, 1] -- there has to be a space between the comma and the 1 otherwise it doesn't work! i.e. .plot(...) doesn't work and also can't access the subplot that I want! OR fig, axes = plt.subplots(2,2....) and then can call axes[0,0]...
 
-def rh_P_E_change(outdir,runmin,runmax,rh_avg,rh_avg_ctl,precipitation_avg,precipitation_avg_ctl,net_lhe_avg,net_lhe_avg_ctl,tsurf_avg,tsurf_avg_ctl,landmask,landmaskEC=None,landmaskWC=None,sfc='all',minlat=-30.,maxlat=30.):
+def rh_P_E_change(outdir,runmin,runmax,rh_avg,rh_avg_ctl,precipitation_avg,precipitation_avg_ctl,net_lhe_avg,net_lhe_avg_ctl,tsurf_avg,tsurf_avg_ctl,landmask,sfc='all',minlat=-30.,maxlat=30.):
 	
 
 	small = 14 #largefonts 14 # smallfonts 10 # medfonts = 14
@@ -4081,93 +4081,37 @@ def rh_P_E_change(outdir,runmin,runmax,rh_avg,rh_avg_ctl,precipitation_avg,preci
 		E_ctl_1d = np.asarray(E_avg_ctl).flatten()
 		T_ctl_1d = np.asarray(T_avg_ctl).flatten()
 
-		P_ctl_1d_E = np.asarray(precipitation_avg_ctl.where(landmaskEC == 1.)).flatten()
-		P_1d_E = np.asarray(precipitation_avg.where(landmaskEC == 1.)).flatten()
-
-		P_ctl_1d_W = np.asarray(precipitation_avg_ctl.where(landmaskWC == 1.)).flatten()
-		P_1d_W = np.asarray(precipitation_avg.where(landmaskWC == 1.)).flatten()
-
-
 	mask = ~np.isnan(rh_ctl_1d)
 
-	fig, ax = plt.subplots(1,2, sharey = True, figsize=(25,10))
-
-#	if landmaskEC == None: this doesn't work.. why?
-
+	fig, ax = plt.subplots(1,2, sharey = False, figsize=(25,10))
 	ax[0].plot(P_ctl_1d,(P_1d - P_ctl_1d),'g.', label = sfc)
 	ax[0].set_xlabel("P control (mm/d)",fontsize = lge)
-	ax[0].tick_params(labelsize = lge)
+	ax[1].set_xlabel("T change (K)",fontsize = lge)
+	ax[1].plot((T_1d - T_ctl_1d),(P_1d - P_ctl_1d),'r.', label = sfc)
+	ax[0].tick_params(labelsize = med)
+	ax[1].tick_params(labelsize = med)
 	ax[0].legend(fontsize = lge)
+	ax[1].legend(fontsize = lge)
 	ax[0].set_ylabel('P change (mm/d)', fontsize = lge)
-	ax[0].set_xlim(-1.,precipitation_avg_ctl.max())
+	ax[1].set_ylabel('P change (mm/d)', fontsize = lge)
+
+	ax[0].set_xlim(precipitation_avg.min(),precipitation_avg.max())
+	ax[1].set_xlim((tsurf_avg-tsurf_avg_ctl).min(),(tsurf_avg-tsurf_avg_ctl).max())
 
 	[k,dy,r,p,stderr] = linreg(P_ctl_1d[mask],(P_1d - P_ctl_1d)[mask]) # aa = 8.4, dq = -32
 	x1 = np.linspace(np.min((P_ctl_1d)[mask]),np.max((P_ctl_1d)[mask]),500)
 	y = k*x1 + dy
 	ax[0].plot(x1,y,'g-')
-	ax[0].annotate('r = '+str("%.2f" % r)+', p = '+str("%.5f" % p), xy=(0.05,0.05), xycoords='axes fraction', fontsize = med)
-
-	ax[1].set_xlabel("T change (K)",fontsize = lge)
-	ax[1].plot((T_1d - T_ctl_1d),(P_1d - P_ctl_1d),'r.', label = sfc)
-	ax[1].tick_params(labelsize = lge)
-	ax[1].legend(fontsize = lge)
-	ax[1].set_ylabel('P change (mm/d)', fontsize = lge)
-	ax[1].set_xlim(0.,(tsurf_avg-tsurf_avg_ctl).max())
+	ax[0].annotate('k = '+str("%.2f" % k)+', dy = '+str("%.2f" % dy)+', r = '+str("%.2f" % r+', p = '+str(p)), xy=(0.05,0.05), xycoords='axes fraction', fontsize = med)
 
 	[k,dy,r,p,stderr] = linreg((T_1d - T_ctl_1d)[mask],(P_1d - P_ctl_1d)[mask]) # aa = 8.4, dq = -32
-	x1 = np.linspace(0.,np.max((T_1d - T_ctl_1d)[mask]),500)
+	x1 = np.linspace(np.min((T_1d - T_ctl_1d)[mask]),np.max((T_1d - T_ctl_1d)[mask]),500)
 	y = k*x1 + dy
 	ax[1].plot(x1,y,'r-')
-	ax[1].annotate('r = '+str("%.2f" % r) +', p = '+str("%.5f" % p), xy=(0.05,0.05), xycoords='axes fraction', fontsize = med)
+	ax[1].annotate('k = '+str("%.2f" % k)+', dy = '+str("%.2f" % dy)+', r = '+str("%.2f" % r+', p = '+str(p)), xy=(0.05,0.05), xycoords='axes fraction', fontsize = med)
 
 
-
-
-# plots west and east spearately and delta p vs delta t for both 
-	# fig, ax = plt.subplots(1,3, sharey = True, figsize=(25,10))
-	# maskEC = ~np.isnan(P_ctl_1d_E)
-	# maskWC = ~np.isnan(P_ctl_1d_W)
-
-	# ax[0].plot(P_ctl_1d_W,(P_1d_W - P_ctl_1d_W),'b.', label = 'West C.')
-	# ax[0].set_xlabel("P control (mm/d)",fontsize = lge)
-	# ax[0].tick_params(labelsize = lge)
-	# ax[0].legend(fontsize = lge)
-	# ax[0].set_ylabel('P change (mm/d)', fontsize = lge)
-	# ax[0].set_xlim(-1.,precipitation_avg_ctl.max())
-
-	# [k,dy,r,p,stderr] = linreg(P_ctl_1d_W[maskWC],(P_1d_W - P_ctl_1d_W)[maskWC]) # aa = 8.4, dq = -32
-	# x1 = np.linspace(np.min((P_ctl_1d_W)[maskWC]),np.max((P_ctl_1d_W)[maskWC]),500)
-	# y = k*x1 + dy
-	# ax[0].plot(x1,y,'b-')
-	# ax[0].annotate('r = '+str("%.2f" % r)+', p = '+str("%.5f" % p), xy=(0.05,0.05), xycoords='axes fraction', fontsize = med)
-
-	# ax[1].plot(P_ctl_1d_E,(P_1d_E - P_ctl_1d_E),'r.', label = 'East C.')
-	# ax[1].set_xlabel("P control (mm/d)",fontsize = lge)
-	# ax[1].tick_params(labelsize = lge)
-	# ax[1].legend(fontsize = lge)
-	# ax[1].set_xlim(-1.,precipitation_avg_ctl.max())
-
-	# [k,dy,r,p,stderr] = linreg(P_ctl_1d_E[maskEC],(P_1d_E - P_ctl_1d_E)[maskEC]) # aa = 8.4, dq = -32
-	# x1 = np.linspace(np.min((P_ctl_1d_E)[maskEC]),np.max((P_ctl_1d_E)[maskEC]),500)
-	# y = k*x1 + dy
-	# ax[1].plot(x1,y,'r-')
-	# ax[1].annotate('r = '+str("%.2f" % r)+', p = '+str("%.5f" % p), xy=(0.05,0.05), xycoords='axes fraction', fontsize = med)
-
-	# ax[2].set_xlabel("T change (K)",fontsize = lge)
-	# ax[2].plot((T_1d - T_ctl_1d),(P_1d - P_ctl_1d),'g.', label = 'both')
-	# ax[2].tick_params(labelsize = lge)
-	# ax[2].legend(fontsize = lge)
-	# ax[2].set_ylabel('P change (mm/d)', fontsize = lge)
-	# ax[2].set_xlim(0.,(tsurf_avg-tsurf_avg_ctl).max())
-
-	# [k,dy,r,p,stderr] = linreg((T_1d - T_ctl_1d)[mask],(P_1d - P_ctl_1d)[mask]) # aa = 8.4, dq = -32
-	# x1 = np.linspace(0.,np.max((T_1d - T_ctl_1d)[mask]),500)
-	# y = k*x1 + dy
-	# ax[2].plot(x1,y,'g-')
-	# ax[2].annotate('r = '+str("%.2f" % r) +', p = '+str("%.5f" % p), xy=(0.05,0.05), xycoords='axes fraction', fontsize = med)
-
-
-#	fig.show()
+	
 	fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/Delta_P_vs_Delta_T_and_P_control_'+str(runmin)+'-'+str(runmax)+'_'+sfc+'_between_'+str(minlat)+'N_and_'+str(maxlat)+'N.png', bbox_inches='tight', dpi=100)
 
 	fig2, ax2 = plt.subplots(1,2, sharey = False, figsize=(25,10))
@@ -4198,7 +4142,7 @@ def rh_P_E_change(outdir,runmin,runmax,rh_avg,rh_avg_ctl,precipitation_avg,preci
 	ax2[1].plot(x1,y,'r-')
 	ax2[1].annotate('k = '+str("%.2f" % k)+', dy = '+str("%.2f" % dy)+', r = '+str("%.2f" % r+', p = '+str(p)), xy=(0.05,0.05), xycoords='axes fraction', fontsize = med)
 
-#	fig2.show()
+
 	fig2.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/Delta_P-E_vs_Delta_T_and_P-E_control_'+str(runmin)+'-'+str(runmax)+'_'+sfc+'_between_'+str(minlat)+'N_and_'+str(maxlat)+'N.png', bbox_inches='tight', dpi=100)
 
 

@@ -45,8 +45,9 @@ landlons=landfile.variables['lon'][:]
 
 landmaskxr=xr.DataArray(landmask,coords=[landlats,landlons],dims=['lat','lon']) # need this in order to use .sel(... slice) on it
 
-area_array = ca.cell_area(t_res=42,base_dir='/scratch/mp586/Isca/')
-area_array = xr.DataArray(area_array)
+area_array, dx, dy = ca.cell_area_all(t_res=42,base_dir='/scratch/mp586/Isca/') # added _all because then dx and dy are also returned 
+area_array = xr.DataArray(area_array) # returned in units of m bzw m^2, because radius in cell_area.py is given in metres
+
 
 area_array_1deg = ca.cell_area(t_res='1_deg',base_dir='/scratch/mp586/Isca/')
 area_array_1deg = xr.DataArray(area_array_1deg)

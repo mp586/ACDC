@@ -1,4 +1,4 @@
-# This script has errors because dt is not only for tropics in the calculations part!
+# not sure about this, especially linear regression part not working (sometimes taking whole globe sometimes only tropics -- need to correct this script!
 
 from netCDF4 import Dataset
 import numpy as np
@@ -163,40 +163,42 @@ kk = (area_weighted_avg(relpermean,area_array,landmaskxr,'ocean',-30.,30.) - are
 
 dttrop = area_weighted_avg(tpermean - tconmean, area_array, landmaskxr, 'all_sfcs',-30.,30.) # tropical mean temperature change
 dprtrop = prpermean_awavg - prconmean_awavg # tropical mean precipitation change 
-dt = tpermean - tconmean # tropical temperature change
-dpr = prpermean - prconmean # tropical precipitation change
+
+
+dt = tpermean.sel(lat=slice(-30.,30.)) - tconmean.sel(lat=slice(-30.,30.)) # tropical temperature change
+dpr = prpermean.sel(lat=slice(-30.,30.)) - prconmean.sel(lat=slice(-30.,30.)) # tropical precipitation change
 
 
 
 # 1) Crude prediction: relies only on tropical mean P and T change 
 
-dtpred = (dq - (((lcc * bb * prconmean) + aa) * dttrop)) / aa # Note: these predictions will only make sense on land. Temperature change wrt tropical mean change.
+dtpred = (dq - (((lcc * bb * prconmean.sel(lat=slice(-30.,30.)) + aa) * dttrop)) / aa # Note: these predictions will only make sense on land. Temperature change wrt tropical mean change.
 
-dprpred = (bb * prconmean * dttrop) - dprtrop # Precipitation change wrt tropical mean. (Chadwick prediction, effectively.)
+dprpred = (bb * prconmean.sel(lat=slice(-30.,30.) * dttrop) - dprtrop # Precipitation change wrt tropical mean. (Chadwick prediction, effectively.)
 
 
-any_configuration_plot(outdir,runmin,runmax,-100.,100.,dprpred,area_array,'mm/day','Pchange_crude_prediction','rainnorm',landmaskxr,minval=-.5,maxval=.5)
+any_configuration_plot(outdir,runmin,runmax,-100.,100.,dprpred,area_array,'mm/day','Pchange_crude_prediction_corrected','rainnorm',landmaskxr,minval=-.5,maxval=.5)
 
-any_configuration_plot(outdir,runmin,runmax,-100.,100.,dtpred,area_array,'K','Tchange_crude_prediction','tempdiff',landmaskxr,minval=-1.,maxval=1.)
+any_configuration_plot(outdir,runmin,runmax,-100.,100.,dtpred,area_array,'K','Tchange_crude_prediction_corrected','tempdiff',landmaskxr,minval=-1.,maxval=1.)
 
 # 2) More advanced prediction that allows for shifts in precipitation caused by changes in land RH (that is used as a proxy for RH rank, curly_R).
 
 
 dtpred2 = (dq - (aa * dttrop) - (lcc * ff * kk * prconmean_awavg) - (
-        lcc * bb * prconmean * dttrop)) / (
-    aa - (lcc * ff * (relconmean/100.)* prconmean_awavg * dd))
+        lcc * bb * prconmean.sel(lat=slice(-30.,30.) * dttrop)) / (
+    aa - (lcc * ff * (relconmean.sel(lat=slice(-30.,30.)/100.)* prconmean_awavg * dd))
                                    
-dprpred2 = (bb * prconmean * dttrop) - (
-    ff * (relconmean/100.)* prconmean_awavg * dd * dtpred2) + (
+dprpred2 = (bb * prconmean.sel(lat=slice(-30.,30.) * dttrop) - (
+    ff * (relconmean.sel(lat=slice(-30.,30.)/100.)* prconmean_awavg * dd * dtpred2) + (
     ff * kk * prconmean_awavg) - dprtrop
 
-dprcheck2 = (bb * prconmean * dttrop) - (
-    ff * (relconmean/100.)* prconmean_awavg * dd * (dt - dttrop)) + (
+dprcheck2 = (bb * prconmean.sel(lat=slice(-30.,30.) * dttrop) - (
+    ff * (relconmean.sel(lat=slice(-30.,30.)/100.)* prconmean_awavg * dd * (dt - dttrop)) + (
     ff * kk * prconmean_awavg) - dprtrop # If we give our precipitation prediction the right temperature change, how does it do? A bit better but not much better. However, the consistency on the delta p versus delta t plot is much better.
 
-any_configuration_plot(outdir,runmin,runmax,-100.,100.,dprpred2,area_array,'mm/day','Pchange_advanced_prediction','rainnorm',landmaskxr,minval=-.5,maxval=.5)
+any_configuration_plot(outdir,runmin,runmax,-100.,100.,dprpred2,area_array,'mm/day','Pchange_advanced_prediction_corrected','rainnorm',landmaskxr,minval=-.5,maxval=.5)
 
-any_configuration_plot(outdir,runmin,runmax,-100.,100.,dtpred2,area_array,'K','Tchange_advanced_prediction','tempdiff',landmaskxr,minval=-6.,maxval=6.)
+any_configuration_plot(outdir,runmin,runmax,-100.,100.,dtpred2,area_array,'K','Tchange_advanced_prediction_corrected','tempdiff',landmaskxr,minval=-6.,maxval=6.)
 
 
 
@@ -214,25 +216,25 @@ dttrop_months = area_weighted_avg_4D(tper_month_avg - tcon_month_avg, area_array
 
 # arrays of dims 12xlatxlon
 dprtrop_months = prper_month_avg_awavg - prcon_month_avg_awavg # tropical _month_avg[i,:,:] precipitation change 
-dt_months = tper_month_avg - tcon_month_avg # tropical temperature change
-dpr_months = prper_month_avg - prcon_month_avg # tropical precipitation change
+dt_months = tper_month_avg.sel(lat=slice(-30.,30.) - tcon_month_avg.sel(lat=slice(-30.,30.) # tropical temperature change
+dpr_months = prper_month_avg.sel(lat=slice(-30.,30.) - prcon_month_avg.sel(lat=slice(-30.,30.) # tropical precipitation change
 
 
 
 # 1) Crude prediction: relies only on tropical _month_avg[i,:,:] P and T change 
 
-dtpred_months = (dq - (((lcc * bb * prcon_month_avg + aa) * dttrop_months))) / aa # Note: these predictions will only make sense on land. Temperature change wrt tropical _month_avg[i,:,:] change.
+dtpred_months = (dq - (((lcc * bb * prcon_month_avg.sel(lat=slice(-30.,30.) + aa) * dttrop_months))) / aa # Note: these predictions will only make sense on land. Temperature change wrt tropical _month_avg[i,:,:] change.
 
-dprpred_months = (bb * prcon_month_avg * dttrop_months) - dprtrop_months # Precipitation change wrt tropical _month_avg[i,:,:]. (Chadwick prediction, effectively.)
+dprpred_months = (bb * prcon_month_avg.sel(lat=slice(-30.,30.) * dttrop_months) - dprtrop_months # Precipitation change wrt tropical _month_avg[i,:,:]. (Chadwick prediction, effectively.)
 
 
 # 2) More advanced prediction that allows for shifts in precipitation caused by changes in land RH (that is used as a proxy for RH rank, curly_R).
 
-dtpred2_months = (dq - (aa * dttrop_months) - (lcc * ff * kk * prcon_month_avg_awavg) - (lcc * bb * prcon_month_avg * dttrop_months)) / (aa - (lcc * ff * (relcon_month_avg/100.)* prcon_month_avg_awavg * dd))
+dtpred2_months = (dq - (aa * dttrop_months) - (lcc * ff * kk * prcon_month_avg_awavg) - (lcc * bb * prcon_month_avg.sel(lat=slice(-30.,30.) * dttrop_months)) / (aa - (lcc * ff * (relcon_month_avg.sel(lat=slice(-30.,30.)/100.)* prcon_month_avg_awavg * dd))
 
-dprpred2_months = (bb * prcon_month_avg * dttrop_months) - (ff * (relcon_month_avg/100.)* prcon_month_avg_awavg * dd * dtpred2_months) + (ff * kk * prcon_month_avg_awavg) - dprtrop_months
+dprpred2_months = (bb * prcon_month_avg.sel(lat=slice(-30.,30.) * dttrop_months) - (ff * (relcon_month_avg.sel(lat=slice(-30.,30.)/100.)* prcon_month_avg_awavg * dd * dtpred2_months) + (ff * kk * prcon_month_avg_awavg) - dprtrop_months
 
-dprcheck2_months = (bb * prcon_month_avg * dttrop_months) - (ff * (relcon_month_avg/100.)* prcon_month_avg_awavg * dd * (dt_months - dttrop_months)) + (ff * kk * prcon_month_avg_awavg) - dprtrop_months
+dprcheck2_months = (bb * prcon_month_avg.sel(lat=slice(-30.,30.) * dttrop_months) - (ff * (relcon_month_avg.sel(lat=slice(-30.,30.)/100.)* prcon_month_avg_awavg * dd * (dt_months.sel(lat=slice(-30.,30.) - dttrop_months)) + (ff * kk * prcon_month_avg_awavg) - dprtrop_months
 
 # If we give our precipitation prediction the right temperature change, how does it do? A bit better but not much better. However, the consistency on the delta p versus delta t plot is much better.
 
@@ -406,4 +408,47 @@ ax[1].legend()
 #ax[1].set_xlim(-1.0,2.5)
 
 fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/dP_vs_dT_each_continent_and_ocean_advanced_month_mean_predictions_'+str(runmin)+'-'+str(runmax), bbox_inches='tight')
+
+#############################################################################################################################
+### LINEAR REGRESIONS ###
+
+maskWC = ~np.isnan(np.asarray(dt[np.where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))==1.)]).flatten())
+maskEC = ~np.isnan(np.asarray(dt[np.where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))==1.)]).flatten())
+maskOC = ~np.isnan(np.asarray(dt[np.where(np.asarray(landmaskxr.sel(lat=slice(-30.,30.)))==0.)]).flatten())
+
+fig, ax = plt.subplots(1,2,sharey=True,figsize=(25,15))
+
+ax[0].plot(np.asarray(dt.where(landmaskWC == 1.)).flatten(),np.asarray(dpr.where(landmaskWC == 1.)).flatten(),'b.',label='West C') # West Island. Temperature change.
+ax[0].plot(np.asarray(dt.where(landmaskEC == 1.)).flatten(),np.asarray(dpr.where(landmaskEC == 1.)).flatten(),'r.',label = 'East C') # East Island
+ax[0].set_xlabel('dt_actual')
+ax[0].set_ylabel('dpr_actual')
+#ax[0].set_xlim(-1.0,2.5)
+ax[0].legend()
+
+[k,dy,r,p,stderr] = linreg(np.asarray(dt.where(landmaskWC == 1.)).flatten()[maskWC],np.asarray(dpr.where(landmaskWC == 1.)).flatten()[maskWC]) # aa = 8.4, dq = -32
+x1 = np.linspace(np.min(np.asarray(dt.where(landmaskWC == 1.)).flatten()[maskWC]),np.max(np.asarray(dt.where(landmaskWC == 1.)).flatten()[maskWC]),500)
+y = k*x1 + dy
+ax[0].plot(x1,y,'b-')
+ax[0].annotate('West C: k = '+str("%.2f" % k)+', dy = '+str("%.2f" % dy)+', r_val = '+str("%.2f" % r), xy=(0.05,0.05), xycoords='axes fraction', fontsize = med)
+
+[k,dy,r,p,stderr] = linreg(np.asarray(dt.where(landmaskWC == 1.)).flatten()[maskEC],np.asarray(dpr.where(landmaskWC == 1.)).flatten()[maskEC]) # aa = 8.4, dq = -32
+x1 = np.linspace(np.min(np.asarray(dt.where(landmaskWC == 1.)).flatten()[maskEC]),np.max(np.asarray(dt.where(landmaskWC == 1.)).flatten()[maskEC]),500)
+y = k*x1 + dy
+ax[0].plot(x1,y,'r-')
+ax[0].annotate('East C: k = '+str("%.2f" % k)+', dy = '+str("%.2f" % dy)+', r_val = '+str("%.2f" % r), xy=(0.05,0.05), xycoords='axes fraction', fontsize = med)
+
+ax[1].plot(np.asarray(dt.where(landmask == 0.)).flatten(),np.asarray(dpr.where(landmask == 0.)).flatten(),'g.',label='ocean') # West Island. Temperature change.
+ax[1].set_xlabel('dt_actual')
+ax[1].legend()
+#ax[1].set_xlim(-1.0,2.5)
+
+
+[k,dy,r,p,stderr] = linreg(np.asarray(dt.where(landmask == 0.)).flatten()[maskOC],np.asarray(dpr.where(landmask == 0.)).flatten()[maskOC]) # aa = 8.4, dq = -32
+x1 = np.linspace(np.min(np.asarray(dt.where(landmask == 0.)).flatten()[maskOC]),np.max(np.asarray(dt.where(landmask == 0.)).flatten()[maskOC]),500)
+y = k*x1 + dy
+ax[1].plot(x1,y,'g-')
+ax[1].annotate('ocean: k = '+str("%.2f" % k)+', dy = '+str("%.2f" % dy)+', r_val = '+str("%.2f" % r), xy=(0.05,0.05), xycoords='axes fraction', fontsize = med)
+
+
+fig.savefig('/scratch/mp586/Code/Graphics/'+outdir+'/dP_vs_dT_each_continent_and_ocean_'+str(runmin)+'-'+str(runmax), bbox_inches='tight')
 
