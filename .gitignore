@@ -1,0 +1,115 @@
+syntax: glob
+## Data files ## 
+################
+*.mat
+*.txt
+*.meta
+*.data
+*.bin
+*.init
+*.obw
+*.nc
+
+## Zipped directories ##
+########################
+*.tar.gz
+*.tgz
+*.gz
+*.zip
+*.tarz
+
+## Vim ##
+########
+*.swp
+*.swo
+
+## Latex ##
+###########
+*.aux
+*.log
+*.backup
+*.bak
+*.toc
+*.vrb
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+
+## m_map ##
+############
+matlab/GSW/html/*
+matlab/GSW/pdf/*
+m_map/*.html
+
+## System ##
+############
+*.DS_Store
+
+## Figures/Docs/Videos ##
+#########################
+*.png
+*.jpeg
+*.pdf
+*.avi
+*.mp4
+*.jpg
+*.gif
+*.fig
+*.mj2
+*.eps
+
+## Modified/old files ##
+########################
+*~
+*.orig
+*.mod
+*.old
+.ipynb_checkpoints
+
+## Output ##
+############
+*.o
+*.out
+*.exe
+*STDOUT.0000
+*STDERR.0000
+
+## Project Specific ##
+######################
+masks
+hf-perturbation
+tauu-perturbation
+relax
+boundary_conditions_flt
+llc_reg_270_11
+.ipynb_checkpoints
+cbrewer2
+28790
+enso-perturb
+enso-perturb-pos
+enso-perturb-neg
+
+# These are on other repos
+xmitgcm
+xgcm
+datashader-examples
+pyfaces/environment.yml
+export_fig
+basemap-1.0.7rel
+
+## MISC ##
+##########
+*.asc
+ax*
+*.nav
+*.snm
+
+## Exceptions ##
+################
+!matlab/m_map/private/m_coasts.mat
+!samoc/index-data/*
+        
+
+syntax: regexp
+.*\#.*\#$
