@@ -65,7 +65,11 @@ m_map/*.html
 *.orig
 *.mod
 *.old
+
+## Python stuff ##
+########################
 .ipynb_checkpoints
+*pycache*
 
 ## Output ##
 ############
