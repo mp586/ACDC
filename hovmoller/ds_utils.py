@@ -28,13 +28,22 @@ def load_dataset(filelist):
 def convert_units(ds):
     # Convert datset units to something a little more intuitive
 
-    # Precipitation to mm/day
+    # Precipitation from kg / m^3 * m/s to mm/day
     ds['precipitation'].values = 86400 * ds['precipitation'].values
     ds['precipitation'].attrs['units']='mm/day'
     
-    # Latent heat flux to mm/day of evaporation
+    # Latent heat flux from W/m^2 to mm/day of evaporation
     ds['flux_lhe'].values = 1/28 * ds['flux_lhe'].values
     ds['flux_lhe'].attrs['units']='mm/day'
+
+    # bucket depth cond,conv,lh to mm/day
+    ds['bucket_depth_cond'].values = 86400 * 1000 * ds['bucket_depth_cond'].values
+    ds['bucket_depth_conv'].values = 86400 * 1000 * ds['bucket_depth_conv'].values
+    ds['bucket_depth_lh'].values = 86400 * 1000 * ds['bucket_depth_lh'].values
+
+    ds['bucket_depth_cond'].attrs['units']='mm/day'
+    ds['bucket_depth_conv'].attrs['units']='mm/day'
+    ds['bucket_depth_lh'].attrs['units']='mm/day'
 
     # Sea level pressure to kpa
     ds['slp'].values = 1 / 1000 * ds['slp'].values
