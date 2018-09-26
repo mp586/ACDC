@@ -28,7 +28,7 @@ def zonalMeanVsTime(t,fld,sel_lat,units=''):
         fld = (fld,)
 
     # make containers for annual mean
-    fld_mean = np.zeros(len(fld))
+    fld_mean = np.zeros(len(fld)*2)
     fld_mean_lbl = []
 
     # figure out number of years and make a time vector for all years
@@ -52,6 +52,7 @@ def zonalMeanVsTime(t,fld,sel_lat,units=''):
         # Compute annual mean and add to the legend entries
         fld_mean[i] = line_to_plot.mean()
         fld_mean_lbl.append('Time mean = %0.1e' % fld_mean[i])
+        fld_mean_lbl.append('Annual average')
 
 
 
