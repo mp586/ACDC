@@ -110,7 +110,8 @@ def hmap(mapdata,lat,cmap=None,clim=None,title=None,
 def mmap(mapdata,lat,lon,title=None,cb_ttl=None,cmap=None,clim=None,
               filepath=None,show=None,sigmask=None,p=None,
               do_zonal=None,newfig=True,
-              outside_color = None, outside_val = None):
+              outside_color = None, outside_val=None,
+              use_pcolor=False):
     # Make a map (robinson projection) of mapdata over lat/lon
     # Inputs
     #   mapdata : 2D field to be plotted
@@ -122,6 +123,7 @@ def mmap(mapdata,lat,lon,title=None,cb_ttl=None,cmap=None,clim=None,
     #   cb_ttl  : colorbar title
     #   cmap    : special colormap
     #   clim    : colorbar limits, as a 2 element array
+    #   use_pcolor: default is to use contourf. Set True for pcolormesh
     
     # mp added a few lines to convert potential xarray inputs to numpy arrays
     # so that add_cyclic_point works
@@ -146,8 +148,12 @@ def mmap(mapdata,lat,lon,title=None,cb_ttl=None,cmap=None,clim=None,
     cyclic_data, cyclic_lons = add_cyclic_point(mapdata,coord=lon)
 
     # Make the plot
-    #mp changed pcolormesh to contourf, get error otherwise 
-    cs = plt.contourf(cyclic_lons,lat,cyclic_data,transform=ccrs.PlateCarree())
+    # Default: contourf
+    if not use_pcolor:
+        cs = plt.contourf(cyclic_lons,lat,cyclic_data,transform=ccrs.PlateCarree())
+    else:
+        cs = plt.pcolormesh(cyclic_lons,lat,cyclic_data,transform=ccrs.PlateCarree())
+
     
     # set colormap
     if cmap:
