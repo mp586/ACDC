@@ -11,7 +11,7 @@ def load_dataset(filelist):
     with xr.set_options(enable_cftimeindex=True):
         ds = xr.open_mfdataset(filelist,autoclose='true',decode_times=False)
 
-    time0 = ds['time']
+    time0 = ds['time'].values
 
     time2 = cftime.num2date(ds['time'][:], units=ds['time'].units,
                             calendar=ds['time'].calendar,
@@ -21,7 +21,7 @@ def load_dataset(filelist):
 
     ds = convert_units(ds)
 
-    return ds
+    return ds, time0
 
 # ------------------------------------------------------------------------
 
